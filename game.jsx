@@ -1,5 +1,5 @@
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
-// Tone.js loaded globally via CDN in index.html
+// Tone.js loaded via CDN
 
 // ═══════════════════════════════════════════════════════════════
 // NINTH LIFE v44 - THE RECORD
@@ -134,6 +134,29 @@ function getGrudges(cats){
 // Tier: common (normal drop), negative (shop discount, build-around),
 //       rare (breeding only)
 const PLAIN={name:"Plain",icon:"",desc:"No special ability yet",tier:"plain"};
+// ★ v47: DRAFT PERSONALITY — each cat speaks one line. Sell the vibe, not the stats.
+const DRAFT_VOICE={
+  // Trait-based (priority)
+  Scrapper:["I fight dirty. That a problem?","Scars? I've got a collection.","Hit me. I dare you.","Pain's just information."],
+  Hefty:["I'm bigger than I look.","First in, last out.","You want someone solid? Here.","I don't move fast. I don't need to."],
+  Provider:["I always find something.","Nobody goes hungry on my watch.","I know where the good stuff hides.","Fortune finds me. Always has."],
+  Wild:["I belong everywhere. And nowhere.","Don't try to categorize me.","I'm whatever you need me to be.","Seasons? I make my own."],
+  Echo:["You'll see me twice.","I linger.","Once is never enough.","Everything I do, I do again."],
+  Cursed:["Don't get close. Trust me.","I bring bad luck. Mostly to others.","Something's wrong with me. Use it.","Alone, I'm dangerous. Together… worse."],
+  Fragile:["I break easy. But I'm not nothing.","Protect me and I'll surprise you.","I'm more useful than I look.","Surround me. Please."],
+  Mythic:["You won't find another like me.","I've been waiting for this colony.","The stories about me? All true.","This changes everything. You'll see."],
+  Phoenix:["I don't stay dead.","Burn me. I'll come back hotter.","Scars make me legendary.","You can't kill what I am."],
+  Chimera:["I'm all of them at once.","Every season runs through me.","I don't fit. That's the point.","More than the sum of my parts."],
+  // Breed fallbacks for Plain cats
+  _Autumn:["I know when to let go.","The leaves taught me patience.","I've seen things end. I'm still here.","Quiet. Watching. Ready."],
+  _Summer:["I'm loud. Deal with it.","Born running. Haven't stopped.","I'll burn for this colony.","You want energy? I'm your cat."],
+  _Winter:["I don't talk much.","Cold doesn't bother me.","I've survived worse than this.","Still. Steady. Enough."],
+  _Spring:["I grow things. Bonds, mostly.","Everything heals if you let it.","I'm here for the others.","New beginnings. That's my whole thing."],
+};
+function getDraftVoice(cat){
+  if(cat.trait.name!=="Plain"&&DRAFT_VOICE[cat.trait.name])return pk(DRAFT_VOICE[cat.trait.name]);
+  return pk(DRAFT_VOICE["_"+cat.breed]||DRAFT_VOICE._Autumn);
+}
 const TRAITS=[
   // ★ v28: COMPLETE REDESIGN - 10 traits, each understood in 5 words
   // ★ v32: Common traits gain CONDITIONS — decisions, not just bonuses
@@ -232,8 +255,7 @@ const NERVE=[
   {name:"NINTH LIFE",xM:2.2,color:"#ffffffdd",glow:"#ffffff88",desc:"the last one"},
 ]; // ★ v44 BALANCE: flattened from 1.0→3.0 to 1.0→2.2 to reduce winning-run snowball
 
-// ★ v46: FOCUS — playing fewer cats rewards precision
-const FOCUS={5:1,4:1,3:1.2,2:1.4,1:1.8};
+// ★ v47 BALANCE: FOCUS removed — sim proved 1-cat ×1.8 can never compete with 5-cat scoring
 
 const UPGRADES=[
   {id:"u_g",name:"Buried Provisions",icon:"🐟",desc:"+2 Rations each night",cost:30,b:{gold:2},max:3},
@@ -1243,9 +1265,7 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
   // NERVE always last — the climax
   const fv=NERVE[fLvl];if(fv.xM>1){mult=Math.round(mult*fv.xM);bd.push({label:`🔥 ${fv.name}`,chips:0,mult:0,xMult:fv.xM,type:"nerve"});}
 
-  // ★ v46: FOCUS — fewer cats = precision bonus (after nerve, before final)
-  const focusXM=FOCUS[cats.length]||1;
-  if(focusXM>1){mult=Math.round(mult*focusXM);bd.push({label:`🎯 Focus ×${focusXM}`,chips:0,mult:0,xMult:focusXM,type:"focus"});}
+  // ★ v47: Focus removed (sim-verified: mathematically non-competitive)
 
   return{chips:Math.max(0,chips),mult:Math.max(1,mult),total:Math.max(0,chips)*Math.max(1,mult),bd,bG,ht:type.name,hasGrudgeProve,hasProviderNerve:providerNerve};
 }
@@ -1260,7 +1280,7 @@ function getUnlocks(meta){
   };
 }
 
-function getTarget(a,b){return Math.round([250,450,1035][b]*Math.pow(2.0,a-1));}
+function getTarget(a,b){return Math.round([250,450,1035][b]*Math.pow(2.15,a-1));} // ★ v47 BALANCE: 2.0→2.15 per ante (sim-verified)
 function getHeatMult(h){return 1+(h||0)*0.15;} // +15% per heat level (stacks: H5 = +75%)
 function getHeatFx(h){
   // Cumulative mechanical penalties per heat level
@@ -1497,7 +1517,7 @@ function FM({level,prev}){
   return(<div style={{width:"100%",maxWidth:700,padding:"0 16px"}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
       <div style={{display:"flex",alignItems:"center",gap:6}}>
-        <span title={"NERVE multiplies ALL scores.\nGain: Crush targets (2.5x pace = +1, 4x = +2).\nGrudge 'Something to Prove' gives bonus gains.\nLose: Discard (-1). Weak hands (-1 to -2).\nDecay: -1 each night transition.\nAt NINTH LIFE (max): ×2.2 to ALL scores."} style={{fontSize:12,fontWeight:700,color:fv.color,letterSpacing:2,textShadow:mx?`0 0 14px ${fv.glow}`:level>3?`0 0 6px ${fv.color}44`:"none",animation:mx?"fp 1s ease-in-out infinite":up?"fpp .4s ease-out":dn?"shake .3s ease":"none",fontFamily:"'Cinzel',serif",cursor:"help"}}>{mx?"✦ ":""}{fv.name}{mx?" ✦":""}</span>
+        <span title={"NERVE multiplies ALL scores.\nGain: Crush targets (3x pace = +1).\nGrudge 'Something to Prove' gives bonus gains.\nLose: Discard (-1). Weak hands (-1 to -2).\nDecay: -1 each night transition.\nAt NINTH LIFE (max): ×2.2 to ALL scores."} style={{fontSize:12,fontWeight:700,color:fv.color,letterSpacing:2,textShadow:mx?`0 0 14px ${fv.glow}`:level>3?`0 0 6px ${fv.color}44`:"none",animation:mx?"fp 1s ease-in-out infinite":up?"fpp .4s ease-out":dn?"shake .3s ease":"none",fontFamily:"'Cinzel',serif",cursor:"help"}}>{mx?"✦ ":""}{fv.name}{mx?" ✦":""}</span>
         <span style={{fontSize:11,color:fv.color,fontFamily:"system-ui",fontWeight:700,opacity:fv.xM>1?1:.4}}>{fv.xM>1?`x${fv.xM}`:""}</span>
         {ch&&<span style={{fontSize:10,fontWeight:700,animation:"countUp .4s ease-out",color:up?"#4ade80":"#ef4444"}}>{up?"▲":"▼"}</span>}
       </div>
@@ -1538,6 +1558,7 @@ function NinthLife(){
   const[boss,setBoss]=useState(null);
   const stRef=useRef(null);
   const scoreEndRef=useRef(null); // ★ v38: Pre-computed end state for skip
+  const fcSeenRef=useRef({}); // ★ v47: Track which first-cascade annotations have shown
   const[ferv,setFerv]=useState(0);const[pFerv,setPFerv]=useState(null);
   const[fFlash,setFFlash]=useState(null);const[rMaxF,setRMaxF]=useState(0);
   const[curses,setCurses]=useState([]);const[cfx,setCfx]=useState({});
@@ -1590,6 +1611,8 @@ function NinthLife(){
   const[tab,setTab]=useState("play");
   // ★ v40: Guided first hand replaces tutorial pages
   const[guide,setGuide]=useState(null); // {step:0-3, msg:"..."}
+  // ★ v47: Auto-play first hand — demo the scoring cascade before handing control
+  const[autoPlay,setAutoPlay]=useState(null); // null | {step:0-3, idxs:[]}
   // ★ v33: Toast notification system — fleeting feedback for purchases, traits, outcomes
   const[toasts,setToasts]=useState([]);const toastRef=useRef(0);
   function toast(icon,text,color="#fbbf24"){const id=++toastRef.current;setToasts(t=>[...t,{id,icon,text,color}]);setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),2200);}
@@ -1685,6 +1708,40 @@ function NinthLife(){
     }
   },[ph]); // eslint-disable-line
 
+  // ★ v47: AUTO-PLAY FIRST HAND — demo the scoring cascade
+  const autoRef=useRef(null);
+  useEffect(()=>{
+    if(!autoPlay||ph!=="playing"||hand.length<2)return;
+    if(autoRef.current)clearTimeout(autoRef.current);
+    if(autoPlay.step===0){
+      // Find best breed pair to auto-select
+      const bc={};hand.forEach((c,i)=>{bc[c.breed]=(bc[c.breed]||0)+1;});
+      const best=Object.entries(bc).sort((a,b)=>b[1]-a[1]).find(([,v])=>v>=2);
+      const idxs=[];
+      if(best)hand.forEach((c,i)=>{if(c.breed===best[0]&&idxs.length<2)idxs.push(i);});
+      else{idxs.push(0);if(hand.length>1)idxs.push(1);}
+      setAutoPlay(a=>({...a,idxs}));
+      // ★ Step 0→1: let player read banner + see the hand (3s)
+      autoRef.current=setTimeout(()=>{
+        setSel(new Set([idxs[0]]));Audio.cardSelect();
+        setAutoPlay(a=>a?{...a,step:1}:null);
+      },3000);
+    }else if(autoPlay.step===1){
+      // ★ Step 1→2: second cat joins after pause (2s)
+      autoRef.current=setTimeout(()=>{
+        setSel(new Set(autoPlay.idxs));Audio.cardSelect();
+        setAutoPlay(a=>a?{...a,step:2}:null);
+      },2000);
+    }else if(autoPlay.step===2){
+      // ★ Step 2→3: dramatic pause with both selected, then play (2.5s)
+      autoRef.current=setTimeout(()=>{
+        setAutoPlay(a=>a?{...a,step:3}:null);
+        playH();
+      },2500);
+    }
+    return()=>{if(autoRef.current)clearTimeout(autoRef.current);};
+  },[autoPlay?.step,ph,hand.length]); // eslint-disable-line
+
   function getMB(){
     if(!meta)return{gold:0,hands:0,discards:0,fervor:0,bloodMemory:0,heirloom:0,draftPower:0,dustBonus:0,scarMult:0,startWard:0,grudgeWisdom:0,shelter:0};
     let b={gold:0,hands:0,discards:0,fervor:0,bloodMemory:0,heirloom:0,draftPower:0,dustBonus:0,scarMult:0,startWard:0,grudgeWisdom:0,shelter:0};
@@ -1777,15 +1834,14 @@ function NinthLife(){
 
   function drawN(dp,di,n){let d=[...dp],ds=[...di];const r=[];for(let i=0;i<n;i++){if(!d.length&&ds.length){d=shuf(ds);ds=[];setReshuf(true);setTimeout(()=>setReshuf(false),800);}if(d.length)r.push(d.shift());}return{drawn:r,nd:d,ndi:ds};}
 
-  // ★ v32.5: Nerve gain — rebalanced for multiplicative scoring
+  // ★ v47 BALANCE: Nerve gain tightened (sim-verified: avg peak 9→5.5)
   function updFerv(s,cs,ct,ch,hasGrudgeProve,hasProviderNerve){
     if(cfx.noNerve)return;
     const rem=ct-cs,pace=ch>0?rem/ch:rem;setPFerv(ferv);
     const proveBonus=hasGrudgeProve?1:0;
     const provBonus=hasProviderNerve?1:0;
-    // ★ v32.5: Raised thresholds — v32 scoring exceeds 2.5× routinely from Night 3
-    if(s>=pace*4.0){const g=2+proveBonus+provBonus;const nx=Math.min(9,ferv+g);setFerv(nx);setRMaxF(m=>Math.max(m,nx));setFFlash("up");Audio.nerveUp();}
-    else if(s>=pace*2.5){const g=1+proveBonus+provBonus;const nx=Math.min(9,ferv+g);setFerv(nx);setRMaxF(m=>Math.max(m,nx));setFFlash("up");Audio.nerveUp();}
+    // ★ v47: Only +1 at 3× pace (was +2 at 4× and +1 at 2.5×)
+    if(s>=pace*3.0){const g=1+proveBonus+provBonus;const nx=Math.min(9,ferv+g);setFerv(nx);setRMaxF(m=>Math.max(m,nx));setFFlash("up");Audio.nerveUp();}
     else if(s<pace*.5){setFerv(Math.max(0,ferv-2+provBonus));setFFlash(provBonus?"up":"down");Audio[provBonus?"nerveUp":"nerveDown"]();}
     else if(s<pace*.8){setFerv(Math.max(0,ferv-1+provBonus));setFFlash(provBonus?"up":"down");Audio[provBonus?"nerveUp":"nerveDown"]();}
     // Grudge proves / Provider can still nudge you up on decent hands
@@ -1847,7 +1903,7 @@ function NinthLife(){
     const startFams=[];
     if(startWards>0){for(let i=0;i<startWards;i++){const w=pk(FAMS.filter(f=>!startFams.find(o=>o.id===f.id)));if(w)startFams.push(w);}}
     setFams(startFams);
-    setDen([]);setDenRes(null);setDenStep(-1);setRunLog([]);setFallen([]);setAnteUp(null);setBossReward(null);setRunBonus({hands:0});setDenNews([]);setFirstHandPlayed(false);setScoringCats([]);setAftermath([]);setColEvent(null);setColTargets([]);setTempMods({hands:0,discs:0});setEventDenSafe(false);setEventDenBonus(0);setBabyNames({});setFirstDenUsed(false);
+    setDen([]);setDenRes(null);setDenStep(-1);setRunLog([]);setFallen([]);setAnteUp(null);setBossReward(null);setRunBonus({hands:0});setDenNews([]);setFirstHandPlayed(false);setScoringCats([]);setAftermath([]);setColEvent(null);setColTargets([]);setTempMods({hands:0,discs:0});setEventDenSafe(false);setEventDenBonus(0);setBabyNames({});setFirstDenUsed(false);fcSeenRef.current={};setAutoPlay(null);
     setRunChips(0);setRunMult(0);setScoreShake(0);setClutch(false);setNewBest(null);setDefeatData(null);setRerollCount(0);
     // ★ v30: The Hearth — saved cats radiate stardust at start of each run
     if(meta&&meta.cats.length>0){
@@ -1931,6 +1987,8 @@ function NinthLife(){
 
   function advanceFromScoring(){
     if(!scoringDone||!sRes)return;
+    // ★ v47: Always clear autoPlay on scoring advance — no race condition
+    if(autoPlay){setAutoPlay(null);setGuide({step:3,msg:""});}
     const result=sRes;const cats=scoringCats;
     setScoringDone(false);
     const tgt=eTgt();const ns=rScore+result.total;
@@ -1982,11 +2040,12 @@ function NinthLife(){
     if(end.total>prev){setHandBests(b=>({...b,[end.ht]:end.total}));setNewBest(end.ht);}
     setAftermath(end.aft);
     setScoringDone(true);
+    // ★ v47: autoPlay clearing now handled by advanceFromScoring directly
     // ★ v40: Guide step 2→3 on scoring complete
-    if(guide&&guide.step===2)setTimeout(()=>setGuide(g=>g?({...g,step:3}):null),400);
+    if(!autoPlay&&guide&&guide.step===2)setTimeout(()=>setGuide(g=>g?({...g,step:3}):null),400);
   }
 
-  const toggleS=i=>{if(ph!=="playing")return;Audio.cardSelect();const s=new Set(sel);if(s.has(i))s.delete(i);else if(s.size<5)s.add(i);setSel(s);
+  const toggleS=i=>{if(ph!=="playing"||autoPlay)return;Audio.cardSelect();const s=new Set(sel);if(s.has(i))s.delete(i);else if(s.size<5)s.add(i);setSel(s);
     // ★ v40: Guide step 0→1 when player selects 2+ same-breed cats
     if(guide&&guide.step===0&&s.size>=2){
       const sc=[...s].map(j=>hand[j]).filter(Boolean);const bc={};sc.forEach(c=>{bc[c.breed]=(bc[c.breed]||0)+1;});
@@ -2026,13 +2085,14 @@ function NinthLife(){
     });
     const bondedInHand=cats.filter(c=>c.bondedTo&&cats.find(x=>x.id===c.bondedTo));
     if(bondedInHand.length>=2)aft.push({icon:"💕",text:`${bondedInHand[0].name.split(" ")[0]} & ${bondedInHand[1].name.split(" ")[0]}: Together +8M`,color:"#f472b6"});
-    scoreEndRef.current={chips:result.chips,mult:result.mult,total:result.total,ht:result.ht,aft,shk:getShakeIntensity(result.total)};
+    scoreEndRef.current={chips:result.chips,mult:result.mult,total:result.total,ht:result.ht,aft,shk:getShakeIntensity(result.total),isFirstCascade};
+    // ★ v47: First cascade plays at 1.4× speed for comprehension (not 2.2× — that's glacial)
+    const isFirstCascade=isFirstRun&&ante===1&&blind===0&&!firstHandPlayed;
     // ★ v38: Pre-compute score-at-each-step for jump detection
     // ★ v46: stepScores removed — S-curve timing uses step type, not % jumps
     function getStepDelay(s,total){
       // ★ v46: Aristocrat S-curve + tempo scaling
-      // Fewer combos = slower (each one savors). More combos = faster cascade.
-      // tempo: 4 steps→1.5x, 7→1.1x, 12→0.7x, 20+→0.45x
+      const slowMult=isFirstCascade?1.4:1; // ★ v47: first cascade 1.4× slower (readable, not glacial)
       const tempo=Math.max(0.4, Math.min(1.5, 8/total));
       const step=result.bd[s];
       const isLast=s===total-1;
@@ -2043,35 +2103,35 @@ function NinthLife(){
       const isBond=step&&(step.type==="bond"||step.type==="lineage");
 
       // Negative steps: always fast. Don't dwell on pain.
-      if(isNeg) return Math.round(140*tempo);
+      if(isNeg) return Math.round(140*tempo*slowMult);
 
       // xMult freeze-frame: THE moment. Scales less (always dramatic, min 500ms)
-      if(hasX) return Math.max(500, Math.round(700*Math.max(0.7,tempo)));
+      if(hasX) return Math.round(Math.max(500, 700*Math.max(0.7,tempo))*slowMult);
 
       // Nerve climax: dramatic, scales gently
-      if(isNerve) return Math.max(400, Math.round(600*Math.max(0.7,tempo)));
+      if(isNerve) return Math.round(Math.max(400, 600*Math.max(0.7,tempo))*slowMult);
 
       // Bond/lineage: warm moment, worth savoring
-      if(isBond) return Math.max(300, Math.round(450*tempo));
+      if(isBond) return Math.round(Math.max(300, 450*tempo)*slowMult);
 
       // Anticipation gap: penultimate step — always slow relative to cascade
-      if(isPenult) return Math.max(350, Math.round(500*tempo));
+      if(isPenult) return Math.round(Math.max(350, 500*tempo)*slowMult);
 
       // Last step: the reveal
-      if(isLast) return Math.max(450, Math.round(650*tempo));
+      if(isLast) return Math.round(Math.max(450, 650*tempo)*slowMult);
 
       // First step (hand type): establish
-      if(s===0) return Math.round(550*tempo);
+      if(s===0) return Math.round(550*tempo*slowMult);
 
       // Second step: building
-      if(s===1) return Math.round(450*tempo);
+      if(s===1) return Math.round(450*tempo*slowMult);
 
       // Third step: still building
-      if(s<=3) return Math.round(350*tempo);
+      if(s<=3) return Math.round(350*tempo*slowMult);
 
       // Everything else: cascade (scales fully with tempo)
       const cascade=Math.max(50, Math.round((180-s*3)*tempo));
-      return cascade;
+      return Math.round(cascade*slowMult);
     }
     function animStep(){
       step++;
@@ -2100,8 +2160,9 @@ function NinthLife(){
         if(end.total>prev){setHandBests(b=>({...b,[end.ht]:end.total}));setNewBest(end.ht);}
         setAftermath(end.aft);
         setScoringDone(true);
+        // ★ v47: autoPlay clearing now handled by advanceFromScoring directly
         // ★ v40: Guide step 2→3 on scoring complete
-        if(guide&&guide.step===2)setTimeout(()=>setGuide(g=>g?({...g,step:3}):null),400);
+        if(!autoPlay&&guide&&guide.step===2)setTimeout(()=>setGuide(g=>g?({...g,step:3}):null),400);
         // ★ v39: Tier reveal sound
         const tier=getScoreTier(end.total);
         if(tier&&tier.label)Audio.tierReveal(Math.min(5,Math.floor(end.total/5000)));
@@ -2843,6 +2904,7 @@ function NinthLife(){
     @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
     @keyframes fpp{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
     @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+    @keyframes guidePulse{0%,100%{transform:translateY(0);filter:brightness(1)}50%{transform:translateY(-4px);filter:brightness(1.2)}}
     @keyframes glow{0%,100%{box-shadow:0 0 15px #fef08a44}50%{box-shadow:0 0 30px #fef08a88}}
     @keyframes flash{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
     @keyframes countUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -2904,14 +2966,8 @@ function NinthLife(){
         <div style={{fontSize:10,color:"#d9770688",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",lineHeight:1.6,maxWidth:300,animation:"fadeIn 1s ease-out"}}>{storyText}</div>
 
         {/* ★ v32.5: Contextual hint — explain at the moment of decision, not before */}
-        {isFirstRun&&draftPicked.length===0&&<div style={{padding:"10px 16px",borderRadius:10,background:"#fbbf2408",border:"1px solid #fbbf2422",maxWidth:320,animation:"fadeIn 1.2s ease-out .5s both"}}>
-          <div style={{fontSize:10,color:"#fbbf24",fontWeight:700,letterSpacing:2,marginBottom:4}}>WHAT MATTERS</div>
-          <div style={{display:"flex",flexDirection:"column",gap:3,fontSize:10,fontFamily:"system-ui",lineHeight:1.4}}>
-            <div style={{color:"#3b82f6"}}>⚡ <b>Power</b> → Chips (more = higher base score)</div>
-            <div style={{color:"#4ade80"}}>✨ <b>Season</b> → Match 2+ of the same for bigger hands</div>
-            <div style={{color:"#c084fc"}}>✨ <b>Trait</b> → Special abilities (tap any cat to preview)</div>
-          </div>
-        </div>}
+        {/* ★ v47: First-run draft — trust instinct, don't info-dump */}
+        {isFirstRun&&draftPicked.length===0&&<div style={{fontSize:11,color:"#fbbf2466",fontFamily:"system-ui",textAlign:"center",maxWidth:280,lineHeight:1.5,animation:"fadeIn 1.2s ease-out .5s both"}}>Pick who catches your eye. You'll learn what they do together.</div>}
         {draftPicked.length>0&&<div style={{display:"flex",gap:6,alignItems:"center"}}>
           <span style={{fontSize:10,color:"#4ade8088",letterSpacing:2}}>CHOSEN</span>
           {draftPicked.map((c,i)=>(<CC key={i} cat={c} sm hl/>))}
@@ -2920,13 +2976,13 @@ function NinthLife(){
         <div style={{display:"flex",gap:12,animation:"fadeIn .4s ease-out"}}>
           {draftPool.map((c,i)=>{
             const b=BREEDS[c.breed];
-            return(<div key={c.id} onClick={()=>pickDraft(i)} style={{cursor:"pointer",transition:"transform .2s",textAlign:"center"}}>
+            const voice=getDraftVoice(c);
+            return(<div key={c.id} onClick={()=>pickDraft(i)} style={{cursor:"pointer",transition:"transform .2s",textAlign:"center",maxWidth:120}}>
               <CC cat={c}/>
-              <div style={{fontSize:10,fontFamily:"system-ui",color:b.color,marginTop:2,lineHeight:1.3}}>
-                <div>{c.name.split(" ")[0]}</div>
-                <div style={{color:"#888"}}>P{c.power} {b.icon}{c.breed} {c.trait.icon}{c.trait.name}</div>
-                {c.stats?.par&&<div style={{color:"#34d399",fontSize:9}}>👪 {c.stats.par}</div>}
-              </div>
+              <div style={{fontSize:11,fontFamily:"system-ui",color:b.color,marginTop:3,lineHeight:1.3,fontWeight:700}}>{c.name.split(" ")[0]}</div>
+              <div style={{fontSize:10,color:"#ffffffaa",fontStyle:"italic",fontFamily:"system-ui",lineHeight:1.4,minHeight:28,marginTop:2}}>"{voice}"</div>
+              <div style={{fontSize:9,color:"#666",fontFamily:"system-ui",marginTop:2}}>{b.icon}{c.breed} · {c.trait.name!=="Plain"?c.trait.icon+" "+c.trait.name:"plain"}</div>
+              {c.stats?.par&&<div style={{color:"#34d399",fontSize:9,fontFamily:"system-ui"}}>👪 {c.stats.par}</div>}
             </div>);
           })}
         </div>
@@ -2943,7 +2999,7 @@ function NinthLife(){
     const ncTgt=Math.round(getTarget(nightCard.ante,nightCard.blind));
     const isFirstEver=meta&&meta.stats.r===0&&nightCard.ante===1&&nightCard.blind===0;
     return(<div style={W}><div style={BG}/><style>{CSS}</style>
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",zIndex:1,gap:10,padding:20}} onClick={()=>{setNightCard(null);setPh("playing");}}>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",zIndex:1,gap:10,padding:20}} onClick={()=>{setNightCard(null);setPh("playing");if(isFirstEver)setAutoPlay({step:0,idxs:[]});}}>
         <div style={{fontSize:11,color:"#55555588",letterSpacing:3,fontFamily:"system-ui",animation:"fadeIn .6s ease-out",textTransform:"uppercase"}}>Night {nightCard.ante}</div>
         <div style={{fontSize:32,fontWeight:900,letterSpacing:8,color:"#fbbf24",fontFamily:"'Cinzel',serif",animation:"comboBurst .6s ease-out",textShadow:"0 0 40px #fbbf2444"}}>{blindNames[nightCard.blind].toUpperCase()}</div>
         <div style={{fontSize:15,color:"#88888888",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:300,lineHeight:1.6,animation:"fadeIn 1.2s ease-out"}}>{epi}</div>
@@ -2957,7 +3013,7 @@ function NinthLife(){
           <div style={{textAlign:"center"}}><div style={{fontSize:10,color:"#666",letterSpacing:2,fontFamily:"system-ui"}}>HANDS</div><div style={{fontSize:20,fontWeight:900,color:"#3b82f6"}}>3</div></div>
         </div>
         {/* ★ v32.5: First-run hint */}
-        {isFirstEver&&<div style={{fontSize:11,color:"#4ade80",fontFamily:"system-ui",textAlign:"center",maxWidth:280,lineHeight:1.5,animation:"fadeIn 2s ease-out .6s both",padding:"10px 16px",borderRadius:8,background:"#4ade800a",border:"1px solid #4ade8022"}}>Match seasons for stronger combos. Two of the same = Kin. Three = Clowder.</div>}
+        {isFirstEver&&<div style={{fontSize:11,color:"#4ade80",fontFamily:"system-ui",textAlign:"center",maxWidth:280,lineHeight:1.5,animation:"fadeIn 2s ease-out .6s both",padding:"10px 16px",borderRadius:8,background:"#4ade800a",border:"1px solid #4ade8022"}}>Score {ncTgt.toLocaleString()} to survive. Tap cats, then Play. The guide will help.</div>}
         <div style={{fontSize:10,color:"#44444488",fontFamily:"system-ui",marginTop:16,animation:"fadeIn 2s ease-out"}}>tap to continue</div>
       </div>
     </div>);
@@ -3041,8 +3097,8 @@ function NinthLife(){
           </div>
         </div>
 
-        {isFirstRun&&<div style={{fontSize:11,color:"#fbbf2488",fontFamily:"system-ui",textAlign:"center",lineHeight:1.4,maxWidth:320,animation:"fadeIn 1.5s ease-out 1.2s both",padding:"8px 14px",borderRadius:8,background:"#fbbf2406",border:"1px solid #fbbf2411"}}>
-          Your cats are your cards. Match seasons to score. Scars multiply. Bonds multiply more.
+        {isFirstRun&&<div style={{fontSize:11,color:"#fbbf2466",fontFamily:"system-ui",textAlign:"center",lineHeight:1.4,maxWidth:320,animation:"fadeIn 1.5s ease-out 1.2s both"}}>
+          The game will show you what to do. Just play.
         </div>}
 
         {hearthDust>0&&<div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 16px",borderRadius:8,background:"#c084fc0a",border:"1px solid #c084fc22",animation:"fadeIn 1.5s ease-out 1.4s both"}}>
@@ -3124,14 +3180,14 @@ function NinthLife(){
           {(meta?.relics||[]).length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"center"}}>
             {(meta.relics||[]).sort().map(h=>{const r=HEAT_RELICS[h];return r?(<div key={h} style={{padding:"3px 8px",borderRadius:5,background:"#fbbf2408",border:"1px solid #fbbf2422",fontSize:10,color:"#fbbf24",fontFamily:"system-ui"}} title={`${r.name}: ${r.desc}\n"${r.flavor}"`}>{r.icon} {r.name}</div>):null;})}
           </div>}
-          {/* ★ v33: First-run shorter run explanation */}
-          {(!meta||meta.stats.r===0)&&<div style={{fontSize:11,color:"#fbbf2466",fontFamily:"system-ui",lineHeight:1.5,textAlign:"center",maxWidth:300}}>Your first run is 3 nights — learn the ropes. Full 5-night runs unlock after.</div>}
+          {/* ★ v47: First-run — concise, no spoilers */}
+          {(!meta||meta.stats.r===0)&&<div style={{fontSize:11,color:"#fbbf2466",fontFamily:"system-ui",lineHeight:1.5,textAlign:"center",maxWidth:300}}>3 nights. 14 cats. The game teaches as you play.</div>}
           {meta&&<div style={{display:"flex",gap:14,fontFamily:"system-ui",fontSize:10,color:"#555",alignItems:"center",flexWrap:"wrap"}}><button onClick={()=>setSeen(s=>({...s,howToPlay:!s.howToPlay}))} style={{background:"none",border:"1px solid #ffffff12",borderRadius:12,color:"#555",fontSize:10,cursor:"pointer",padding:"2px 8px",fontFamily:"system-ui"}}>How to Play</button><span>{meta.stats.r} runs</span><span>{meta.stats.w} wins</span></div>}
           {seen.howToPlay&&<div style={{padding:"10px 16px",borderRadius:10,background:"#ffffff06",border:"1px solid #ffffff0a",maxWidth:400,fontSize:11,fontFamily:"system-ui",color:"#aaa",lineHeight:1.6,animation:"fadeIn .4s ease-out",textAlign:"left"}}>
             <div style={{fontWeight:700,color:"#fbbf24",marginBottom:4}}>Quick Rules</div>
             Draw 7 cats. Pick up to 5. Match seasons for stronger hands — 2 of a kind = Kin, 3 = Clowder, 4 = Colony. Your score = Chips × Mult. Beat the target to survive.
             <div style={{marginTop:6}}>Scars (×1.25) and Bonds (×1.35) make your cats stronger. Nerve builds when you crush targets — at max, it more than doubles everything. In the Den, shelter cats to breed them. Everyone else enters the wilds to train, fight, and grow.</div>
-            <div style={{marginTop:6,color:"#67e8f9"}}>🎯 Focus: Playing fewer cats gives a precision bonus — 3 cats = ×1.2, 2 = ×1.4, 1 = ×1.8. Quality over quantity.</div>
+            <div style={{marginTop:6,color:"#67e8f9"}}>🎯 Tip: Match breeds for Clowder/Colony hands. Stack traits for big multipliers. Bonds and scars multiply everything.</div>
             <div style={{marginTop:6,color:"#34d399"}}>👪 Lineage: Parent + child in hand = ×1.15. Shelter parent with child to teach traits. Save a M/F pair to the Hearth — their descendants start your next colony.</div>
           </div>}
           {meta&&(mb.gold>0||mb.hands>0||mb.discards>0||mb.fervor>0)&&<div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center",fontFamily:"system-ui",fontSize:10}}>
@@ -3941,7 +3997,7 @@ function NinthLife(){
 
         {/* First-encounter shop hint */}
         {!seen.shop&&<div style={{padding:"8px 14px",borderRadius:8,background:"#fbbf2408",border:"1px solid #fbbf2422",fontSize:11,fontFamily:"system-ui",color:"#fbbf24aa",lineHeight:1.5,textAlign:"center",maxWidth:400,animation:"fadeIn .6s ease-out"}}>
-          <b>The Market</b> — Buy cats and wards. Save rations for interest (+1🐟 per 5 saved, max +5).
+          Buy cats to grow your colony, or wards for passive bonuses. Unspent rations earn interest.
           <div style={{marginTop:4}}><button onClick={()=>setSeen(s=>({...s,shop:true}))} style={{fontSize:10,background:"none",border:"1px solid #fbbf2433",borderRadius:4,color:"#fbbf24",cursor:"pointer",padding:"2px 8px",fontFamily:"system-ui"}}>Got it</button></div>
         </div>}
 
@@ -4090,37 +4146,51 @@ function NinthLife(){
       </div>}
 
       {/* ★ v40: Guided first hand — teach by doing, not by reading */}
-      {guide&&ante===1&&blind===0&&ph==="playing"&&(()=>{
+      {/* ★ v47: AUTO-PLAY BANNER — shows during first-hand demo */}
+      {autoPlay&&ph==="playing"&&<div style={{position:"fixed",bottom:60,left:"50%",transform:"translateX(-50%)",zIndex:150,padding:"14px 24px",borderRadius:12,background:"#0a0a1aee",border:"1px solid #4ade8044",maxWidth:340,animation:"fadeIn .6s ease-out",textAlign:"center",fontFamily:"system-ui",boxShadow:"0 8px 32px #00000088"}}>
+        <div style={{fontSize:14,color:"#4ade80",fontWeight:700,marginBottom:4}}>{
+          autoPlay.step===0?"👀 Watch this first hand..."
+          :autoPlay.step===1?"Step 1: Selecting a matching pair"
+          :autoPlay.step===2?"Step 2: Same season — stronger hand"
+          :"Step 3: Playing the hand..."
+        }</div>
+        <div style={{fontSize:11,color:"#4ade80aa",lineHeight:1.5}}>{
+          autoPlay.step===0?"The game will show you how scoring works."
+          :autoPlay.step===1?`Picking a ${hand[autoPlay.idxs?.[0]]?BREEDS[hand[autoPlay.idxs[0]].breed]?.name:""} cat...`
+          :autoPlay.step===2?`Two ${hand[autoPlay.idxs?.[0]]?BREEDS[hand[autoPlay.idxs[0]].breed]?.name:""} cats. This makes a Kin hand.`
+          :"Watch how each cat builds the score..."
+        }</div>
+        <button onClick={()=>{if(autoRef.current)clearTimeout(autoRef.current);setSel(new Set());setAutoPlay(null);setGuide({step:3,msg:""});}} style={{marginTop:8,fontSize:10,background:"none",border:"1px solid #4ade8033",borderRadius:4,color:"#4ade8066",cursor:"pointer",padding:"3px 10px"}}>Skip demo →</button>
+      </div>}
+      {guide&&!autoPlay&&ante===1&&blind===0&&ph==="playing"&&(()=>{
         // Compute guide context
         const selCats=[...sel].map(i=>hand[i]).filter(Boolean);
         const breedCounts={};selCats.forEach(c=>{breedCounts[c.breed]=(breedCounts[c.breed]||0)+1;});
         const hasPair=Object.values(breedCounts).some(v=>v>=2);
-        // Find a breed pair to highlight
         const pairBreed=hand.reduce((acc,c)=>{acc[c.breed]=(acc[c.breed]||0)+1;return acc;},{});
         const suggestBreed=Object.entries(pairBreed).sort((a,b)=>b[1]-a[1]).find(([,v])=>v>=2);
-        const highlightIdxs=suggestBreed?hand.map((c,i)=>c.breed===suggestBreed[0]?i:-1).filter(i=>i>=0).slice(0,2):[];
 
         let msg="",sub="";
         if(guide.step===0){
-          const bName=suggestBreed?suggestBreed[0]:"matching";
-          msg=`👆 Tap two ${bName} cats to select them`;
-          sub="Matching seasons makes stronger hands.";
+          const bIcon=suggestBreed?BREEDS[suggestBreed[0]]?.icon:"";
+          msg=`${bIcon} Tap the glowing cats`;
+          sub="Same season = stronger hand.";
         }else if(guide.step===1){
           const ht=evalH?.(selCats);
-          msg=`That's a ${ht?.name||"hand"}! Now hit Play.`;
+          msg=`✨ ${ht?.name||"Hand"}! Hit Play ▶`;
           sub="Watch how each cat builds the score.";
         }else if(guide.step===2){
-          msg="Each cat adds Chips, then traits Multiply.";
-          sub="That's the engine. Match seasons, stack traits, multiply everything.";
+          msg="Each cat adds to the score.";
+          sub="Matching seasons multiplied it. That's the whole game.";
         }else if(guide.step===3){
           const need=Math.max(0,tgt-rScore);
-          msg=`${hLeft} hands left. Need ${need.toLocaleString()} more.`;
-          sub="Try a different group — or discard to draw new cats.";
+          const postAuto=!autoPlay&&isFirstRun&&ante===1&&blind===0&&hLeft>=2;
+          msg=postAuto?"Your turn! 🎮":need>0?`${hLeft} hand${hLeft!==1?"s":""} left. Need ${need.toLocaleString()} more.`:"Target cleared! 🎉";
+          sub=postAuto?`${hLeft} hands left. Tap cats that share a season, then hit Play.`:need>0?"Pick a different group — or discard to draw new cats.":"Play more hands for overflow gold.";
         }
-        return(<div style={{position:"fixed",bottom:guide.step>=2?280:220,left:"50%",transform:"translateX(-50%)",zIndex:150,padding:"12px 20px",borderRadius:12,background:"#0a0a1aee",border:"1px solid #fbbf2444",maxWidth:380,animation:"fadeIn .6s ease-out",textAlign:"center",fontFamily:"system-ui",boxShadow:"0 8px 32px #00000088"}}>
-          <div style={{fontSize:13,color:"#fbbf24",fontWeight:700,marginBottom:3}}>{msg}</div>
+        return(<div style={{position:"fixed",bottom:guide.step>=2?280:220,left:"50%",transform:"translateX(-50%)",zIndex:150,padding:"12px 20px",borderRadius:12,background:"#0a0a1aee",border:"1px solid #fbbf2444",maxWidth:340,animation:"fadeIn .6s ease-out",textAlign:"center",fontFamily:"system-ui",boxShadow:"0 8px 32px #00000088"}}>
+          <div style={{fontSize:14,color:"#fbbf24",fontWeight:700,marginBottom:3}}>{msg}</div>
           <div style={{fontSize:11,color:"#fbbf24aa",lineHeight:1.5}}>{sub}</div>
-          {guide.step===0&&highlightIdxs.length>=2&&<div style={{fontSize:10,color:"#fbbf2466",marginTop:4}}>💡 Try the {suggestBreed[0]} cats (positions {highlightIdxs.map(i=>i+1).join(" & ")})</div>}
           <button onClick={()=>{if(guide.step>=3){setGuide(null);setSeen(s=>({...s,guided:true}));}else setGuide(g=>({...g,step:Math.min(3,g.step+1)}));}} style={{marginTop:6,fontSize:10,background:"none",border:"1px solid #fbbf2433",borderRadius:4,color:"#fbbf2488",cursor:"pointer",padding:"3px 10px"}}>{guide.step>=3?"Got it!":"Skip"}</button>
         </div>);
       })()}
@@ -4174,6 +4244,19 @@ function NinthLife(){
             const pct=tgt>0?Math.min(100,(curTotal+rScore)/tgt*100):0;
             const nearMiss=pct>=70&&pct<100;
             const tier=done?getScoreTier(sRes.total):null;
+            // ★ v47: First-cascade plain-english annotations
+            const _fc=scoreEndRef.current?.isFirstCascade;
+            let annotation=null;
+            if(_fc&&s&&!done){
+              const t=s.type;
+              if(t==="hand"&&!fcSeenRef.current.hand){fcSeenRef.current.hand=true;annotation="Matching seasons = stronger hand type";}
+              else if(t==="cat"&&!fcSeenRef.current.cat){fcSeenRef.current.cat=true;annotation="Each cat's Power adds Chips";}
+              else if(t==="passive"&&!fcSeenRef.current.pass){fcSeenRef.current.pass=true;annotation="Season bonus — every breed has one";}
+              else if((t==="trait"||t==="trait_rare")&&!fcSeenRef.current.trait){fcSeenRef.current.trait=true;annotation="Traits add bonus multipliers";}
+              else if(t==="scar"&&!fcSeenRef.current.scar){fcSeenRef.current.scar=true;annotation="Battle scars multiply everything ×1.25";}
+              else if(t==="bond"&&!fcSeenRef.current.bond){fcSeenRef.current.bond=true;annotation="Bonded pairs multiply everything ×1.35";}
+              else if(t==="nerve"&&!fcSeenRef.current.nerve){fcSeenRef.current.nerve=true;annotation="Nerve builds when you crush targets";}
+            }
 
             // Counter color reacts to what just happened (Aristocrat: counter tells the story)
             const hasX=s&&!!s.xMult;
@@ -4202,7 +4285,6 @@ function NinthLife(){
               lineage:["Blood remembers.","Family fights harder.","Generations deep."],
               grudge_prove:["Something to prove.","Rage is fuel.","They'll show them.","Spite burns bright."],
               grudge_tension:["Old wounds fester.","They can't focus.","History weighs."],
-              focus:["Precision.","Less is more.","Every claw counts."],
               nerve:NERVE[ferv]?.desc?[NERVE[ferv].desc]:[],
               fam:["A ward watches.","Silent guardian."],
               trait:["Instinct kicks in.","Bred for this.","It's in their nature.","Training pays off."],
@@ -4219,7 +4301,6 @@ function NinthLife(){
               else if(s.type==="lineage")pool=pools.lineage;
               else if(s.type==="grudge_prove")pool=pools.grudge_prove;
               else if(s.type==="grudge_tension")pool=pools.grudge_tension;
-              else if(s.type==="focus")pool=pools.focus;
               else if(s.type==="nerve")pool=pools.nerve;
               else if(s.type==="fam")pool=pools.fam;
               else if(s.type==="trait")pool=pools.trait;
@@ -4253,21 +4334,32 @@ function NinthLife(){
 
               {/* THE NUMBER — the hero. Eye magnet. Changes color per step type. */}
               <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                <span style={{color:"#3b82f6",fontWeight:900,fontSize:done?24:16,transition:"font-size .2s"}}>{runChips||sRes.bd[0]?.chips||0}</span>
+                <div style={{textAlign:"center"}}>
+                  <span style={{color:"#3b82f6",fontWeight:900,fontSize:done?24:16,transition:"font-size .2s"}}>{runChips||sRes.bd[0]?.chips||0}</span>
+                  {_fc&&!done&&<div style={{fontSize:7,color:"#3b82f688",fontFamily:"system-ui",letterSpacing:1}}>CHIPS</div>}
+                </div>
                 <span style={{color:"#555",fontSize:12}}>×</span>
-                <span style={{color:"#ef4444",fontWeight:900,fontSize:done?24:16,transition:"font-size .2s"}}>{runMult||1}</span>
+                <div style={{textAlign:"center"}}>
+                  <span style={{color:"#ef4444",fontWeight:900,fontSize:done?24:16,transition:"font-size .2s"}}>{runMult||1}</span>
+                  {_fc&&!done&&<div style={{fontSize:7,color:"#ef444488",fontFamily:"system-ui",letterSpacing:1}}>MULT</div>}
+                </div>
                 <span style={{color:"#555",fontSize:12}}>=</span>
-                <span style={{fontWeight:900,
-                  fontSize:done?36:22,
-                  color:counterColor,
-                  textShadow:`0 0 20px ${counterColor}66${done?", 0 0 60px "+counterColor+"33":""}`,
-                  animation:done?"scorePop .5s ease-out":hasX?"multFlash .4s ease-out":"none",
-                  transition:"all .15s",fontFamily:"system-ui",
-                }}>{curTotal.toLocaleString()}</span>
+                <div style={{textAlign:"center"}}>
+                  <span style={{fontWeight:900,
+                    fontSize:done?36:22,
+                    color:counterColor,
+                    textShadow:`0 0 20px ${counterColor}66${done?", 0 0 60px "+counterColor+"33":""}`,
+                    animation:done?"scorePop .5s ease-out":hasX?"multFlash .4s ease-out":"none",
+                    transition:"all .15s",fontFamily:"system-ui",
+                  }}>{curTotal.toLocaleString()}</span>
+                  {_fc&&!done&&<div style={{fontSize:7,color:counterColor+"88",fontFamily:"system-ui",letterSpacing:1}}>SCORE</div>}
+                </div>
               </div>
 
               {/* Flavor — subtitle OF the counter, not a separate zone */}
               {!done&&flavor&&<div style={{fontSize:11,color:counterColor+"bb",fontFamily:"system-ui",fontStyle:"italic",letterSpacing:1.5,marginTop:2,animation:"fadeIn .15s ease-out",maxWidth:260,textAlign:"center",lineHeight:1.3}}>{flavor}</div>}
+              {/* ★ v47: First-cascade plain-english annotation */}
+              {!done&&annotation&&<div style={{fontSize:10,color:"#4ade80",fontFamily:"system-ui",marginTop:4,padding:"3px 12px",borderRadius:8,background:"#4ade800a",border:"1px solid #4ade8022",animation:"fadeIn .3s ease-out",maxWidth:280,textAlign:"center",lineHeight:1.4,letterSpacing:.5}}>💡 {annotation}</div>}
 
               {/* Step label — footnote OF the counter */}
               {s&&!done&&<div style={{marginTop:2,textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
@@ -4308,6 +4400,11 @@ function NinthLife(){
 
               {/* New best — part of the counter celebration */}
               {done&&newBest&&<div style={{fontSize:10,fontWeight:700,color:"#fbbf24",letterSpacing:3,animation:"newBestPop .5s ease-out",fontFamily:"system-ui",background:"#fbbf2418",padding:"3px 12px",borderRadius:20,border:"1px solid #fbbf2433",marginTop:4}}>NEW BEST {newBest.toUpperCase()}</div>}
+
+              {/* ★ v47: First-cascade completion summary */}
+              {done&&_fc&&<div style={{fontSize:11,color:"#4ade80",fontFamily:"system-ui",marginTop:6,padding:"6px 14px",borderRadius:8,background:"#4ade800a",border:"1px solid #4ade8022",animation:"fadeIn .6s ease-out .3s both",maxWidth:300,textAlign:"center",lineHeight:1.5}}>
+                <b>Chips × Mult = Score.</b> Match seasons, stack traits, and multiply everything. That's the whole game.
+              </div>}
 
             </div>);
           })()}
@@ -4458,7 +4555,7 @@ function NinthLife(){
           const scarredXM=Math.pow(1.25,scarredCount);
           const bondPairCount=selC.filter(c=>c.bondedTo&&selC.find(x=>x.id===c.bondedTo)).length/2;
           const bondPairXM=Math.pow(1.35,Math.floor(bondPairCount));
-          const sig=(baseC+catPow)*(baseM+traitCount*2)*Math.max(1,NERVE[ferv].xM)*scarredXM*bondPairXM*(FOCUS[selC.length]||1);
+          const sig=(baseC+catPow)*(baseM+traitCount*2)*Math.max(1,NERVE[ferv].xM)*scarredXM*bondPairXM; // ★ v47: Focus removed
           const tgt2=eTgt();const need=Math.max(0,tgt2-rScore);
           const pacePerHand=hLeft>0?need/hLeft:need;
           const ratio=pacePerHand>0?sig/pacePerHand:99;
@@ -4480,8 +4577,6 @@ function NinthLife(){
               if(grudgePairs.length)warnings.push({icon:"⚡",text:`${grudgePairs.map(([a,b])=>a.name.split(" ")[0]+"+"+b.name.split(" ")[0]).join(", ")} grudge (gamble!)`,color:"#fb923c"});
               const cursedNotAlone=selC.filter(c=>catHas(c,"Cursed")&&selC.filter(x=>x.breed===c.breed).length>1);
               if(cursedNotAlone.length)warnings.push({icon:"💀",text:`${cursedNotAlone[0].name.split(" ")[0]} Cursed not alone (−3M)`,color:"#ef4444"});
-              const focusBonus=FOCUS[selC.length]||1;
-              if(focusBonus>1)warnings.push({icon:"🎯",text:`Focus ×${focusBonus} (${selC.length} cat${selC.length===1?"":"s"})`,color:"#67e8f9"});
               return warnings.length>0?<div style={{display:"flex",flexDirection:"column",gap:1}}>
                 {warnings.map((w,i)=><div key={i} style={{fontSize:10,color:w.color,fontFamily:"system-ui"}}>{w.icon} {w.text}</div>)}
               </div>:null;
@@ -4521,6 +4616,15 @@ function NinthLife(){
         hand.forEach(cat=>{
           if(cat.bondedTo){const mate=[...hand,...draw,...disc].find(h=>h.id===cat.bondedTo);cat._mateName=mate?mate.name.split(" ")[0][0]:"";}else{cat._mateName="";}
         });
+        // ★ v47: Compute guide highlight indices for visual glow on suggested cats
+        const _gHL=new Set();
+        if(guide&&guide.step===0&&ante===1&&blind===0){
+          const bc={};hand.forEach((c,i)=>{bc[c.breed]=(bc[c.breed]||0)+1;});
+          const best=Object.entries(bc).sort((a,b)=>b[1]-a[1]).find(([,v])=>v>=2);
+          if(best)hand.forEach((c,i)=>{if(c.breed===best[0]&&_gHL.size<best[1])_gHL.add(i);});
+        }
+        // Stash for card rendering
+        hand._guideHL=_gHL;
         return null;
       })()}
       <div style={{display:"flex",gap:4,padding:"0 8px",zIndex:1,justifyContent:"center",flexWrap:mob?"nowrap":"wrap",maxWidth:700,width:"100%",overflowX:mob?"auto":"visible",WebkitOverflowScrolling:"touch",scrollSnapType:mob?"x mandatory":"none"}}>
@@ -4528,16 +4632,18 @@ function NinthLife(){
           const selCats=[...sel].map(idx=>hand[idx]).filter(Boolean);
           const isRelated=!sel.has(i)&&selCats.some(sc=>(sc.bondedTo===c.id)||(c.parentIds?.includes(sc.id))||(sc.parentIds?.includes(c.id))||(c.stats?.par&&c.stats.par.includes(sc.name.split(" ")[0])));
           const relType=isRelated?(selCats.some(sc=>sc.bondedTo===c.id)?"mate":"kin"):null;
-          return(<div key={c.id} style={{position:"relative",flexShrink:0}}>
-            <CC cat={c} sel={sel.has(i)} onClick={()=>toggleS(i)} dis={ph!=="playing"} fog={cfx.fog&&!sel.has(i)} chemHint={!sel.has(i)?getHint(c):null} hl={isRelated} onTraitClick={ct=>setTraitTip(ct)}/>
+          const isGuideHL=hand._guideHL?.has(i)&&!sel.has(i);
+          return(<div key={c.id} style={{position:"relative",flexShrink:0,animation:isGuideHL?"guidePulse 1.5s ease-in-out infinite":"none"}}>
+            <CC cat={c} sel={sel.has(i)} onClick={()=>toggleS(i)} dis={ph!=="playing"} fog={cfx.fog&&!sel.has(i)} chemHint={!sel.has(i)?getHint(c):null} hl={isRelated||isGuideHL} onTraitClick={ct=>setTraitTip(ct)}/>
             {isRelated&&<div style={{position:"absolute",top:-8,left:"50%",transform:"translateX(-50%)",fontSize:10,fontWeight:700,fontFamily:"system-ui",background:"#0a0a1a",padding:"0 4px",borderRadius:3,whiteSpace:"nowrap",animation:"countUp .3s ease-out",zIndex:2,color:relType==="mate"?"#f472b6":"#4ade80"}}>{relType==="mate"?"💕 mate":"👪 kin"}</div>}
+            {isGuideHL&&<div style={{position:"absolute",top:-8,left:"50%",transform:"translateX(-50%)",fontSize:10,fontWeight:700,fontFamily:"system-ui",background:"#0a0a1a",padding:"0 4px",borderRadius:3,whiteSpace:"nowrap",animation:"fadeIn .5s ease-out",zIndex:2,color:"#fbbf24"}}>👆 tap</div>}
           </div>);
         })}
       </div>
 
       <div style={{display:"flex",gap:8,padding:"8px",zIndex:10,alignItems:"center",position:mob?"sticky":"static",bottom:mob?0:"auto",background:mob?"#0a0a1aee":"transparent",borderTop:mob?"1px solid #ffffff0a":"none",justifyContent:"center"}}>
         <div style={{textAlign:"center"}}>
-          <button onClick={playH} disabled={!sel.size||hLeft<=0||ph!=="playing"} style={{...BTN(sel.size&&ph==="playing"?"linear-gradient(135deg,#fbbf24,#f59e0b)":"#222",sel.size&&ph==="playing"?"#0a0a1a":"#555",sel.size>0&&ph==="playing"),minWidth:mob?80:60,padding:mob?"10px 16px":"8px 14px"}}>Play</button>
+          <button onClick={playH} disabled={!sel.size||hLeft<=0||ph!=="playing"||!!autoPlay} style={{...BTN(sel.size&&ph==="playing"&&!autoPlay?"linear-gradient(135deg,#fbbf24,#f59e0b)":"#222",sel.size&&ph==="playing"&&!autoPlay?"#0a0a1a":"#555",sel.size>0&&ph==="playing"&&!autoPlay),minWidth:mob?80:60,padding:mob?"10px 16px":"8px 14px"}}>Play</button>
           <div style={{fontSize:10,color:hLeft<=1?"#ef4444":"#888",marginTop:2,fontFamily:"system-ui",animation:hLeft<=1?"fpp 1s ease infinite":"none"}}>Hands: {hLeft}{tempMods.hands!==0?<span style={{color:tempMods.hands>0?"#4ade80":"#ef4444"}}> ({tempMods.hands>0?"+":""}{tempMods.hands})</span>:""}</div>
         </div>
         <div style={{textAlign:"center"}}>
@@ -4589,8 +4695,5 @@ function NinthLife(){
   );
 }
 
-// ═══════════════════════════════════════════════════════════════
-// MOUNT
-// ═══════════════════════════════════════════════════════════════
 const _root = ReactDOM.createRoot(document.getElementById("root"));
 _root.render(React.createElement(NinthLife));
