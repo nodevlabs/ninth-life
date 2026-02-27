@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import * as Tone from "tone";
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+// Tone.js loaded globally via CDN in index.html
 
 // ═══════════════════════════════════════════════════════════════
 // NINTH LIFE v44 - THE RECORD
@@ -1522,7 +1522,7 @@ function ChemPreview({cats}){
 // MAIN GAME
 // ═══════════════════════════════════════════════════════════════
 
-export default function NinthLife(){
+function NinthLife(){
   const[ph,setPh]=useState("title");
   const[ante,setAnte]=useState(1);const[blind,setBlind]=useState(0);
   const[rScore,setRScore]=useState(0);const[hLeft,setHLeft]=useState(4);
@@ -1575,9 +1575,9 @@ export default function NinthLife(){
   // v15: Temp round modifiers from events
   const[tempMods,setTempMods]=useState({hands:0,discs:0});
   // v15: Event-granted den safety
-  const[eventDenSafe,setEventDenSafe]=useState(false);const[eventDenBonus,setEventDenBonus]=useState(0);const[firstDenUsed,setFirstDenUsed]=useState(false);const[lastHandScore,setLastHandScore]=useState(0);
-  const[tooltip,setTooltip]=useState(null);const[newUnlocks,setNewUnlocks]=useState([]); // hover tooltip
-  const[showDeckStats,setShowDeckStats]=useState(false);const[showColony,setShowColony]=useState(false);const[shopTab,setShopTab]=useState("cats"); // ★ v41: Shop tabs
+  const[eventDenSafe,setEventDenSafe]=useState(false);const[eventDenBonus,setEventDenBonus]=useState(0);const[firstDenUsed,setFirstDenUsed]=useState(false);
+  const[newUnlocks,setNewUnlocks]=useState([]); // hover tooltip
+  const[shopTab,setShopTab]=useState("cats"); // ★ v41: Shop tabs
   const[defeatData,setDefeatData]=useState(null); // v30: defeat interstitial
   const[bloodMemMsg,setBloodMemMsg]=useState(null); // ★ v35: Blood Memory inheritance narration
   const[rerollCount,setRerollCount]=useState(0); // ★ v35: Escalating reroll cost per shop visit
@@ -1678,7 +1678,7 @@ export default function NinthLife(){
   // ★ v47: Auto-save colony at each night transition
   useEffect(()=>{
     if(ph==="nightCard"&&hand.length+draw.length>0){
-      const snapshot={ante,blind,hand,draw,fams,ferv,rMaxF,gold,fallen,handBests,
+      const snapshot={ante,blind,hand,draw,fams:fams.map(f=>f.id),ferv,rMaxF,gold,fallen,handBests,
         runBonus,runLog,denNews,isNinthDawn,hearthDust,firstHandPlayed,firstDenUsed,
         tempMods,_cid,_ni};
       saveRun(snapshot);
@@ -1833,7 +1833,7 @@ export default function NinthLife(){
     const pool1=[genDraft(),genDraft(),genDraft()];
     if(dp>0&&hearthPrs.length===0)pool1.forEach(c=>{c.power=Math.min(15,c.power+dp);});
     setDraftBase(baseCats);setDraftPool(pool1);setDraftPicked([]);setDraftRejects([]);
-    setDisc([]);setSel(new Set());setAnte(1);setBlind(0);setRScore(0);setLastHandScore(0);
+    setDisc([]);setSel(new Set());setAnte(1);setBlind(0);setRScore(0);
     const hfx=getHeatFx(meta?.heat);setHLeft(3+mb.hands+(hfx.handMod||0));setDLeft(2+mb.discards+(hfx.discMod||0));setGold(3+mb.gold);
     // ★ v35: Relic 5 (Undying Summer) — start with extra Nerve
     const startNerve=(mb.fervor||0)+((meta?.relics||[]).includes(5)?1:0);
@@ -1847,8 +1847,8 @@ export default function NinthLife(){
     const startFams=[];
     if(startWards>0){for(let i=0;i<startWards;i++){const w=pk(FAMS.filter(f=>!startFams.find(o=>o.id===f.id)));if(w)startFams.push(w);}}
     setFams(startFams);
-    setDen([]);setDenRes(null);setDenStep(-1);setRunLog([]);setFallen([]);setShowDeckStats(false);setAnteUp(null);setBossReward(null);setRunBonus({hands:0});setDenNews([]);setFirstHandPlayed(false);setScoringCats([]);setAftermath([]);setColEvent(null);setColTargets([]);setTempMods({hands:0,discs:0});setEventDenSafe(false);setEventDenBonus(0);setBabyNames({});setFirstDenUsed(false);
-    setRunChips(0);setRunMult(0);setScoreShake(0);setLastHandScore(0);setClutch(false);setNewBest(null);setDefeatData(null);setRerollCount(0);
+    setDen([]);setDenRes(null);setDenStep(-1);setRunLog([]);setFallen([]);setAnteUp(null);setBossReward(null);setRunBonus({hands:0});setDenNews([]);setFirstHandPlayed(false);setScoringCats([]);setAftermath([]);setColEvent(null);setColTargets([]);setTempMods({hands:0,discs:0});setEventDenSafe(false);setEventDenBonus(0);setBabyNames({});setFirstDenUsed(false);
+    setRunChips(0);setRunMult(0);setScoreShake(0);setClutch(false);setNewBest(null);setDefeatData(null);setRerollCount(0);
     // ★ v30: The Hearth — saved cats radiate stardust at start of each run
     if(meta&&meta.cats.length>0){
       const dustBonus=getMB().dustBonus||0;
@@ -1863,10 +1863,13 @@ export default function NinthLife(){
   // ★ v47: SAVE-AND-QUIT — resume a saved colony
   function resumeRun(sr){
     _cid=sr._cid||100;_ni=sr._ni||0;_un.clear();
+    // ★ v47: Repopulate name set from restored cats to prevent duplicates
+    [...(sr.hand||[]),...(sr.draw||[]),...(sr.fallen||[])].forEach(c=>{if(c&&c.name){const fn=c.name.split(" ")[0];_un.add(fn);}});
     const mb=getMB();const hfx=getHeatFx(meta?.heat);
     setHand(sr.hand||[]);setDraw(sr.draw||[]);setDisc([]);setSel(new Set());
-    setAnte(sr.ante);setBlind(sr.blind);setRScore(0);setLastHandScore(0);
-    setFams(sr.fams||[]);setFerv(sr.ferv||0);setPFerv(null);setFFlash(null);setRMaxF(sr.rMaxF||0);
+    setAnte(sr.ante);setBlind(sr.blind);setRScore(0);
+    // ★ v47: Restore wards from FAMS constant (eff functions don't survive JSON)
+    setFams((sr.fams||[]).map(fid=>typeof fid==="string"?FAMS.find(f=>f.id===fid)||{id:fid,name:"?",icon:"?",desc:"",eff:()=>({})}:fid));setFerv(sr.ferv||0);setPFerv(null);setFFlash(null);setRMaxF(sr.rMaxF||0);
     setGold(sr.gold||0);setFallen(sr.fallen||[]);setHandBests(sr.handBests||{});
     setRunBonus(sr.runBonus||{hands:0});setRunLog(sr.runLog||[]);
     setDenNews(sr.denNews||[]);setIsNinthDawn(sr.isNinthDawn||false);
@@ -1939,7 +1942,7 @@ export default function NinthLife(){
       else{setFerv(f=>Math.max(0,f-3));toast("💀","The dare... failed. −3 Nerve.","#ef4444");}
       setDareBet(false);
     }
-    setLastHandScore(result.total);
+    
     logEvent("hand",{score:result.total,type:result.ht,cats:cats.map(c=>c.name.split(" ")[0]).join(", "),nerve:NERVE[ferv].name});
     cats.forEach(c=>{c.stats.tp++;c.stats.ts+=result.total;if(result.total>c.stats.bs){c.stats.bs=result.total;c.stats.bh=result.ht;}});
     const pIds=new Set(cats.map(c=>c.id));const rem=hand.filter(c=>!pIds.has(c.id));
@@ -3070,11 +3073,11 @@ export default function NinthLife(){
         <div style={{marginTop:8,fontSize:48,animation:"float 3s ease-in-out infinite"}}>🐱</div>
         {/* ★ v47: Visible Hearth — the fire grows with saved cats */}
         {meta&&meta.cats.length>0&&<div style={{display:"flex",gap:1,alignItems:"flex-end",justifyContent:"center",height:20,opacity:.6,marginTop:-8}}>
-          {meta.cats.slice(0,20).map((c,i)=>{const bc=BREEDS[c.breed]?.color||"#fbbf24";return(
-            <div key={i} style={{width:4,height:6+Math.random()*8,borderRadius:"50% 50% 50% 50% / 60% 60% 40% 40%",
+          {meta.cats.slice(0,20).map((c,i)=>{const bc=BREEDS[c.breed]?.color||"#fbbf24";const seed=(i*7+3)%10;return(
+            <div key={i} style={{width:4,height:6+seed*.8,borderRadius:"50% 50% 50% 50% / 60% 60% 40% 40%",
               background:`linear-gradient(0deg,${bc},#fbbf24aa)`,
-              animation:`breathe ${1.5+Math.random()*1.5}s ease-in-out ${Math.random()*2}s infinite`,
-              boxShadow:`0 0 4px ${bc}66`,opacity:.5+Math.random()*.5}} title={c.name}/>);
+              animation:`breathe ${1.5+seed*.15}s ease-in-out ${i*.2}s infinite`,
+              boxShadow:`0 0 4px ${bc}66`,opacity:.5+seed*.05}} title={c.name}/>);
           })}
         </div>}
         <h1 style={{fontSize:"clamp(32px,7vw,52px)",fontWeight:900,letterSpacing:6,lineHeight:1.1,background:"linear-gradient(135deg,#b85c2c,#fbbf24,#fef08a)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",margin:0}}>NINTH LIFE{meta?.ninthDawnCleared?" 🌅":""}</h1>
@@ -4585,3 +4588,9 @@ export default function NinthLife(){
     </div>
   );
 }
+
+// ═══════════════════════════════════════════════════════════════
+// MOUNT
+// ═══════════════════════════════════════════════════════════════
+const _root = ReactDOM.createRoot(document.getElementById("root"));
+_root.render(React.createElement(NinthLife));
