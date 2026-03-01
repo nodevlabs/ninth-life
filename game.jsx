@@ -200,7 +200,7 @@ const TRAITS=[
   {name:"Provider",icon:"🍀",desc:"+1 ration. Full bellies: +1 Nerve",tier:"common"},
   {name:"Wild",icon:"🌀",desc:"Counts as any season",tier:"common"},
   {name:"Feral",icon:"🐾",desc:"+1 chip per cat in deck",tier:"common"},
-  {name:"Seer",icon:"🔮",desc:"+4 mult. Toss to see next 3 draws",tier:"common"},
+  {name:"Seer",icon:"🔮",desc:"+4 mult. Discard to peek next 3",tier:"common"},
   {name:"Devoted",icon:"🫀",desc:"+4 mult if mate in hand",tier:"common"},
   // --- RARE (B tier): solid contributors with conditions ---
   {name:"Scrapper",icon:"🥊",desc:"+3 mult, +5 if scarred",tier:"rare"},
@@ -640,6 +640,62 @@ const COLONY_EVENTS=[
     choices:[
       {label:"Read the signs",desc:"+2 Nerve",fx:{fervor:2}},
       {label:"Scavenge while distracted",desc:"+4 Rations",fx:{gold:4}},
+    ]},
+  {id:"the_warmth",title:"The Warmth",icon:"🔥",maxNight:2,
+    textFn:(_,ctx)=>{const c=ctx?.colony||12;return `Someone found dry wood. Real fuel, not the scraps you've been burning. The fire climbs higher than it has in days. ${c} faces turn golden in the light. For a moment, nobody is counting anything.`;},
+    choices:[
+      {label:"Let it blaze",desc:"+2 Nerve",fx:{fervor:2}},
+      {label:"Cook a real meal",desc:"+3 Rations",fx:{gold:3}},
+      {label:"Save the fuel",desc:"+1 Hand next round",fx:{tempHands:1}},
+    ]},
+  {id:"the_kitten",title:"The Lost Kitten",icon:"🐈",maxNight:3,
+    textFn:(_,ctx)=>{const c=ctx?.colony||12;return `Mewing from the rubble. Barely audible. A kitten, too young to survive alone. Eyes still closed. ${c} cats, and every one of them is looking at you.`;},
+    choices:[
+      {label:"Take them in",desc:"Gain a Power 1 cat",fx:{addCat:true,catPower:1}},
+      {label:"Find them food",desc:"-2 Rations. Kitten grows stronger.",fx:{gold:-2,addCat:true,catPower:3}},
+      {label:"You can't save everyone",desc:"+1 Nerve",fx:{fervor:1}},
+    ]},
+  {id:"the_scar_story",title:"The Scar",icon:"⚔️",needsCat:"random",maxNight:3,
+    textFn:(t)=>{const n=t[0].name.split(" ")[0];return `${n} caught a claw on something in the dark. Not deep. Not dangerous. But the wound won't stop bleeding. The colony watches to see how ${n} handles it.`;},
+    choices:[
+      {label:"Let it scar",desc:"Cat scarred. +1 Power.",fx:{targetScar:true,targetPower:1}},
+      {label:"Bandage it",desc:"-1 Ration. Cat healed.",fx:{gold:-1}},
+      {label:"Wear it proud",desc:"Cat scarred. +2 Nerve.",fx:{targetScar:true,fervor:2}},
+    ]},
+  {id:"the_watch",title:"The Watch",icon:"👁️",maxNight:2,needsCat:"random",
+    textFn:(t,ctx)=>{const n=t[0].name.split(" ")[0];return `${n} volunteers for first watch. Sits at the entrance, ears flat, tail still. When dawn comes, something is different about them. Sharper.`;},
+    choices:[
+      {label:"Honor the vigil",desc:"Cat +2 Power",fx:{targetPower:2}},
+      {label:"Let them rest now",desc:"Cat gains Seer",fx:{targetNamedTrait:"Seer"}},
+      {label:"Double the watch",desc:"+2 Nerve",fx:{fervor:2}},
+    ]},
+  {id:"the_sharing",title:"The Sharing",icon:"🍖",maxNight:3,
+    textFn:(_,ctx)=>{const g=ctx?.gold||0;return g>=8?`Rations are good. ${g} fish. More than enough. The question is whether to eat well tonight or save for what's coming. The cats can smell the surplus. Their eyes say tonight.`:`Rations are thin. ${g} fish for ${ctx?.colony||12} mouths. But the smallest cat hasn't eaten since yesterday. The others notice.`;},
+    choices:[
+      {label:"Feed everyone equally",desc:"+2 Rations, +1 Nerve",fx:{gold:2,fervor:1}},
+      {label:"Feed the strongest",desc:"Best cat +1 Power",fx:{bestPower:1}},
+      {label:"Save for tomorrow",desc:"+4 Rations",fx:{gold:4}},
+    ]},
+  {id:"the_game",title:"The Game",icon:"🪶",maxNight:3,needsCat:"pair",
+    textFn:(t)=>{const a=t[0].name.split(" ")[0],b=t[1].name.split(" ")[0];return `${a} bats a feather toward ${b}. ${b} bats it back. It's the first time anyone has played since the world ended. The colony stops to watch. Something loosens in the air.`;},
+    choices:[
+      {label:"Let them play",desc:"Both cats +1 Power",fx:{bothPower:1}},
+      {label:"Join in",desc:"+2 Nerve, +1 Discard next round",fx:{fervor:2,tempDiscs:1}},
+      {label:"Back to work",desc:"+3 Rations",fx:{gold:3}},
+    ]},
+  {id:"the_scent",title:"The Scent",icon:"🌿",maxNight:2,
+    textFn:(_,ctx)=>{const inj=ctx?.injured||0;return inj>0?`Herbs. Growing in a crack in the wall that shouldn't support life. The scent is sharp and clean. The ${inj} wounded cats press toward it before anyone else moves.`:`Herbs. Growing in a crack in the wall that shouldn't support life. The scent is sharp and clean. Every cat lifts their head.`;},
+    choices:[
+      {label:"Harvest them",desc:"All injured healed. +2 Rations.",fx:{fullHeal:true,gold:2}},
+      {label:"Let them grow",desc:"+1 Hand next round",fx:{tempHands:1}},
+      {label:"Mark the spot",desc:"Random cat gains Guardian",fx:{addNamedTrait:"Guardian"}},
+    ]},
+  {id:"the_old_den",title:"The Old Den",icon:"🏚️",maxNight:3,
+    textFn:(_,ctx)=>`Behind the far wall: another den. Older. Abandoned. Scratches on the floor where cats once slept. Whoever was here before didn't leave by choice. But they left something behind.`,
+    choices:[
+      {label:"Search it",desc:"Gain a random ward",fx:{addWard:true}},
+      {label:"Claim the space",desc:"+1 Shelter slot this night",fx:{eventDenBonus:true}},
+      {label:"Seal it off",desc:"+2 Nerve. Don't invite ghosts.",fx:{fervor:2}},
     ]},
   // --- NIGHT 2-4: UNDER PRESSURE ---
   {id:"crucible",title:"The Crucible",icon:"🔨",needsCat:"random",minNight:2,
@@ -1918,7 +1974,7 @@ function FM({level,prev}){
       <div style={{display:"flex",gap:3,alignItems:"center"}}>{Array.from({length:9}).map((_,i)=>(<div key={i} style={{width:10,height:10,borderRadius:"50%",background:i<level?NERVE[Math.min(i+1,9)].color:"#1a1a2e",border:`1.5px solid ${i<level?NERVE[Math.min(i+1,9)].color+"aa":"#333"}`,transition:"all .3s",boxShadow:i<level?`0 0 4px ${NERVE[Math.min(i+1,9)].color}44`:"none"}}/>))}<span style={{fontSize:10,color:"#555",fontFamily:"system-ui",marginLeft:2}}>{level}/9</span></div>
     </div>
     <div style={{height:8,background:"#1a1a2e",borderRadius:4,overflow:"hidden",border:"1px solid #ffffff08"}}><div style={{height:"100%",width:`${pct}%`,borderRadius:4,background:mx?"linear-gradient(90deg,#b85c2c,#f59e0b,#fef08a,#ffffffcc)":`linear-gradient(90deg,#9a8672,${fv.color})`,transition:"width .5s cubic-bezier(.4,0,.2,1)",boxShadow:level>3?`0 0 8px ${fv.color}44`:"none"}}/></div>
-    {level===0&&<div style={{fontSize:10,color:"#666",fontFamily:"system-ui",marginTop:2,textAlign:"center"}}>Play strong hands to build Nerve. Discards cost 2 levels.</div>}
+    {level===0&&<div style={{fontSize:10,color:"#666",fontFamily:"system-ui",marginTop:2,textAlign:"center"}}>Crush targets to build Nerve. Each discard costs 1 Nerve level.</div>}
   </div>);
 }
 
@@ -2964,7 +3020,7 @@ function NinthLife(){
     const isNeg=(cat.trait||PLAIN).tier==="rare_neg"||(cat.extraTraits||[]).some(t=>t.tier==="rare_neg");
     if(isNeg){return{goldVal:0,gifts,narr:`${cat.name.split(" ")[0]} slipped away before dawn. No one stopped them.`};}
     // Scarred → +2G, +1 Nerve (they earned more than coin)
-    if(cat.scarred){goldVal+=1;gifts.push("+1🔥");narr=`${cat.name.split(" ")[0]} walked different after the scar. Heavier. But they walked.`;}
+    if(cat.scarred){goldVal+=1;gifts.push("+1 Nerve");narr=`${cat.name.split(" ")[0]} walked different after the scar. Heavier. But they walked.`;}
     // High power → weakest cat +1P
     if(cat.power>=8){gifts.push("Weakest gains power");if(!narr)narr=`${cat.name.split(" ")[0]} was the strongest. Now someone else has to be.`;}
     // Bonded → partner gains +2P + story
@@ -3291,7 +3347,7 @@ function NinthLife(){
         }));});
       }
     }
-    if(fx.addCat){const rjB=draftRejects.length>0&&Math.random()<0.5?pk(draftRejects):null;setDraw(d=>[...d,gC(rjB?{breed:rjB,trait:PLAIN}:{trait:PLAIN})]);}
+    if(fx.addCat){const rjB=draftRejects.length>0&&Math.random()<0.5?pk(draftRejects):null;const cp=fx.catPower||0;const nc=gC(rjB?{breed:rjB,trait:PLAIN}:{trait:PLAIN});if(cp)nc.power=clamp(cp,1,15);setDraw(d=>[...d,nc]);}
     if(fx.targetPower&&targets[0]){
       const t=targets[0];
       [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===t.id?{...x,power:Math.min(15,Math.max(1,x.power+fx.targetPower))}:x));});
@@ -3416,6 +3472,20 @@ function NinthLife(){
     if(fx.bothNamedTrait&&targets.length>=2){
       const nt=TRAITS.find(t=>t.name===fx.bothNamedTrait);
       if(nt){targets.forEach(t=>{[setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>{if(x.id===t.id){addTrait(x,nt);return{...x};}return x;}));});});}
+    }
+    if(fx.targetScar&&targets[0]){
+      [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===targets[0].id?{...x,scarred:true}:x));});
+    }
+    if(fx.addNamedTrait){
+      const nt=TRAITS.find(t=>t.name===fx.addNamedTrait);
+      if(nt){const plain=all.filter(c=>catIsPlain(c));const pick=plain.length>0?pk(plain):pk(all);
+        if(pick){[setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>{if(x.id===pick.id){addTrait(x,nt);return{...x};}return x;}));});}
+      }
+    }
+    if(fx.addWard){
+      const available=WARDS.filter(w=>!fams.find(f=>f.id===w.id));
+      if(available.length>0&&fams.length<MF){const w=pk(available);setFams(fs=>[...fs,w]);toast(w.icon,`${w.name} found`,"#fbbf24");}
+      else{setGold(g=>g+5);toast("🐟","No room for a ward. +5 Rations instead.","#fbbf24");}
     }
     if(fx.specificTrait&&fx.rareTrait){
       const best=[...all].sort((a,b)=>b.power-a.power)[0];
@@ -3718,6 +3788,10 @@ function NinthLife(){
     if(fx.othersPower)lines.push({text:`Others gained +${fx.othersPower} Power.`,color:"#4ade80",icon:"⭐"});
     if(fx.targetWeaken&&targets[0])lines.push({text:`${targets[0].name.split(" ")[0]} −${fx.targetWeaken} Power.`,color:"#ef4444",icon:"📉"});
     if(fx.bothPower&&targets.length>=2)lines.push({text:`${targets[0].name.split(" ")[0]} and ${targets[1].name.split(" ")[0]} both +${fx.bothPower} Power.`,color:"#4ade80",icon:"⚡"});
+    if(fx.targetScar&&targets[0])lines.push({text:`${targets[0].name.split(" ")[0]} scarred.`,color:"#fbbf24",icon:"⚔"});
+    if(fx.addNamedTrait)lines.push({text:`A cat gained ${fx.addNamedTrait}.`,color:"#4ade80",icon:TRAITS.find(t=>t.name===fx.addNamedTrait)?.icon||"✨"});
+    if(fx.addWard)lines.push({text:"Found a ward.",color:"#fbbf24",icon:"🔮"});
+    if(fx.catPower&&fx.addCat)lines.push({text:`A Power ${fx.catPower} cat joins.`,color:"#67e8f9",icon:"🐱"});
     if(Object.keys(fx).length===0)lines.push({text:"Nothing happened.",color:"#666",icon:"..."});
     return lines;
   }
@@ -3864,6 +3938,10 @@ function NinthLife(){
           <div style={{display:"flex",gap:12,alignItems:"center"}}>
             <div style={{width:48,height:32,borderRadius:6,background:"#ef444422",border:"1px solid #ef444444",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#ef4444",fontWeight:700,flexShrink:0}}>Discard</div>
             <span style={{fontSize:12,color:"#ffffff66",fontFamily:"system-ui",lineHeight:1.5}}>Throws selected cats away and draws new ones from your deck.</span>
+          </div>
+          <div style={{display:"flex",gap:12,alignItems:"center"}}>
+            <div style={{width:48,height:32,borderRadius:6,background:"#d9770622",border:"1px solid #d9770644",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,flexShrink:0}}>🔥</div>
+            <span style={{fontSize:12,color:"#ffffff66",fontFamily:"system-ui",lineHeight:1.5}}><b style={{color:"#d97706"}}>Nerve</b> grows when you crush targets. At max, it more than doubles your score.</span>
           </div>
         </div>
         <div style={{fontSize:13,color:"#ffffff33",fontFamily:"system-ui",textAlign:"center",maxWidth:300,lineHeight:1.6,animation:"fadeIn 1.6s ease-out"}}>
@@ -4083,6 +4161,7 @@ function NinthLife(){
         {NIGHT_SUB[Math.min(nightCard.ante-1,4)]&&<div style={{fontSize:12,color:"#ffffff33",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:280,lineHeight:1.5,animation:"fadeIn 1.5s ease-out"}}>{NIGHT_SUB[Math.min(nightCard.ante-1,4)]}</div>}
         {isNinthDawn&&<div style={{fontSize:10,color:"#fbbf2466",letterSpacing:4,fontFamily:"system-ui",animation:"fadeIn 1.8s ease-out"}}>THE NINTH DAWN</div>}
         {/* ★ v49: Threshold. the minimum to not be forgotten */}
+        {(()=>{const ncMb=getMB();const ncHfx=getHeatFx(meta?.heat);const ncDiscs=3+ncMb.discards+(ncHfx.discMod||0);return(
         <div style={{display:"flex",gap:16,alignItems:"center",marginTop:12,animation:"fadeIn 1.5s ease-out .3s both"}}>
           <div style={{textAlign:"center"}}>
             <div style={{fontSize:10,color:"#666",letterSpacing:2,fontFamily:"system-ui"}}>THRESHOLD</div>
@@ -4093,7 +4172,12 @@ function NinthLife(){
             <div style={{fontSize:10,color:"#666",letterSpacing:2,fontFamily:"system-ui"}}>HANDS</div>
             <div style={{fontSize:isFirstEver?28:20,fontWeight:900,color:"#3b82f6"}}>3</div>
           </div>
-        </div>
+          <div style={{width:1,height:28,background:"#ffffff0a"}}/>
+          <div style={{textAlign:"center"}}>
+            <div style={{fontSize:10,color:"#666",letterSpacing:2,fontFamily:"system-ui"}}>DISCARDS</div>
+            <div style={{fontSize:isFirstEver?28:20,fontWeight:900,color:"#ef4444"}}>{ncDiscs}</div>
+          </div>
+        </div>);})()}
         {/* ★ v47: First-run. one tight line, not a paragraph */}
         {isFirstEver&&<div style={{fontSize:11,color:"#4ade8088",fontFamily:"system-ui",animation:"fadeIn 2s ease-out .8s both"}}>Tap cats → Play Hand → Beat {ncTgt.toLocaleString()}</div>}
         <div style={{fontSize:10,color:"#44444466",fontFamily:"system-ui",marginTop:16,animation:`fadeIn 2s ease-out ${isFirstEver?1.2:.6}s both`}}>tap to begin</div>
@@ -4570,8 +4654,8 @@ function NinthLife(){
             <span style={{fontSize:13,color:"#fbbf24",fontWeight:500,letterSpacing:1}}>🕯️ Stoke the First Flame</span>
           </button>}
         </div>
-        {/* Rations. subtle, bottom */}
-        <div style={{fontSize:10,color:"#ffffff15",fontFamily:"system-ui",marginTop:16,letterSpacing:2}}>🐟 {gold}</div>
+        {/* Rations. visible near choices */}
+        <div style={{fontSize:11,color:"#fbbf2444",fontFamily:"system-ui",marginTop:12,letterSpacing:1}}>🐟 {gold} rations</div>
       </div>
     </div>);
   }
@@ -4648,10 +4732,10 @@ function NinthLife(){
       <div style={{fontSize:13,color:"#666",fontFamily:"system-ui"}}>Threshold: {o.tgt.toLocaleString()} <span style={{color:pctClear>=200?"#fbbf24":pctClear>=130?"#4ade80":"#888",fontWeight:700}}>({pctClear}%)</span></div>
       <div style={{display:"flex",flexDirection:"column",gap:5,background:"#ffffff06",borderRadius:12,padding:"14px 22px",border:"1px solid #ffffff0a",minWidth:260}}>
         <div style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#888"}}>Excess</span><span style={{color:"#fbbf24",fontWeight:700}}>+{o.excess.toLocaleString()}</span></div>
-        {o.uh>0&&<div style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#888"}}>{o.uh} Unused Hands</span><span style={{color:"#3b82f6",fontWeight:700}}>+{o.hB.toLocaleString()}</span></div>}
-        <div style={{borderTop:"1px solid #ffffff0a",paddingTop:4,display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#888"}}>Foraged</span><span style={{color:"#fbbf24",fontWeight:700}}>+{o.gR}🐟</span></div>
-        {o.interest>0&&<div style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#4ade80"}}>Stores</span><span style={{color:"#4ade80",fontWeight:700}}>+{o.interest}🐟</span></div>}
-        {o.excessGold>0&&<div style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#fbbf24"}}>Overkill Bonus</span><span style={{color:"#fbbf24",fontWeight:700}}>+{o.excessGold}🐟</span></div>}
+        {o.uh>0&&<div style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#888"}}>{o.uh} Unused Hand{o.uh>1?"s":""}</span><span style={{color:"#3b82f6",fontWeight:700}}>+{o.hB.toLocaleString()}</span></div>}
+        <div style={{borderTop:"1px solid #ffffff0a",paddingTop:4,display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#888"}}>Rations Earned</span><span style={{color:"#fbbf24",fontWeight:700}}>+{o.gR} 🐟</span></div>
+        {o.interest>0&&<div style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#4ade80"}}>Stores (interest)</span><span style={{color:"#4ade80",fontWeight:700}}>+{o.interest} 🐟</span></div>}
+        {o.excessGold>0&&<div style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#fbbf24"}}>Overkill Bonus</span><span style={{color:"#fbbf24",fontWeight:700}}>+{o.excessGold} 🐟</span></div>}
       </div>
       {blind>=2?
         <button onClick={()=>{const rw=BOSS_REWARDS[Math.min(ante-1,4)];setBossReward(rw);setOData(null);setPh("bossReward");}} style={{...BTN("linear-gradient(135deg,#4ade80,#22c55e)","#0a0a1a"),marginTop:6,padding:"10px 32px",fontSize:14}}>Claim Reward</button>
@@ -4706,7 +4790,7 @@ function NinthLife(){
         {fallen.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"center",animation:"fadeIn 2.5s ease-out"}}>
           {fallen.map((f,i)=>(<span key={i} style={{fontSize:10,color:BREEDS[f.breed]?.color||"#888",fontFamily:"system-ui",opacity:.5}}>{f.name.split(" ")[0]}</span>))}
         </div>}
-        <button onClick={()=>{setDefeatData(null);setPh("gameOver");}} style={{...BTN("linear-gradient(135deg,#ef4444,#dc2626)","#fff"),padding:"12px 40px",fontSize:15,animation:"fadeIn 2.5s ease-out",marginTop:8}}>What Remains</button>
+        <button onClick={()=>{setDefeatData(null);setPh("gameOver");}} style={{...BTN("linear-gradient(135deg,#ef4444,#dc2626)","#fff"),padding:"12px 40px",fontSize:15,animation:"fadeIn 2.5s ease-out",marginTop:8}}>Continue</button>
       </div>
     </div>);
   }
@@ -4988,7 +5072,7 @@ function NinthLife(){
                 {r.twins&&r.twin2&&<><span style={{color:"#fbbf2488"}}>+</span><CC cat={r.twin2} sm hl/></>}
               </div>
               <div style={{fontSize:10,color:"#888",fontFamily:"system-ui",marginTop:3}}>
-                {BREEDS[r.baby.breed].icon} {r.baby.name} P{r.baby.power} {(r.baby.trait||PLAIN).icon} {(r.baby.trait||PLAIN).name} {r.baby.sex==="M"?"♂":"♀"}
+                {BREEDS[r.baby.breed].icon} {r.baby.name} Power {r.baby.power} {(r.baby.trait||PLAIN).icon} {(r.baby.trait||PLAIN).name} {r.baby.sex==="M"?"♂":"♀"}
                 {(r.baby.trait||PLAIN).tier!=="common"&&(r.baby.trait||PLAIN).name!=="Plain"&&<span style={{color:traitTierLabel(r.baby.trait).color,fontWeight:700}}> ★ {traitTierLabel(r.baby.trait).label.toUpperCase()}</span>}
                 {r.twins&&" + TWINS!"}
               </div>
@@ -5024,7 +5108,7 @@ function NinthLife(){
             {r.type==="wanderer"&&<div>
               <div style={{fontStyle:"italic",color:"#67e8f988",fontSize:13,lineHeight:1.5,fontFamily:"system-ui",marginBottom:4}}>{pk(DEN_WANDER)(r.cat.name.split(" ")[0])}</div>
               <div style={{display:"flex",gap:6,alignItems:"center"}}><CC cat={r.cat} sm hl/></div>
-              <div style={{fontSize:10,color:"#67e8f9",fontFamily:"system-ui",marginTop:3}}>A wanderer joins. {r.cat.name} P{r.cat.power} {(r.cat.trait||PLAIN).icon} {(r.cat.trait||PLAIN).name}</div>
+              <div style={{fontSize:10,color:"#67e8f9",fontFamily:"system-ui",marginTop:3}}>A wanderer joins. {r.cat.name} Power {r.cat.power} {(r.cat.trait||PLAIN).icon} {(r.cat.trait||PLAIN).name}</div>
             </div>}
             {r.type==="training"&&<div>
               <div style={{fontStyle:"italic",color:"#60a5fa88",fontSize:10,lineHeight:1.5,fontFamily:"system-ui",marginBottom:4}}>{pk([
@@ -5066,7 +5150,7 @@ function NinthLife(){
               <div style={{display:"flex",gap:6,alignItems:"center"}}><CC cat={r.c1} sm/><span style={{color:"#ef444488",fontSize:14}}>💀</span><CC cat={r.c2} sm/></div>
               <div style={{textAlign:"center",marginTop:8,padding:"8px 12px",borderRadius:8,background:"#ef444411",border:"1px solid #ef444422"}}>
                 <div style={{fontSize:12,color:"#ef4444",fontWeight:700}}>{r.victim.name}</div>
-                <div style={{fontSize:10,color:"#888",fontFamily:"system-ui",marginTop:2}}>P{r.victim.power} {BREEDS[r.victim.breed].icon} {r.victim.breed} {r.victim.trait.icon} {r.victim.trait.name}</div>
+                <div style={{fontSize:10,color:"#888",fontFamily:"system-ui",marginTop:2}}>Power {r.victim.power} {BREEDS[r.victim.breed].icon} {r.victim.breed} {r.victim.trait.icon} {r.victim.trait.name}</div>
                 <div style={{fontSize:10,color:"#ef444488",fontFamily:"system-ui",marginTop:2}}>{r.victim.stats?.tp>0?`Played ${r.victim.stats.tp} hands. Best: ${r.victim.stats.bs?.toLocaleString()}.`:"Never got to play."}</div>
               </div>
             </div>}
@@ -5084,7 +5168,7 @@ function NinthLife(){
               <input value={babyNames[b.id]!==undefined?babyNames[b.id]:b.name.split(" ")[0]} onChange={e=>setBabyNames(n=>({...n,[b.id]:e.target.value.slice(0,12)}))}
                 style={{background:"#ffffff08",border:"1px solid #4ade8033",borderRadius:4,padding:"3px 8px",color:"#e8e6e3",fontSize:11,fontFamily:"system-ui",width:120,outline:"none"}}
                 onClick={e=>e.stopPropagation()} placeholder="Name..."/>
-              <span style={{fontSize:9,color:"#666",fontFamily:"system-ui"}}>P{b.power} {b.trait.icon}{b.trait.name}</span>
+              <span style={{fontSize:9,color:"#666",fontFamily:"system-ui"}}>Power {b.power} {b.trait.icon}{b.trait.name}</span>
             </div>));
           })}
         </div>}
@@ -5154,7 +5238,7 @@ function NinthLife(){
                   <CC cat={featured} dis={gold<(featured._price||4)} onTraitClick={ct=>setTraitTip(ct)}/>
                   <div style={{flex:1}}>
                     <div style={{fontSize:11,fontWeight:700,color:BREEDS[featured.breed]?.color,fontFamily:"'Cinzel',serif"}}>{featured.name}</div>
-                    <div style={{fontSize:10,color:"#888",fontFamily:"system-ui",marginTop:2}}>P{featured.power} {BREEDS[featured.breed]?.icon} {featured.breed} {featured.sex==="M"?"♂":"♀"}</div>
+                    <div style={{fontSize:10,color:"#888",fontFamily:"system-ui",marginTop:2}}>Power {featured.power} {BREEDS[featured.breed]?.icon} {featured.breed} {featured.sex==="M"?"♂":"♀"}</div>
                     <div style={{fontSize:10,color:featured.trait.name==="Plain"?"#555":tierColor(featured.trait),fontFamily:"system-ui",marginTop:3}}>{featured.trait.name==="Plain"?"No trait yet":featured.trait.icon+" "+featured.trait.name+": "+featured.trait.desc}</div>
                     {(featured.extraTraits||[]).map((t,ti)=><div key={ti} style={{fontSize:10,color:tierColor(t),fontFamily:"system-ui",marginTop:1}}>+{t.icon} {t.name}: {t.desc}</div>)}
                     <div style={{fontSize:10,color:"#fbbf24",fontWeight:700,marginTop:4}}>{featured._price||4}🐟</div>
@@ -5193,15 +5277,19 @@ function NinthLife(){
         {/* ═══ COLONY TAB ═══ */}
         {shopTab==="colony"&&<div style={{width:"100%",animation:"fadeIn .3s ease-out"}}>
           {/* Deck stats */}
-          {(()=>{const ds=getDeckStats();return(<div style={{padding:"6px 10px",borderRadius:8,background:"#ffffff06",border:"1px solid #ffffff0a",fontFamily:"system-ui",fontSize:10,display:"flex",gap:10,flexWrap:"wrap",color:"#888",marginBottom:8}}>
+          {(()=>{const ds=getDeckStats();return(<div style={{padding:"8px 12px",borderRadius:8,background:"#ffffff06",border:"1px solid #ffffff0a",fontFamily:"system-ui",fontSize:10,display:"flex",gap:6,flexWrap:"wrap",color:"#888",marginBottom:8,lineHeight:1.6}}>
             <span style={{fontWeight:700,color:"#e8e6e3"}}>{uAll.length} cats</span>
+            <span style={{color:"#555"}}>·</span>
             <div style={{display:"flex",gap:4}}>
               {Object.entries(ds.bc).sort(([,a],[,b])=>b-a).map(([br,ct])=>(<span key={br} style={{color:BREEDS[br]?.color||"#888"}}>{BREEDS[br]?.icon}{ct}</span>))}
             </div>
-            <span>Avg P{ds.avgPow}</span>
-            <span style={{color:"#60a5fa"}}>♂{ds.gc.M}</span><span style={{color:"#f472b6"}}>♀{ds.gc.F}</span>
-            {ds.scarred>0&&<span style={{color:"#ef4444"}}>🩹{ds.scarred}</span>}
-            {ds.bonded>0&&<span style={{color:"#4ade80"}}>💕{ds.bonded}</span>}
+            <span style={{color:"#555"}}>·</span>
+            <span>Avg Power {ds.avgPow}</span>
+            <span style={{color:"#555"}}>·</span>
+            <span style={{color:"#60a5fa"}}>♂ {ds.gc.M} male</span>
+            <span style={{color:"#f472b6"}}>♀ {ds.gc.F} female</span>
+            {ds.scarred>0&&<><span style={{color:"#555"}}>·</span><span style={{color:"#ef4444"}}>🩹 {ds.scarred} scarred</span></>}
+            {ds.bonded>0&&<><span style={{color:"#555"}}>·</span><span style={{color:"#4ade80"}}>💕 {ds.bonded} bonded</span></>}
           </div>);})()}
           {/* Release mode */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
@@ -5239,7 +5327,7 @@ function NinthLife(){
               <span style={{color:"#c084fc",fontSize:10}}>✦{meta?.dust||0}</span>
             </div>
             <div style={{fontSize:10,fontFamily:"system-ui",color:"#888"}}>
-              {nt?<span>Next: <span style={{color:nt.blind===2?"#ef4444":"#fbbf24",fontWeight:700}}>{nt.blindName}</span> N{nt.ante} Threshold: <span style={{color:"#e8e6e3",fontWeight:700}}>{nt.target.toLocaleString()}</span></span>
+              {nt?<span>Next: <span style={{color:nt.blind===2?"#ef4444":"#fbbf24",fontWeight:700}}>{nt.blindName}</span> Night {nt.ante} · Threshold: <span style={{color:"#e8e6e3",fontWeight:700}}>{nt.target.toLocaleString()}</span></span>
               :<span style={{color:"#4ade80",fontWeight:700}}>Final Round!</span>}
             </div>
           </div>
@@ -5319,7 +5407,7 @@ function NinthLife(){
           const need=Math.max(0,tgt-rScore);
           const postAuto=!autoPlay&&isFirstRun&&ante===1&&blind===0&&hLeft>=2;
           msg=postAuto?"Your turn! 🎮":need>0?`${hLeft} hand${hLeft!==1?"s":""} left. Need ${need.toLocaleString()} more.`:"Threshold cleared! 🎉";
-          sub=postAuto?`${hLeft} hands left. Tap cats that share a season, then hit Play.`:need>0?"Pick a different group, or toss cards to draw new ones.":"Keep playing for bonus rations.";
+          sub=postAuto?`${hLeft} hands left. Tap cats that share a season, then hit Play.`:need>0?"Pick a different group, or discard to draw new ones.":"Keep playing for bonus rations.";
         }
         return(<div style={{position:"fixed",bottom:guide.step>=2?280:220,left:"50%",transform:"translateX(-50%)",zIndex:150,padding:"12px 20px",borderRadius:12,background:"#0a0a1aee",border:"1px solid #fbbf2444",maxWidth:340,animation:"fadeIn .6s ease-out",textAlign:"center",fontFamily:"system-ui",boxShadow:"0 8px 32px #00000088"}}>
           <div style={{fontSize:14,color:"#fbbf24",fontWeight:700,marginBottom:3}}>{msg}</div>
@@ -5386,7 +5474,7 @@ function NinthLife(){
               const t=s.type;
               if(t==="hand"&&!fcSeenRef.current.hand){fcSeenRef.current.hand=true;annotation="Matching seasons = stronger hand type";}
               else if(t==="cat"&&!fcSeenRef.current.cat){fcSeenRef.current.cat=true;annotation="Each cat's Power adds Chips";}
-              else if((t==="trait"||t==="scar")&&!fcSeenRef.current.trait){fcSeenRef.current.trait=true;annotation="Icons show traits & scars. they stack!";}
+              else if((t==="trait"||t==="scar")&&!fcSeenRef.current.trait){fcSeenRef.current.trait=true;annotation="Icons show traits and scars. They stack!";}
               else if(t==="trait_rare"&&!fcSeenRef.current.rare){fcSeenRef.current.rare=true;annotation="Rare traits MULTIPLY everything";}
               else if(t==="bond"&&!fcSeenRef.current.bond){fcSeenRef.current.bond=true;annotation="Bonded pairs multiply everything";}
               else if(t==="nerve"&&!fcSeenRef.current.nerve){fcSeenRef.current.nerve=true;annotation="Nerve builds when you crush targets";}
@@ -5868,15 +5956,15 @@ function NinthLife(){
           </div>
           <div style={{display:"flex",gap:8,paddingTop:4,fontSize:10,fontFamily:"system-ui",color:"#666",flexWrap:"wrap"}}>
             <span>⚔ Scarred: ×1.25 mult</span>
-            <span>🩹 Injured: Half power, −2M (heals 2 rounds)</span>
-            <span>🔥 Nerve: ×1.0 to ×2.2 (builds on overkill)</span>
+            <span>🩹 Injured: Half power, −2 mult (heals in 2 rounds)</span>
+            <span>🔥 Nerve: ×1.0 to ×2.2 (builds when you crush targets)</span>
           </div>
           <div style={{display:"flex",gap:8,paddingBottom:4,fontSize:10,fontFamily:"system-ui",color:"#666",flexWrap:"wrap"}}>
-            <span>💕 Bonded pair: ×1.5 (den shelter)</span>
-            <span>👪 Lineage: Parent+child = ×1.15</span>
-            <span>⚡ Grudge: Den fights (75% −2M / 25% +4M)</span>
-            <span>🔧 Scavenge: Discarded cats' power×2 → bonus C next hand</span>
-            <span>⭐ Proven (5+ plays): +2M per cat</span>
+            <span>💕 Bonded pair: ×1.5 mult (from den shelter)</span>
+            <span>👪 Lineage: Parent + child in hand = ×1.15</span>
+            <span>⚡ Grudge: From den fights. 75% tension (−2 mult) or 25% something to prove (+4 mult)</span>
+            <span>🔧 Scavenge: Discarded cats' power ×2 → bonus chips next hand</span>
+            <span>⭐ Proven (5+ plays): +2 mult per cat</span>
           </div>
           <div style={{display:"flex",gap:8,paddingBottom:6,fontSize:10,fontFamily:"system-ui",color:"#666",flexWrap:"wrap"}}>
             {Object.entries(BREED_PASSIVE).map(([k,v])=>(<span key={k} style={{color:BREEDS[k]?.color||"#888"}}>{v.icon} {v.name}: {v.desc}</span>))}
