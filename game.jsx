@@ -1920,14 +1920,14 @@ function buildCfx(curses){
 
 const SK="nl_v29";
 const dSave=()=>({cats:[],dust:0,ups:{},stats:{r:0,w:0,ba:0,hs:0,mf:0,mh:0,td:0,disc:[],dh:[]},heat:0,achv:[],relics:[],v:16});
-async function loadS(){try{const r=await window.storage.get(SK);return r?migrateSave(JSON.parse(r.value)):dSave();}catch{return dSave();}}
-async function saveS(d){try{await window.storage.set(SK,JSON.stringify(d));}catch(e){console.error(e);}}
+async function loadS(){try{if(!window.storage?.get)return dSave();const r=await window.storage.get(SK);return r?migrateSave(JSON.parse(r.value)):dSave();}catch{return dSave();}}
+async function saveS(d){try{if(window.storage?.set)await window.storage.set(SK,JSON.stringify(d));}catch(e){}}
 
 // ★ v47: SAVE-AND-QUIT — persist run state between nights
 const RK="nl_run"; // run save key
-async function saveRun(state){try{await window.storage.set(RK,JSON.stringify(state));}catch(e){console.error("Run save failed:",e);}}
-async function loadRun(){try{const r=await window.storage.get(RK);return r?JSON.parse(r.value):null;}catch{return null;}}
-async function clearRunSave(){try{await window.storage.delete(RK);}catch(e){console.error(e);}}
+async function saveRun(state){try{if(window.storage?.set)await window.storage.set(RK,JSON.stringify(state));}catch(e){}}
+async function loadRun(){try{if(!window.storage?.get)return null;const r=await window.storage.get(RK);return r?JSON.parse(r.value):null;}catch{return null;}}
+async function clearRunSave(){try{if(window.storage&&window.storage.delete)await window.storage.delete(RK);}catch(e){}}
 
 // ★ v45: Migrate old breed names (Shadow/Ember/Frost/Bloom) → seasons (Autumn/Summer/Winter/Spring)
 const BREED_MIGRATE={Shadow:"Autumn",Ember:"Summer",Frost:"Winter",Bloom:"Spring"};
@@ -2006,13 +2006,40 @@ function calcTotalHearthDust(cats,dustBonus=0,heatMult=1){
 // ═══════════════════════════════════════════════════════════════
 
 // ★ v50: CAT PORTRAITS — maps cat to portrait image URL
-// Pattern: {style}-{season}.png. Style based on traits. Extensible as more portraits are added.
+// Pattern: {style}-{season}.png. Graceful fallback: if portraits don't load, cards look exactly like before.
 const PORTRAIT_BASE="https://raw.githubusercontent.com/greatgamesgonewild/ninth-life/main/portraits/";
-const PORTRAIT_STYLES=["alert","plain"]; // add more styles here as portraits are generated
 function getPortraitUrl(cat){
-  const season=(cat.breed||"Autumn").toLowerCase();
-  const style=(cat.trait&&cat.trait.name!=="Plain")?"alert":"plain";
-  return `${PORTRAIT_BASE}${style}-${season}.png`;
+  try{
+    const season=(cat.breed||"autumn").toLowerCase();
+    const style=(cat.trait&&cat.trait.name!=="Plain")?"alert":"plain";
+    return `${PORTRAIT_BASE}${style}-${season}.png`;
+  }catch(e){return "";}
+}
+
+// Test if portraits are reachable (once per session). If not, skip all portrait loading.
+let _portraitsAvailable=null; // null=untested, true/false=tested
+function testPortraits(){
+  if(_portraitsAvailable!==null)return;
+  _portraitsAvailable=false; // assume unavailable until proven
+  try{
+    const img=new Image();
+    img.onload=()=>{_portraitsAvailable=true;};
+    img.onerror=()=>{_portraitsAvailable=false;};
+    img.src=PORTRAIT_BASE+"plain-autumn.png";
+  }catch(e){_portraitsAvailable=false;}
+}
+testPortraits();
+
+function CatPortrait({cat,sm,b}){
+  const[loaded,setLoaded]=useState(false);
+  const[failed,setFailed]=useState(false);
+  const url=getPortraitUrl(cat);
+  const sz=sm?36:52;
+  // Don't even attempt if portraits are known to be unavailable or URL is empty
+  if(_portraitsAvailable===false||failed||!url)return null; // null = render nothing, old card layout fills the space
+  return(<div style={{width:sz,height:sz,position:"relative",marginBottom:sm?1:2,flexShrink:0}}>
+    <img src={url} alt="" loading="lazy" style={{width:"100%",height:"100%",objectFit:"contain",display:loaded?"block":"none",borderRadius:"50%",filter:cat.injured?"saturate(0.4) brightness(0.7)":cat.scarred?"contrast(1.2)":"none"}} onLoad={()=>setLoaded(true)} onError={()=>{setFailed(true);_portraitsAvailable=false;}}/>
+  </div>);
 }
 
 function CC({cat:_cat,sel,onClick,sm,dis,hl,fog,chemHint,denMode,onTraitClick}){
@@ -2060,10 +2087,7 @@ function CC({cat:_cat,sel,onClick,sm,dis,hl,fog,chemHint,denMode,onTraitClick}){
       {/* CENTER. Portrait + Name */}
       <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",width:"100%",padding:"0 3px",position:"relative"}}>
         {/* ★ v50: Cat portrait with emoji fallback */}
-        <div style={{width:sm?36:52,height:sm?36:52,position:"relative",marginBottom:sm?1:2,flexShrink:0}}>
-          <img src={getPortraitUrl(cat)} alt="" loading="lazy" style={{width:"100%",height:"100%",objectFit:"contain",display:"block",borderRadius:"50%",filter:cat.injured?"saturate(0.4) brightness(0.7)":cat.scarred?"contrast(1.2)":"none"}} onError={(e)=>{e.target.style.display="none";e.target.nextSibling.style.display="flex";}}/>
-          <div style={{display:"none",position:"absolute",inset:0,alignItems:"center",justifyContent:"center",fontSize:sm?20:28,borderRadius:"50%",background:`${b.color}11`}}>🐱</div>
-        </div>
+        <CatPortrait cat={cat} sm={sm} b={b}/>
         <div style={{fontSize:sm?10:14,fontWeight:700,color:b.color,letterSpacing:sm?0:1,
           textShadow:`0 0 8px ${b.glow}33`,overflow:"hidden",whiteSpace:"nowrap",
           textOverflow:"ellipsis",maxWidth:"100%",textAlign:"center"}}>{fn}</div>
@@ -2078,7 +2102,7 @@ function CC({cat:_cat,sel,onClick,sm,dis,hl,fog,chemHint,denMode,onTraitClick}){
           {cat.bondedTo&&<span style={{fontSize:sm?8:10,color:"#f472b6"}}>💕</span>}
           {(cat.grudgedWith||[]).length>0&&<span style={{fontSize:sm?8:10,color:"#fb923c"}}>⚡{(cat.grudgedWith||[]).length>1?(cat.grudgedWith||[]).length:""}</span>}
           {cat.parentIds&&<span style={{fontSize:sm?8:10,color:"#34d399"}}>👪</span>}
-          {!cat.injured&&!cat.scarred&&!cat.bondedTo&&!(cat.grudgedWith||[]).length&&cat.stats&&(()=>{const xp=getCatXP(cat.stats.tp,!!(getMB().xp));return xp&&xp.bonus.mult>0?<span style={{fontSize:sm?7:8,color:xp.color,fontFamily:"system-ui",fontWeight:600}}>{xp.icon} {xp.label}</span>:null;})()}
+          {!cat.injured&&!cat.scarred&&!cat.bondedTo&&!(cat.grudgedWith||[]).length&&cat.stats&&(()=>{try{const xp=getCatXP(cat.stats.tp,!!(getMB().xp));return xp&&xp.bonus.mult>0?<span style={{fontSize:sm?7:8,color:xp.color,fontFamily:"system-ui",fontWeight:600}}>{xp.icon} {xp.label}</span>:null;}catch(e){return null;}})()}
         </div>
       </div>
 
