@@ -2018,27 +2018,28 @@ function getPortraitUrl(cat){
 
 // Test if portraits are reachable (once per session). If not, skip all portrait loading.
 let _portraitsAvailable=null; // null=untested, true/false=tested
-function testPortraits(){
-  if(_portraitsAvailable!==null)return;
-  _portraitsAvailable=false; // assume unavailable until proven
+(function testPortraits(){
   try{
     const img=new Image();
     img.onload=()=>{_portraitsAvailable=true;};
     img.onerror=()=>{_portraitsAvailable=false;};
     img.src=PORTRAIT_BASE+"plain-autumn.png";
   }catch(e){_portraitsAvailable=false;}
-}
-testPortraits();
+})();
 
 function CatPortrait({cat,sm,b}){
-  const[loaded,setLoaded]=useState(false);
-  const[failed,setFailed]=useState(false);
   const url=getPortraitUrl(cat);
-  const sz=sm?36:52;
-  // Don't even attempt if portraits are known to be unavailable or URL is empty
-  if(_portraitsAvailable===false||failed||!url)return null; // null = render nothing, old card layout fills the space
-  return(<div style={{width:sz,height:sz,position:"relative",marginBottom:sm?1:2,flexShrink:0}}>
-    <img src={url} alt="" loading="lazy" style={{width:"100%",height:"100%",objectFit:"contain",display:loaded?"block":"none",borderRadius:"50%",filter:cat.injured?"saturate(0.4) brightness(0.7)":cat.scarred?"contrast(1.2)":"none"}} onLoad={()=>setLoaded(true)} onError={()=>{setFailed(true);_portraitsAvailable=false;}}/>
+  const[status,setStatus]=useState("loading"); // "loading"|"loaded"|"failed"
+  const urlRef=useRef(url);
+  // Reset when cat changes
+  if(urlRef.current!==url){urlRef.current=url;setStatus("loading");}
+  const sz=sm?40:56;
+  if(_portraitsAvailable===false||!url||status==="failed")return null;
+  return(<div style={{width:sz,height:sz,position:"relative",marginBottom:sm?1:2,flexShrink:0,borderRadius:"50%",overflow:"hidden",border:`1.5px solid ${b.color}33`}}>
+    <img src={url} alt="" loading="eager" style={{width:"100%",height:"100%",objectFit:"cover",display:status==="loaded"?"block":"none",filter:cat.injured?"saturate(0.4) brightness(0.7)":cat.scarred?"contrast(1.2)":"none"}}
+      onLoad={()=>{setStatus("loaded");_portraitsAvailable=true;}}
+      onError={()=>setStatus("failed")}/>
+    {status==="loading"&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:sm?16:22,background:`${b.color}11`,color:`${b.color}66`}}>🐱</div>}
   </div>);
 }
 
@@ -3646,12 +3647,12 @@ function NinthLife(){
           setDenStep(ds);denSound(results[ds]);
           // Dramatic events get more time: deaths, births, bonds
           const r=results[ds];
-          const delay=r.type==="death"?580:r.type==="breed"?450:r.type==="bond"||r.type==="reconcile_bond"?390:r.type==="fight"?360:r.type==="grudge"||r.type==="reconcile"?320:260;
+          const delay=r.type==="death"?720:r.type==="breed"?560:r.type==="bond"||r.type==="reconcile_bond"?480:r.type==="fight"?440:r.type==="grudge"||r.type==="reconcile"?400:320;
           denStRef.current=setTimeout(denAnim,delay);
         }
       };
       const first=results[0];
-      const firstDelay=first.type==="death"?580:first.type==="breed"?450:first.type==="bond"?390:320;
+      const firstDelay=first.type==="death"?720:first.type==="breed"?560:first.type==="bond"?480:400;
       denStRef.current=setTimeout(denAnim,firstDelay);
     }
   }
