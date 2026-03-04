@@ -2061,7 +2061,6 @@ function CC({cat:_cat,sel,onClick,sm,dis,hl,fog,chemHint,denMode,onTraitClick}){
   const tierGlow=isMythicTier?",0 0 12px #c084fc44,0 0 20px #c084fc22":isLegendaryTier?",0 0 10px #f59e0b33":isRareTier?",0 0 8px #4ade8022":"";
   let rankLabel=null;
   try{if(cat.stats){const xp=getCatXP(cat.stats.tp,!!(getMB().xp));if(xp&&xp.bonus.mult>0)rankLabel=xp.label;}}catch(e){}
-  const circR=sm?30:46;
 
   if(fog)return(<div onClick={dis?undefined:onClick} style={{width:w,height:h,borderRadius:sm?8:12,background:"#0d1117",border:"2px solid #ffffff12",boxShadow:"0 2px 8px #00000066",cursor:dis?"default":"pointer",transition:"all .15s",transform:sel?"translateY(-12px) scale(1.05)":"",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontFamily:"'Cinzel',serif"}}><span style={{fontSize:sm?22:30,opacity:.12,color:neon}}>?</span></div>);
 
@@ -2081,26 +2080,16 @@ function CC({cat:_cat,sel,onClick,sm,dis,hl,fog,chemHint,denMode,onTraitClick}){
       <div style={{position:"absolute",top:sm?3:4,left:sm?3:4,right:sm?3:4,bottom:sm?3:4,
         borderRadius:sm?5:8,border:"1px solid "+nd,pointerEvents:"none",zIndex:1}}/>
 
-      {/* Neon circle */}
-      <div style={{position:"absolute",
-        top:sm?12:16,left:"50%",transform:"translateX(-50%)",
-        width:circR*2,height:circR*2,borderRadius:"50%",
-        border:"1.5px solid "+neon,
-        boxShadow:"0 0 6px "+ng+",0 0 12px "+ng,
-        pointerEvents:"none",zIndex:2}}/>
-
-      {/* Portrait (3D pop-out — only top overflows for ears, bottom clipped) */}
-      <div style={{position:"absolute",
-        top:sm?-4:-8,left:"50%",transform:"translateX(-50%)",
-        width:sm?72:106,height:sm?72:106,
-        zIndex:3,pointerEvents:"none",
-        overflow:"hidden",borderRadius:"8px 8px 50% 50%"}}>
-        <img src={getPortraitUrl(cat)} alt="" loading="eager"
-          style={{width:"100%",height:"auto",minHeight:"120%",objectFit:"cover",objectPosition:"top center",
-            display:"block",
-            filter:cat.injured?"saturate(0.3) brightness(0.5)":cat.scarred?"contrast(1.15) brightness(0.9)":"none"}}
-          onLoad={function(e){_portraitsAvailable=true;e.target.style.opacity=1;}}
-          onError={function(e){e.target.style.display="none";}}/>
+      {/* Portrait — fills card, bottom cropped to hide watermark */}
+      <div style={{position:"absolute",top:0,left:0,right:0,bottom:sm?28:38,
+        overflow:"hidden",borderRadius:(sm?6:10)+"px "+(sm?6:10)+"px 0 0",zIndex:2}}>
+        {(_portraitsAvailable!==false&&getPortraitUrl(cat))?
+          <img src={getPortraitUrl(cat)} alt="" loading="eager"
+            style={{width:"100%",height:"115%",objectFit:"cover",objectPosition:"center 15%",
+              filter:cat.injured?"saturate(0.3) brightness(0.5)":cat.scarred?"contrast(1.15) brightness(0.9)":"none"}}
+            onLoad={function(e){_portraitsAvailable=true;}}
+            onError={function(e){e.target.style.display="none";}}/>
+          :null}
       </div>
 
       {/* Power + Gender (top-right) */}
@@ -2112,21 +2101,19 @@ function CC({cat:_cat,sel,onClick,sm,dis,hl,fog,chemHint,denMode,onTraitClick}){
         borderTop:"none",borderRight:"none"}}>
         <span style={{fontSize:sm?15:22,fontWeight:900,color:neon,lineHeight:1,
           textShadow:"0 0 8px "+ng,fontFamily:"'Cinzel',serif"}}>{cat.power}</span>
-        <span style={{fontSize:sm?9:13,color:"#ffffffbb",lineHeight:1,fontWeight:600}}>
-          {cat.sex==="M"?"\u2642":"\u2640"}</span>
       </div>
 
-      {/* Status badges (top-left) */}
+      {/* Status badges (top-left) — all neon color, vertical stack */}
       {(cat.injured||cat.scarred||cat.bondedTo||(cat.grudgedWith||[]).length>0)&&
-      <div style={{position:"absolute",top:sm?2:3,left:sm?2:3,zIndex:5,display:"flex",gap:2}}>
-        {cat.injured&&<div style={{background:"#0d1117ee",border:"1px solid #ef444455",borderRadius:3,
-          padding:"1px 3px",fontSize:sm?7:9,color:"#ef4444"}}>\u271A</div>}
+      <div style={{position:"absolute",top:sm?2:3,left:sm?2:3,zIndex:5,display:"flex",flexDirection:"column",gap:1}}>
+        {cat.injured&&<div style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
+          padding:"1px 3px",fontSize:sm?7:9,color:neon,lineHeight:1}}>{"\u271A"}</div>}
         {!cat.injured&&cat.scarred&&<div style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
-          padding:"1px 3px",fontSize:sm?7:9,color:neon}}>\u2694</div>}
-        {cat.bondedTo&&<div style={{background:"#0d1117ee",border:"1px solid #f472b655",borderRadius:3,
-          padding:"1px 3px",fontSize:sm?7:9,color:"#f472b6"}}>\u2661</div>}
-        {(cat.grudgedWith||[]).length>0&&<div style={{background:"#0d1117ee",border:"1px solid #fb923c55",borderRadius:3,
-          padding:"1px 3px",fontSize:sm?7:9,color:"#fb923c"}}>\u26A1</div>}
+          padding:"1px 3px",fontSize:sm?7:9,color:neon,lineHeight:1}}>{"\u2694"}</div>}
+        {cat.bondedTo&&<div style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
+          padding:"1px 3px",fontSize:sm?7:9,color:neon,lineHeight:1}}>{"\u2661"}</div>}
+        {(cat.grudgedWith||[]).length>0&&<div style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
+          padding:"1px 3px",fontSize:sm?7:9,color:neon,lineHeight:1}}>{"\u26A1"}</div>}
       </div>}
 
       {/* Rank badge (below power) */}
@@ -2136,35 +2123,32 @@ function CC({cat:_cat,sel,onClick,sm,dis,hl,fog,chemHint,denMode,onTraitClick}){
         {rankLabel}
       </div>}
 
-      {/* BOTTOM: Icons on separator + Name full width */}
+      {/* BOTTOM: Trait icons on separator + Name full width */}
       <div style={{position:"absolute",bottom:0,left:0,right:0,zIndex:4}}>
-        {/* Separator line with trait (left) and season (right) icons sitting ON the line */}
+        {/* Separator line */}
         <div style={{position:"relative",height:sm?14:18}}>
           <div style={{position:"absolute",top:"50%",left:sm?4:5,right:sm?4:5,height:1,
             background:"linear-gradient(90deg,"+neon+"44,"+neon+"88,"+neon+"44)"}}/>
-          {/* Trait icon on line */}
-          {!isPlain&&<div onClick={function(e){e.stopPropagation();if(onTraitClick)onTraitClick(cat);}} style={{
-            position:"absolute",left:sm?4:6,top:"50%",transform:"translateY(-50%)",
-            background:"#0d1117",padding:"0 2px",
-            fontSize:sm?10:13,lineHeight:1,cursor:onTraitClick?"help":"default",zIndex:1
-          }}>{cat.trait.icon}</div>}
-          {/* Extra trait icon */}
-          {(cat.extraTraits||[]).filter(function(t){return t.name!=="Plain";}).map(function(t,ti){
-            return <div key={ti} style={{
-              position:"absolute",left:sm?16:22,top:"50%",transform:"translateY(-50%)",
-              background:"#0d1117",padding:"0 2px",
-              fontSize:sm?8:11,lineHeight:1,zIndex:1
-            }}>{t.icon}</div>;
-          })}
-          {/* Season icon on line */}
+          {/* All trait icons on left side of line */}
+          <div style={{position:"absolute",left:sm?4:6,top:"50%",transform:"translateY(-50%)",
+            display:"flex",gap:sm?2:3,zIndex:1}}>
+            {[cat.trait,...(cat.extraTraits||[])].filter(function(t){return t.name!=="Plain";}).map(function(t,ti){
+              return <div key={ti} onClick={function(e){e.stopPropagation();if(onTraitClick)onTraitClick(cat);}} style={{
+                background:"#0d1117",padding:"0 2px",
+                fontSize:sm?10:13,lineHeight:1,cursor:onTraitClick?"help":"default"
+              }}>{t.icon}</div>;
+            })}
+          </div>
+          {/* Season icon on right side of line */}
           <div style={{position:"absolute",right:sm?4:6,top:"50%",transform:"translateY(-50%)",
             background:"#0d1117",padding:"0 2px",
             fontSize:sm?10:13,lineHeight:1,zIndex:1}}>
             {isWild?"\u2726":b.icon}</div>
         </div>
-        {/* Name — full width, no pill constraint */}
+        {/* Name — dynamic font size based on length */}
         <div style={{background:"#0d1117",padding:sm?"1px 6px 4px":"2px 8px 5px",textAlign:"center"}}>
-          <div style={{fontSize:sm?10:13,fontWeight:700,color:neon,letterSpacing:sm?1:3,
+          <div style={{fontSize:sm?(fn.length>7?7:fn.length>5?8:10):(fn.length>8?10:fn.length>6?11:13),
+            fontWeight:700,color:neon,letterSpacing:sm?(fn.length>6?0:1):(fn.length>7?1:3),
             textShadow:"0 0 6px "+ng,
             textTransform:"uppercase",fontFamily:"'Cinzel',serif",
             whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.2}}>{fn}</div>
@@ -4575,7 +4559,7 @@ function NinthLife(){
               <div style={{animation:`float ${2.5+i*.4}s ease-in-out ${i*.3}s infinite`}}>
                 <CC cat={c}/>
               </div>
-              <div style={{fontSize:12,fontFamily:"system-ui",color:b.color,marginTop:4,lineHeight:1.3,fontWeight:700}}>{c.name.split(" ")[0]}</div>
+              <div style={{fontSize:12,fontFamily:"system-ui",color:b.color,marginTop:4,lineHeight:1.3,fontWeight:700}}>{c.name.split(" ")[0]} <span style={{fontWeight:400,opacity:.6,fontSize:10}}>{c.sex==="M"?"\u2642":"\u2640"}</span></div>
               <div style={{fontSize:10,color:"#ffffff99",fontStyle:"italic",fontFamily:"system-ui",lineHeight:1.4,minHeight:28,marginTop:3}}>"{voice}"</div>
               {c.trait.name!=="Plain"&&<div style={{fontSize:9,color:tierColor(c.trait),fontFamily:"system-ui",marginTop:2,lineHeight:1.3,maxWidth:100}}>{c.trait.desc}</div>}
               {c.stats?.par&&<div style={{color:"#34d399",fontSize:9,fontFamily:"system-ui"}}>👪 {c.stats.par}</div>}
