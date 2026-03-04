@@ -2089,12 +2089,18 @@ function CC({cat:_cat,sel,onClick,sm,dis,hl,fog,chemHint,denMode,onTraitClick}){
         boxShadow:"0 0 6px "+ng+",0 0 12px "+ng,
         pointerEvents:"none",zIndex:2}}/>
 
-      {/* Portrait (3D pop-out) */}
+      {/* Portrait (3D pop-out — only top overflows for ears, bottom clipped) */}
       <div style={{position:"absolute",
-        top:sm?0:-2,left:"50%",transform:"translateX(-50%)",
-        width:sm?68:100,height:sm?76:112,
-        zIndex:3,pointerEvents:"none"}}>
-        <CatPortrait cat={cat} sm={false} b={b} fill/>
+        top:sm?-4:-8,left:"50%",transform:"translateX(-50%)",
+        width:sm?72:106,height:sm?72:106,
+        zIndex:3,pointerEvents:"none",
+        overflow:"hidden",borderRadius:"8px 8px 50% 50%"}}>
+        <img src={getPortraitUrl(cat)} alt="" loading="eager"
+          style={{width:"100%",height:"auto",minHeight:"120%",objectFit:"cover",objectPosition:"top center",
+            display:"block",
+            filter:cat.injured?"saturate(0.3) brightness(0.5)":cat.scarred?"contrast(1.15) brightness(0.9)":"none"}}
+          onLoad={function(e){_portraitsAvailable=true;e.target.style.opacity=1;}}
+          onError={function(e){e.target.style.display="none";}}/>
       </div>
 
       {/* Power + Gender (top-right) */}
