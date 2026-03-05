@@ -2216,9 +2216,11 @@ function CatPortrait({cat,sm,b,fill}){
   </div>);
 }
 
-function CC({cat:_cat,sel,onClick,sm,dis,hl,fog,chemHint,denMode,onTraitClick}){
+function CC({cat:_cat,sel,onClick,sm,cw:_cw,dis,hl,fog,chemHint,denMode,onTraitClick}){
   const cat=(!_cat||!_cat.trait)?{...(_cat||{}),trait:PLAIN,extraTraits:[],breed:"Autumn",name:"???",power:1,sex:"M"}:_cat;
-  const b=BREEDS[cat.breed]||BREEDS.Autumn,w=sm?80:112,h=sm?112:158,fn=cat.name?cat.name.split(" ")[0]:"?";
+  const b=BREEDS[cat.breed]||BREEDS.Autumn,w=_cw||( sm?80:112),h=_cw?Math.round(_cw*1.4):(sm?112:158),fn=cat.name?cat.name.split(" ")[0]:"?";
+  // ★ v52: xs = extra-small mode when card width < 60px
+  const xs=w<60;if(_cw&&_cw<80)sm=true;
   const allTraits=catAllTraits(cat);
   const isMythicTier=allTraits.some(t=>t.tier==="mythic");
   const isLegendaryTier=allTraits.some(t=>t.tier==="legendary");
@@ -2274,7 +2276,7 @@ function CC({cat:_cat,sel,onClick,sm,dis,hl,fog,chemHint,denMode,onTraitClick}){
         borderRadius:sm?"0 6px 0 8px":"0 10px 0 10px",
         padding:sm?"2px 5px 1px":"3px 7px 2px",
         borderTop:"none",borderRight:"none"}}>
-        <span style={{fontSize:sm?15:22,fontWeight:900,color:neon,lineHeight:1,
+        <span style={{fontSize:xs?12:(sm?15:22),fontWeight:900,color:neon,lineHeight:1,
           textShadow:"0 0 8px "+ng,fontFamily:"'Cinzel',serif"}}>{cat.power}</span>
       </div>
 
@@ -2310,20 +2312,20 @@ function CC({cat:_cat,sel,onClick,sm,dis,hl,fog,chemHint,denMode,onTraitClick}){
             {[cat.trait,...(cat.extraTraits||[])].filter(function(t){return t.name!=="Plain";}).map(function(t,ti){
               return <div key={ti} onClick={function(e){e.stopPropagation();if(onTraitClick)onTraitClick(cat);}} style={{
                 background:"#0d1117",padding:"0 2px",
-                fontSize:sm?10:13,lineHeight:1,cursor:onTraitClick?"help":"default"
+                fontSize:xs?8:(sm?10:13),lineHeight:1,cursor:onTraitClick?"help":"default"
               }}>{t.icon}</div>;
             })}
           </div>
           {/* Season icon on right side of line */}
           <div style={{position:"absolute",right:sm?4:6,top:"50%",transform:"translateY(-50%)",
             background:"#0d1117",padding:"0 2px",
-            fontSize:sm?10:13,lineHeight:1,zIndex:1}}>
+            fontSize:xs?8:(sm?10:13),lineHeight:1,zIndex:1}}>
             {isWild?"\u2726":b.icon}</div>
         </div>
         {/* Name — dynamic font size based on length */}
         <div style={{background:"#0d1117",padding:sm?"1px 6px 4px":"2px 8px 5px",textAlign:"center"}}>
-          <div style={{fontSize:sm?(fn.length>7?7:fn.length>5?8:10):(fn.length>8?10:fn.length>6?11:13),
-            fontWeight:700,color:neon,letterSpacing:sm?(fn.length>6?0:1):(fn.length>7?1:3),
+          <div style={{fontSize:xs?(fn.length>5?5:7):(sm?(fn.length>7?7:fn.length>5?8:10):(fn.length>8?10:fn.length>6?11:13)),
+            fontWeight:700,color:neon,letterSpacing:xs?0:(sm?(fn.length>6?0:1):(fn.length>7?1:3)),
             textShadow:"0 0 6px "+ng,
             textTransform:"uppercase",fontFamily:"'Cinzel',serif",
             whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.2}}>{fn}</div>
@@ -2384,7 +2386,7 @@ function FM({level,prev}){
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
       <div style={{display:"flex",alignItems:"center",gap:6}}>
         <span title={"NERVE multiplies ALL scores.\nGain: Crush thresholds (3x pace = +1).\nGrudge 'Something to Prove' gives bonus gains.\nLose: Discard (-1). Weak hands (-1 to -2).\nDecay: -1 each night transition.\nAt NINTH LIFE (max): ×2.2 to ALL scores."} style={{fontSize:12,fontWeight:700,color:fv.color,letterSpacing:2,textShadow:mx?`0 0 14px ${fv.glow}`:level>3?`0 0 6px ${fv.color}44`:"none",animation:mx?"fp 1s ease-in-out infinite":up?"fpp .4s ease-out":dn?"shake .3s ease":"none",fontFamily:"'Cinzel',serif",cursor:"help"}}>{mx?"✦ ":""}{fv.name}{mx?" ✦":""}</span>
-        <span style={{fontSize:11,color:fv.color,fontFamily:"system-ui",fontWeight:700,opacity:fv.xM>1?1:.4}}>{fv.xM>1?`x${fv.xM}`:""}</span>
+        <span style={{fontSize:fv.xM>1?13:11,color:fv.color,fontFamily:"system-ui",fontWeight:900,opacity:fv.xM>1?1:.3,letterSpacing:fv.xM>1?1:0,textShadow:fv.xM>1.3?`0 0 8px ${fv.color}44`:"none"}}>{fv.xM>1?`×${fv.xM}`:"×1"}</span>
         {ch&&<span style={{fontSize:10,fontWeight:700,animation:"countUp .4s ease-out",color:up?"#4ade80":"#ef4444"}}>{up?"▲":"▼"}</span>}
       </div>
       <div style={{display:"flex",gap:3,alignItems:"center"}}>{Array.from({length:9}).map((_,i)=>(<div key={i} style={{width:10,height:10,borderRadius:"50%",background:i<level?NERVE[Math.min(i+1,9)].color:"#1a1a2e",border:`1.5px solid ${i<level?NERVE[Math.min(i+1,9)].color+"aa":"#333"}`,transition:"all .3s",boxShadow:i<level?`0 0 4px ${NERVE[Math.min(i+1,9)].color}44`:"none"}}/>))}<span style={{fontSize:10,color:"#555",fontFamily:"system-ui",marginLeft:2}}>{level}/9</span></div>
@@ -3326,13 +3328,13 @@ function NinthLife(){
         if(tier&&tier.label)Audio.tierReveal(Math.min(5,Math.floor(end.total/5000)));
       }
     }
-    // ★ v52: 400ms breathing room — sStep starts at -1 (reveal), then fires step 0
+    // ★ v52: 600ms breathing room — sStep starts at -1 (reveal), then fires step 0
     stRef.current=setTimeout(()=>{
       // ★ v39: Hand type reveal sound
       {const _hti=HT.findIndex(h=>h.name===result.ht);Audio.handType(Math.min(3,Math.floor((_hti>=0?_hti:4)/2)));}
       setSStep(0);setRunChips(scoreEndRef.current.stepTotals[0].chips);setRunMult(scoreEndRef.current.stepTotals[0].mult);
       stRef.current=setTimeout(animStep,getStepDelay(0,tot));
-    },400);
+    },600);
   }
 
   function discardH(){
@@ -6423,11 +6425,11 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
                         if(tier&&tier.label)Audio.tierReveal(Math.min(5,Math.floor(end.total/5000)));
                       }
                     }
-                    // ★ v52: 400ms reveal beat, then fire step 0
+                    // ★ v52: 600ms reveal beat, then fire step 0
                     stRef.current=setTimeout(()=>{
                       {const _hti=HT.findIndex(h=>h.name===result.ht);Audio.handType(Math.min(3,Math.floor((_hti>=0?_hti:4)/2)));}
                       animStep2();
-                    },400);
+                    },600);
                   }
                 },2000);
                 return;
@@ -6499,7 +6501,32 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         <button onClick={e=>{e.stopPropagation();toggleMute();}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer",opacity:.4,padding:4}} title={muted?"Unmute":"Mute"}>{muted?"🔇":"🔊"}</button>
       </div>
 
-      {/* ★ Season Devotion compact tracker */}
+      {/* ★ v52: On mobile, collapse devotion+wards+curses into compact bar. Desktop: full display */}
+      {mob?<div style={{display:"flex",gap:4,padding:"2px 12px",zIndex:1,maxWidth:700,width:"100%",justifyContent:"center",alignItems:"center",flexWrap:"nowrap"}}>
+        {/* Season devotion — icons only */}
+        {Object.keys(DEVOTION_MILESTONES).map(breed=>{
+          const dev=getDevotionLevel(breed,devotion);
+          if(breed==="Mixed"&&dev.count===0)return null;
+          const icon=breed==="Mixed"?"🌈":(BREEDS[breed]?.icon||"?");
+          const color=breed==="Mixed"?"#e8e6e3":(BREEDS[breed]?.color||"#888");
+          const pct=dev.next?Math.min(100,dev.count/dev.next.at*100):100;
+          return(<span key={breed} onClick={()=>toast(icon,`${breed}: ${dev.count}${dev.next?"/"+dev.next.at+" → "+dev.next.name:"✓ ALL"}`,color)} style={{fontSize:12,cursor:"pointer",opacity:pct>=100?1:.5,position:"relative"}}>
+            {icon}
+            <div style={{position:"absolute",bottom:-1,left:"50%",transform:"translateX(-50%)",width:10,height:2,background:"#ffffff0a",borderRadius:1,overflow:"hidden"}}>
+              <div style={{height:"100%",width:`${pct}%`,background:color,borderRadius:1}}/>
+            </div>
+          </span>);
+        })}
+        {/* Divider */}
+        {fams.length>0&&<div style={{width:1,height:14,background:"#ffffff0a",margin:"0 2px"}}/>}
+        {/* Wards — icons only, tap for detail */}
+        {fams.map(f=>(<span key={f.id} onClick={()=>toast(f.icon,`${f.name}: ${f.desc}`,"#fbbf24")} style={{fontSize:13,opacity:cfx.silence?.3:1,cursor:"pointer"}}>{f.icon}</span>))}
+        {cfx.silence&&<span style={{fontSize:11,color:"#ef4444bb"}}>🤐</span>}
+        {/* Curses — icons only, tap for detail */}
+        {isBoss&&curses.length>0&&<div style={{width:1,height:14,background:"#ffffff0a",margin:"0 2px"}}/>}
+        {isBoss&&curses.map((c,i)=>(<span key={i} onClick={()=>toast(c.icon,`${c.name}: ${c.desc}`,"#ef4444")} style={{fontSize:12,cursor:"pointer"}}>{c.icon}</span>))}
+      </div>:<>
+      {/* Desktop: full devotion tracker */}
       <div style={{display:"flex",gap:3,padding:"2px 16px",zIndex:1,maxWidth:700,width:"100%",justifyContent:"center",flexWrap:"wrap"}}>
         {Object.keys(DEVOTION_MILESTONES).map(breed=>{
           const dev=getDevotionLevel(breed,devotion);
@@ -6523,6 +6550,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         {curses.map((c,i)=>(<div key={i} title={c.desc} style={{display:"flex",alignItems:"center",gap:2,padding:"2px 6px",borderRadius:5,background:"#ef444411",border:"1px solid #ef444433",fontSize:10,color:"#ef4444",fontFamily:"system-ui"}}>{c.icon} <span style={{fontWeight:600}}>{c.name}</span></div>))}
         {cfx.exileBreed&&<div style={{display:"flex",alignItems:"center",gap:2,padding:"2px 6px",borderRadius:5,background:"#ef444411",border:"1px solid #ef444433",fontSize:10,color:"#ef4444",fontFamily:"system-ui"}}>{BREEDS[cfx.exileBreed].icon} Exiled</div>}
       </div>}
+      </>}
       {/* ★ v49: Hands urgency warnings */}
       {hLeft<=2&&rScore<tgt&&ph==="playing"&&<div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,padding:hLeft===1?"6px 16px":"4px 16px",zIndex:1,maxWidth:700,width:"100%",animation:hLeft===1?"fpp 1.2s ease infinite":"none",background:hLeft===1?"#ef444418":"#fb923c08",borderRadius:6,border:`1px solid ${hLeft===1?"#ef444444":"#fb923c22"}`}}>
         <span style={{fontSize:hLeft===1?12:10,fontWeight:900,color:hLeft===1?"#ef4444":"#fb923c",letterSpacing:hLeft===1?4:2,fontFamily:"system-ui"}}>{hLeft===1?"⚠ LAST HAND — WIN OR FALL ⚠":"⚡ 2 HANDS REMAINING"}</span>
@@ -6532,8 +6560,8 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
 
       <div style={{width:"100%",maxWidth:700,zIndex:1,padding:"3px 0"}}><FM level={ferv} prev={pFerv}/></div>
 
-      {/* ★ v38: Wards collapsed to icon row */}
-      {fams.length>0&&<div style={{display:"flex",gap:3,padding:"0 16px",zIndex:1,maxWidth:700,width:"100%",justifyContent:"center",alignItems:"center",flexWrap:"wrap"}}>
+      {/* ★ v38: Wards collapsed to icon row — desktop only, mobile shows in collapsed bar above */}
+      {!mob&&fams.length>0&&<div style={{display:"flex",gap:3,padding:"0 16px",zIndex:1,maxWidth:700,width:"100%",justifyContent:"center",alignItems:"center",flexWrap:"wrap"}}>
         {fams.map(f=>(<span key={f.id} title={`${f.name}: ${f.desc}`} onClick={()=>toast(f.icon,`${f.name}: ${f.desc}`,"#fbbf24")} style={{fontSize:14,opacity:cfx.silence?.3:1,cursor:"pointer",padding:"2px"}}>{f.icon}</span>))}
         {cfx.silence&&<span style={{fontSize:12,color:"#ef4444bb",fontFamily:"system-ui"}}>🤐</span>}
       </div>}
@@ -6693,35 +6721,36 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
                 const htBd=sRes.bd.find(b=>b.type==="hand");
                 const htLvMatch=htBd?.label?.match(/Lv(\d+)$/);
                 return(<>
-                  <div style={{display:"flex",alignItems:"center",gap:8,justifyContent:"center"}}>
-                    <div style={{fontSize:done?14:isReveal?22:20,fontWeight:900,letterSpacing:done?3:isReveal?8:6,
+                  <div style={{display:"flex",alignItems:"center",gap:8,justifyContent:"center",marginTop:isReveal?20:0,marginBottom:isReveal?12:0,transition:"margin .4s"}}>
+                    <div style={{fontSize:done?14:isReveal?26:20,fontWeight:900,letterSpacing:done?3:isReveal?10:6,
                       color:anyDisc?"#c084fc":sRes.bd.some(b=>b.type==="nerve")?NERVE[ferv].color:"#fbbf24",
-                      textShadow:`0 0 ${isReveal?30:20}px ${anyDisc?"#c084fc":sRes.bd.some(b=>b.type==="nerve")?NERVE[ferv].color:"#fbbf24"}${isReveal?"66":"44"}`,
+                      textShadow:`0 0 ${isReveal?40:20}px ${anyDisc?"#c084fc":sRes.bd.some(b=>b.type==="nerve")?NERVE[ferv].color:"#fbbf24"}${isReveal?"77":"44"}`,
                       fontFamily:"'Cinzel',serif",
                       transition:"font-size .3s, letter-spacing .3s",
                       opacity:done?.6:1,
                       animation:isReveal?"comboBurst .6s ease-out":anyDisc?"newBestPop .6s ease-out":"none",
                     }}>{displayPrimary}{displayCombo?<span style={{color:"#c084fc"}}>{" + "}{displayCombo}</span>:""}</div>
-                    {htLvMatch&&!done&&<span style={{fontSize:11,fontWeight:700,color:"#fbbf24",background:"#fbbf2418",padding:"2px 7px",borderRadius:6,fontFamily:"system-ui",letterSpacing:1,border:"1px solid #fbbf2433",animation:isReveal?"fadeIn .8s ease-out":"none"}}>LV{htLvMatch[1]}</span>}
+                    {htLvMatch&&!done&&<span style={{fontSize:isReveal?13:11,fontWeight:700,color:"#fbbf24",background:"#fbbf2418",padding:isReveal?"3px 9px":"2px 7px",borderRadius:6,fontFamily:"system-ui",letterSpacing:1,border:"1px solid #fbbf2433",animation:isReveal?"fadeIn .8s ease-out":"none"}}>LV{htLvMatch[1]}</span>}
                   </div>
-                  <div style={{marginBottom:done?2:4}}/>
+                  {!isReveal&&<div style={{marginBottom:done?2:4}}/>}
                   {anyDisc&&done&&<div style={{fontSize:10,color:"#c084fc",fontWeight:700,letterSpacing:2,fontFamily:"system-ui",animation:"fadeIn .5s ease-out",marginBottom:4}}>✨ SECRET COMBO DISCOVERED ✨</div>}
                   {/* ★ v50: Emotional echo beneath hand type */}
                   {done&&!anyDisc&&(()=>{const eo=htObj?.echo;return eo?<div style={{fontSize:10,color:"#ffffff33",fontStyle:"italic",fontFamily:"system-ui",letterSpacing:2,animation:"fadeIn 1s ease-out",marginBottom:2}}>{eo}</div>:null;})()}
                 </>);
               })()}
 
-              {/* THE NUMBER — chips × mult = score, always labeled */}
+              {/* THE NUMBER — chips × mult = score, always labeled. Hidden during reveal beat. */}
               {(()=>{
                 const isReveal=sStep===-1;
                 const isChipStep=s&&(s.chips>0)&&!s.xMult;
                 const isMultStep=s&&(s.mult>0||s.mult<0)&&!s.xMult;
                 const isXStep=s&&!!s.xMult;
                 const isFirstStep=sStep===0;
-                const displayChips=isReveal?0:(runChips||0);
-                const displayMult=isReveal?0:(runMult||1);
-                const displayTotal=isReveal?0:curTotal;
-                return(<div style={{display:"flex",gap:10,alignItems:"center",opacity:isReveal?.3:1,transition:"opacity .3s"}}>
+                const displayChips=runChips||0;
+                const displayMult=runMult||1;
+                const displayTotal=curTotal;
+                if(isReveal)return null; // ★ v52: Counter hidden during reveal — hand type name IS the moment
+                return(<div style={{display:"flex",gap:10,alignItems:"center",animation:isFirstStep?"fadeIn .4s ease-out":"none"}}>
                 <div style={{textAlign:"center",transition:"transform .2s",transform:(isChipStep||isFirstStep)&&!done?"scale(1.2)":"scale(1)"}}>
                   <span style={{color:"#3b82f6",fontWeight:900,fontSize:done?24:18,transition:"font-size .2s",textShadow:(isChipStep||isFirstStep)&&!done?"0 0 12px #3b82f644":"none",animation:isFirstStep?"countUp .4s ease-out":"none"}}>{displayChips}</span>
                   <div style={{fontSize:8,color:"#3b82f666",fontFamily:"system-ui",letterSpacing:2}}>CHIPS</div>
@@ -6837,7 +6866,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
           )}
 
           {/* v16: Visual Cat Scoring - Balatro-style: highlight involved cats per step */}
-          <div style={{display:"flex",gap:mob?4:8,justifyContent:"center",alignItems:"flex-start",padding:"4px 8px",flexWrap:"wrap",maxWidth:"100%"}}>
+          <div style={{display:"flex",gap:mob?4:8,justifyContent:"center",alignItems:"flex-start",padding:"4px 8px",flexWrap:"wrap",maxWidth:"100%",opacity:sStep<0?0:1,transition:"opacity .3s",animation:sStep===0?"fadeIn .4s ease-out":"none"}}>
             {scoringCats.map((cat,ci)=>{
               const curStep=sStep>=0&&sStep<sRes.bd.length?sRes.bd[sStep]:null;
               const mySteps=sRes.bd.filter((s,si)=>s.catIdx===ci&&si<=sStep);
@@ -7110,7 +7139,9 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         hand._guideHL=_gHL;
         return null;
       })()}
-      <div style={{display:"flex",gap:mob?2:3,padding:"0 4px",zIndex:1,justifyContent:"center",flexWrap:"nowrap",maxWidth:mob?420:840,width:"100%",overflowX:mob?"auto":"visible"}}>
+      {/* ★ v52: Dynamic card width — cards shrink to fit viewport without scrolling */}
+      {(()=>{const _cw=mob?Math.max(48,Math.min(80,Math.floor((vw-32)/Math.max(5,hand.length)))):0;return null;})()}
+      <div style={{display:"flex",gap:mob?2:3,padding:"0 4px",zIndex:1,justifyContent:"center",flexWrap:"nowrap",maxWidth:mob?(vw-8):840,width:"100%",overflowX:"visible"}}>
         {(()=>{
           // Sort display order but preserve original indices for selection
           const seasonOrder={Autumn:0,Summer:1,Winter:2,Spring:3};
@@ -7118,13 +7149,14 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
           const sorted=handSort==="season"
             ?[...indexed].sort((a,b)=>(seasonOrder[a.c.breed]||0)-(seasonOrder[b.c.breed]||0)||b.c.power-a.c.power)
             :[...indexed].sort((a,b)=>b.c.power-a.c.power);
+          const _cw=mob?Math.max(48,Math.min(80,Math.floor((vw-32)/Math.max(5,hand.length)))):0;
           return sorted.map(({c,i})=>{
           const selCats=[...sel].map(idx=>hand[idx]).filter(Boolean);
           const isRelated=!sel.has(i)&&selCats.some(sc=>(sc.bondedTo===c.id)||(c.parentIds?.includes(sc.id))||(sc.parentIds?.includes(c.id))||(c.stats?.par&&c.stats.par.includes(sc.name.split(" ")[0])));
           const relType=isRelated?(selCats.some(sc=>sc.bondedTo===c.id)?"mate":"kin"):null;
           const isGuideHL=hand._guideHL?.has(i)&&!sel.has(i);
           return(<div key={c.id} style={{position:"relative",flexShrink:0,animation:isGuideHL?"guidePulse 1.5s ease-in-out infinite":"none"}}>
-            <CC cat={c} sel={sel.has(i)} onClick={()=>toggleS(i)} dis={ph!=="playing"||!!autoPlay} fog={cfx.fog&&!sel.has(i)} chemHint={!sel.has(i)?getHint(c):null} hl={isRelated||isGuideHL} onTraitClick={ct=>setTraitTip(ct)} sm={mob}/>
+            <CC cat={c} sel={sel.has(i)} onClick={()=>toggleS(i)} dis={ph!=="playing"||!!autoPlay} fog={cfx.fog&&!sel.has(i)} chemHint={!sel.has(i)?getHint(c):null} hl={isRelated||isGuideHL} onTraitClick={ct=>setTraitTip(ct)} sm={mob} cw={_cw||undefined}/>
             {isRelated&&<div style={{position:"absolute",top:-8,left:"50%",transform:"translateX(-50%)",fontSize:10,fontWeight:700,fontFamily:"system-ui",background:"#0a0a1a",padding:"0 4px",borderRadius:3,whiteSpace:"nowrap",animation:"countUp .3s ease-out",zIndex:2,color:relType==="mate"?"#f472b6":"#4ade80"}}>{relType==="mate"?"💕 mate":"👪 kin"}</div>}
             {isGuideHL&&<div style={{position:"absolute",top:-8,left:"50%",transform:"translateX(-50%)",fontSize:10,fontWeight:700,fontFamily:"system-ui",background:"#0a0a1a",padding:"0 4px",borderRadius:3,whiteSpace:"nowrap",animation:"fadeIn .5s ease-out",zIndex:2,color:"#fbbf24"}}>👆 tap</div>}
           </div>);
