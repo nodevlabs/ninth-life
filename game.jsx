@@ -103,12 +103,81 @@ const BK=Object.keys(BREEDS);
 // ════════════════════════════════════════════════════
 // Autumn: harvest wounds. Summer: fury in numbers. Winter: endurance. Spring: colony bonds.
 // ★ v46: All passives have base +1 so they ALWAYS fire a visible step (casino: more beats = more engagement)
-const BREED_PASSIVE={
-  Autumn:{name:"Harvest",desc:"+1 mult, +1 per scarred cat",icon:"🍂"},
-  Summer:{name:"Fury",desc:"+2 chips, +1 per ally",icon:"☀️"},
-  Winter:{name:"Guardian",desc:"+1 mult, +1 per healthy cat",icon:"❄️"},
-  Spring:{name:"Roots",desc:"+1 chips +1 mult, +1 per bonded cat",icon:"🌱"},
+// ★ SEASON DEVOTION — play cats of a season to unlock run-long bonuses
+// Counter increments per cat played. Milestones give permanent (run) bonuses.
+const DEVOTION_MILESTONES={
+  Autumn:[
+    {at:5,name:"First Harvest",desc:"+1M per Autumn cat played",fx:{multPerCat:1}},
+    {at:12,name:"Scarred Earth",desc:"Scarred cats ×1.4 (was ×1.25)",fx:{scarMult:1.4}},
+    {at:25,name:"Endurance",desc:"+1 hand per round",fx:{hands:1}},
+    {at:40,name:"Ironwood",desc:"Injuries heal in 1 round",fx:{fastHeal:true}},
+    {at:60,name:"The Harvest Moon",desc:"All Autumn cats +3 Power",fx:{powerBoost:3}},
+  ],
+  Summer:[
+    {at:5,name:"First Spark",desc:"+3C per Summer cat played",fx:{chipsPerCat:3}},
+    {at:12,name:"Wildfire",desc:"Hand types get +10% base chips",fx:{chipScale:0.1}},
+    {at:25,name:"Fury",desc:"+1 discard per round",fx:{discards:1}},
+    {at:40,name:"Inferno",desc:"Nerve gains +1 extra",fx:{nerveBoost:1}},
+    {at:60,name:"The Blazing Sun",desc:"All Summer cats +3 Power",fx:{powerBoost:3}},
+  ],
+  Winter:[
+    {at:5,name:"First Frost",desc:"+1M per Winter cat played",fx:{multPerCat:1}},
+    {at:12,name:"Permafrost",desc:"Discards don't cost Nerve",fx:{freeDiscard:true}},
+    {at:25,name:"Stillness",desc:"+1 hand per round",fx:{hands:1}},
+    {at:40,name:"Absolute Zero",desc:"Boss curses reduced by 1",fx:{curseReduce:1}},
+    {at:60,name:"The Frozen Throne",desc:"All Winter cats +3 Power",fx:{powerBoost:3}},
+  ],
+  Spring:[
+    {at:5,name:"First Bloom",desc:"+1M per bonded cat in hand",fx:{bondMult:1}},
+    {at:12,name:"Overgrowth",desc:"Den breeding chance +25%",fx:{breedBoost:0.25}},
+    {at:25,name:"Deep Roots",desc:"Bonds give ×1.75 (was ×1.5)",fx:{bondScale:1.75}},
+    {at:40,name:"Renewal",desc:"+1 Shelter slot",fx:{shelter:1}},
+    {at:60,name:"The Eternal Garden",desc:"All Spring cats +3 Power",fx:{powerBoost:3}},
+  ],
+  Mixed:[
+    {at:4,name:"First Crossing",desc:"Two Kin & Full Den +1 level",fx:{mixedHandBoost:1}},
+    {at:10,name:"Melting Pot",desc:"+2M per unique season in hand",fx:{diversityMult:2}},
+    {at:20,name:"Four Winds",desc:"Cross-season bonds score ×1.75",fx:{crossBondScale:1.75}},
+    {at:35,name:"Convergence",desc:"+1 hand per round",fx:{hands:1}},
+    {at:50,name:"The United Colony",desc:"×1.3 if 3+ seasons in one hand",fx:{diversityXMult:1.3}},
+  ],
 };
+function getDevotionLevel(breed,counts){
+  const c=(counts||{})[breed]||0;
+  const ms=DEVOTION_MILESTONES[breed]||[];
+  const unlocked=ms.filter(m=>c>=m.at);
+  const next=ms.find(m=>c<m.at);
+  return{count:c,unlocked,next,total:ms.length};
+}
+function getAllDevotionFx(counts){
+  const fx={multPerCat:{},chipsPerCat:{},hands:0,discards:0,scarMult:0,chipScale:0,nerveBoost:0,freeDiscard:false,fastHeal:false,peek:0,curseReduce:0,breedBoost:0,bondScale:0,bondMult:0,shelter:0,powerBoost:{},mixedHandBoost:0,diversityMult:0,crossBondScale:0,diversityXMult:0};
+  Object.keys(DEVOTION_MILESTONES).forEach(breed=>{
+    const dev=getDevotionLevel(breed,counts);
+    dev.unlocked.forEach(m=>{
+      if(m.fx.multPerCat)fx.multPerCat[breed]=(fx.multPerCat[breed]||0)+m.fx.multPerCat;
+      if(m.fx.chipsPerCat)fx.chipsPerCat[breed]=(fx.chipsPerCat[breed]||0)+m.fx.chipsPerCat;
+      if(m.fx.hands)fx.hands+=m.fx.hands;
+      if(m.fx.discards)fx.discards+=m.fx.discards;
+      if(m.fx.scarMult)fx.scarMult=m.fx.scarMult;
+      if(m.fx.chipScale)fx.chipScale+=m.fx.chipScale;
+      if(m.fx.nerveBoost)fx.nerveBoost+=m.fx.nerveBoost;
+      if(m.fx.freeDiscard)fx.freeDiscard=true;
+      if(m.fx.fastHeal)fx.fastHeal=true;
+      if(m.fx.peek)fx.peek=Math.max(fx.peek,m.fx.peek);
+      if(m.fx.curseReduce)fx.curseReduce+=m.fx.curseReduce;
+      if(m.fx.breedBoost)fx.breedBoost+=m.fx.breedBoost;
+      if(m.fx.bondScale)fx.bondScale=m.fx.bondScale;
+      if(m.fx.bondMult)fx.bondMult+=m.fx.bondMult;
+      if(m.fx.shelter)fx.shelter+=m.fx.shelter;
+      if(m.fx.powerBoost)fx.powerBoost[breed]=(fx.powerBoost[breed]||0)+m.fx.powerBoost;
+      if(m.fx.mixedHandBoost)fx.mixedHandBoost+=m.fx.mixedHandBoost;
+      if(m.fx.diversityMult)fx.diversityMult+=m.fx.diversityMult;
+      if(m.fx.crossBondScale)fx.crossBondScale=m.fx.crossBondScale;
+      if(m.fx.diversityXMult)fx.diversityXMult=m.fx.diversityXMult;
+    });
+  });
+  return fx;
+}
 
 
 // ═══════════════════════════════════════════════════════════════
@@ -288,6 +357,25 @@ const HT=[
   {name:"Colony",base:{c:165,m:8},ex:"4 of the same season",echo:"unified"},
   {name:"Litter",base:{c:250,m:12},ex:"5 of the same season",echo:"one blood"},
 ];
+
+// ★ HAND TYPE LEVELING — each play gives XP, scrolls give +1 level directly
+function getHtLevel(htName,levels){return(levels||{})[htName]||1;}
+function getHtScaled(ht,level){
+  const lv=Math.max(1,level);if(lv<=1)return ht.base;
+  const chipScale=1+(lv-1)*0.15;const multAdd=(lv-1)*1;
+  return{c:Math.round(ht.base.c*chipScale),m:ht.base.m+multAdd};
+}
+const SCROLL_POOL=["Kin","Two Kin","Clowder","Full Den","Colony","Litter","Kindred"];
+function genScrolls(ante,htLevels){
+  const pool=shuf(SCROLL_POOL).slice(0,3);
+  return pool.slice(0,2).map(name=>{
+    const ht=HT.find(h=>h.name===name);const lv=getHtLevel(name,htLevels);
+    const nextBase=ht?getHtScaled(ht,lv+1):null;
+    const price=3+ante+Math.floor(lv/2);
+    return{name,lv,nextLv:lv+1,nextBase,price,ht};
+  });
+}
+
 // Power combos — standalone hidden hands OR stacking bonuses on season hands
 const POWER_COMBOS=[
   {name:"Prowl",bonus:{c:80,m:6},standalone:{c:120,m:7},ex:"3 consecutive power",hidden:true,echo:"in step"},
@@ -1703,8 +1791,12 @@ function evalH(cats){
 // ═══════════════════════════════════════════════════════════════
 function calcScore(cats,fams,fLvl,cfx={},ctx={}){
   const{type,combo}=evalH(cats);
-  let chips=type.base.c,mult=type.base.m;
-  const bd=[{label:type.name,chips:type.base.c,mult:type.base.m,type:"hand"}];
+  // ★ Hand type leveling — use scaled base values
+  const htLv=getHtLevel(type.name,ctx.htLevels||{});
+  const scaledBase=getHtScaled(type,htLv);
+  let chips=scaledBase.c,mult=scaledBase.m;
+  const lvLabel=htLv>1?` Lv${htLv}`:"";
+  const bd=[{label:type.name+lvLabel,chips:scaledBase.c,mult:scaledBase.m,type:"hand"}];
   // ★ v49: Power combo — stacks on top of primary hand as bonus cascade step
   if(combo){
     chips+=combo.bonus.c;mult+=combo.bonus.m;
@@ -1722,6 +1814,9 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
   });}
 
   const {gold:pGold=0,deckSize=18,discSize=0}=ctx;let luckyGold=0;
+  const devFx=getAllDevotionFx(ctx.devotion||{});
+  // ★ Devotion: chip scaling applies to hand type base
+  if(devFx.chipScale>0){const bonus=Math.round(scaledBase.c*devFx.chipScale);chips+=bonus;}
   const powers=cats.map(c=>c.power);const maxP=Math.max(...powers);const minP=Math.min(...powers);
   const uniqueBreeds=new Set(cats.flatMap(c=>getCatBreeds(c))).size;
   const toS=[];
@@ -1786,7 +1881,7 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
 
     // Scar/injury
     if(c.injured&&!c._re){cm-=2;icons.push("🩹");}
-    else if(c.scarred&&!c._re){cx*=1.25;const sm=ctx.scarMult||0;if(sm)cm+=sm;icons.push("⚔️");}
+    else if(c.scarred&&!c._re){cx*=devFx.scarMult||1.25;const sm=ctx.scarMult||0;if(sm)cm+=sm;icons.push("⚔️");}
 
     // ★ Cat XP — Novice penalty applied here (quiet), rank bonuses scored separately (dramatic)
     // (tracked here, scored as separate breakdown steps after all cats for visibility)
@@ -1799,17 +1894,12 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
       }
     }
 
-    // Season passive — folded into the cat's step
-    let pcc=0,pcm=0;let passiveBreed=null;
-    if(!c._re&&!cfx.noTraits){
-      const cb=c.breed;
-      if(cb==="Autumn"){pcm+=1+cats.filter(x=>x.scarred&&!x.injured).length;}
-      if(cb==="Summer"){pcc+=2+cats.filter(x=>x.id!==c.id).length;}
-      if(cb==="Winter"){pcm+=1+cats.filter(x=>!x.scarred&&!x.injured).length;}
-      if(cb==="Spring"){pcc+=1;pcm+=Math.max(1,cats.filter(x=>x.bondedTo).length);}
-      if(pcc||pcm){icons.push(BREED_PASSIVE[cb]?.icon||"");passiveBreed=cb;}
+    // ★ Season Devotion — per-cat mult/chips bonuses from milestone unlocks
+    if(!c._re){
+      const breed=c.breed;
+      if(devFx.multPerCat[breed]){cm+=devFx.multPerCat[breed];icons.push(BREEDS[breed]?.icon||"");}
+      if(devFx.chipsPerCat[breed]){cc+=devFx.chipsPerCat[breed];icons.push(BREEDS[breed]?.icon||"");}
     }
-    cc+=pcc;cm+=pcm;
 
     // Accumulate totals (same math as before)
     chips+=cc;mult+=cm;if(cx!==1)mult=Math.round(mult*cx);
@@ -1838,14 +1928,12 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
     }
     if(c.scarred&&!c.injured&&!c._re)reasons.push("Scarred \u00d71.25");
     if(c.injured&&!c._re)reasons.push("Injured (halved)");
-    if(passiveBreed)reasons.push(c.breed+" passive");
     bd.push({
       label:`${iconStr}${iconStr?" ":""}${c._re?"\u21BB ":""}${c.name.split(" ")[0]}`,
       reason:reasons.length>0?reasons.join(" \u00B7 "):"",
       chips:cc,mult:cm,xMult:cx!==1?cx:null,
       type:catType,catIdx:c._ci,
-      passiveBreed:passiveBreed,
-      isBigCat:Math.abs(cm)>=3||cx>1||cc>=8, // flag for special sound
+      isBigCat:Math.abs(cm)>=3||cx>1||cc>=8,
     });
   });
 
@@ -1862,6 +1950,18 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
       type:"xp_rank",catIdx:c._ci,
     });
   });
+
+  // ★ MIXED DEVOTION — diversity bonuses for multi-season hands
+  const uniqueSeasons=new Set(cats.map(c=>c.breed)).size;
+  if(devFx.diversityMult>0&&uniqueSeasons>=2){
+    const dm=devFx.diversityMult*uniqueSeasons;
+    mult+=dm;
+    bd.push({label:`🌈 ${uniqueSeasons} Seasons +${dm}M`,chips:0,mult:dm,type:"diversity"});
+  }
+  if(devFx.diversityXMult>1&&uniqueSeasons>=3){
+    mult=Math.round(mult*devFx.diversityXMult);
+    bd.push({label:`🌈 United Colony`,chips:0,mult:0,xMult:devFx.diversityXMult,type:"diversity"});
+  }
 
   // ★ v31/v34: GRUDGES — personal rivalries. Tension vs Something to Prove
   const grudges=getGrudges(cats);
@@ -1889,7 +1989,8 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
     bondedPairs.forEach(([a,b],pi)=>{
       const ca=cats.find(c=>c.id===a),cb=cats.find(c=>c.id===b);
       const bondBoostActive=ctx.bondBoost||0;
-      const bpXM=pi===0?(1.5+(bondBoostActive?0.25:0)):(1.25+(bondBoostActive?0.15:0)); // ★ Unbreakable Bonds: ×1.75/×1.4
+      const baseBond=devFx.bondScale||1.5;
+      const bpXM=pi===0?(baseBond+(bondBoostActive?0.25:0)):(1.25+(bondBoostActive?0.15:0));
       mult=Math.round(mult*bpXM);bd.push({label:`💕 ${ca.name.split(" ")[0]}+${cb.name.split(" ")[0]} Bonded`,chips:0,mult:0,xMult:bpXM,type:"bond"});
     });
   }
@@ -1975,14 +2076,14 @@ function buildCfx(curses){
 
 const SK="nl_v29";
 const dSave=()=>({cats:[],dust:0,ups:{},stats:{r:0,w:0,ba:0,hs:0,mf:0,mh:0,td:0,disc:[],dh:[]},heat:0,achv:[],relics:[],v:16});
-async function loadS(){try{if(!window.storage?.get)return dSave();const r=await window.storage.get(SK);return r?migrateSave(JSON.parse(r.value)):dSave();}catch{return dSave();}}
-async function saveS(d){try{if(window.storage?.set)await window.storage.set(SK,JSON.stringify(d));}catch(e){}}
+async function loadS(){try{if(window.storage?.get){const r=await window.storage.get(SK);if(r)return migrateSave(JSON.parse(r.value));}}catch(e){}try{const ls=localStorage.getItem(SK);if(ls)return migrateSave(JSON.parse(ls));}catch(e){}return dSave();}
+async function saveS(d){try{if(window.storage?.set)await window.storage.set(SK,JSON.stringify(d));}catch(e){}try{localStorage.setItem(SK,JSON.stringify(d));}catch(e){}}
 
 // ★ v47: SAVE-AND-QUIT — persist run state between nights
 const RK="nl_run"; // run save key
-async function saveRun(state){try{if(window.storage?.set)await window.storage.set(RK,JSON.stringify(state));}catch(e){}}
-async function loadRun(){try{if(!window.storage?.get)return null;const r=await window.storage.get(RK);return r?JSON.parse(r.value):null;}catch{return null;}}
-async function clearRunSave(){try{if(window.storage&&window.storage.delete)await window.storage.delete(RK);}catch(e){}}
+async function saveRun(state){try{if(window.storage?.set)await window.storage.set(RK,JSON.stringify(state));}catch(e){}try{localStorage.setItem(RK,JSON.stringify(state));}catch(e){}}
+async function loadRun(){try{if(window.storage?.get){const r=await window.storage.get(RK);if(r)return JSON.parse(r.value);}}catch(e){}try{const ls=localStorage.getItem(RK);if(ls)return JSON.parse(ls);}catch(e){}return null;}
+async function clearRunSave(){try{if(window.storage?.delete)await window.storage.delete(RK);}catch(e){}try{localStorage.removeItem(RK);}catch(e){}}
 
 // ★ v45: Migrate old breed names (Shadow/Ember/Frost/Bloom) → seasons (Autumn/Summer/Winter/Spring)
 const BREED_MIGRATE={Shadow:"Autumn",Ember:"Summer",Frost:"Winter",Bloom:"Spring"};
@@ -2066,28 +2167,33 @@ const PORTRAIT_BASE="https://raw.githubusercontent.com/greatgamesgonewild/ninth-
 function getPortraitUrl(cat){
   try{
     const season=(cat.breed||"autumn").toLowerCase();
-    // ★ 8 portrait archetypes: mythic > noble > elder > alert > wild > gentle > kitten > plain
+    // ★ 8 portrait archetypes — priority order, first match wins
     let style="plain";
-    const trait=cat.trait?.name||"Plain";
-    const tier=cat.trait?.tier||"common";
+    const allT=[cat.trait,...(cat.extraTraits||[])].filter(t=>t&&t.name!=="Plain");
+    const hasT=(n)=>allT.some(t=>t.name===n);
+    const hasTier=(t)=>allT.some(tr=>tr.tier===t);
     const tp=cat.stats?.tp||0;
     const power=cat.power||1;
-    const isMythic=tier==="mythic"||trait==="Eternal"||trait==="Phoenix";
-    const isLegendary=tier==="legendary";
-    const isWild=trait==="Wild"||trait==="Chimera"||trait==="Feral"||trait==="Cursed";
-    const isGentle=trait==="Devoted"||trait==="Provider"||trait==="Seer"||trait==="Guardian";
-    const isScrappy=trait==="Scrapper"||trait==="Alpha";
-    const isKitten=!!(cat.parentIds&&cat.parentIds.length>0&&power<=4);
 
-    if(isMythic)style="mythic";
-    else if(isLegendary&&power>=8)style="noble";
-    else if(tp>=10||cat.scarred)style="elder";
-    else if(isScrappy||cat.scarred)style="alert";
-    else if(isWild)style="wild";
-    else if(isGentle)style="gentle";
-    else if(isKitten)style="kitten";
-    else if(trait!=="Plain")style="alert";
-    // else: plain
+    // 1. MYTHIC — Phoenix/Eternal (rarest, always overrides)
+    if(hasTier("mythic")||hasT("Eternal")||hasT("Phoenix"))style="mythic";
+    // 2. NOBLE — Legendary trait + high power (earned elite status)
+    else if(hasTier("legendary")&&power>=8)style="noble";
+    // 3. KITTEN — den-bred baby, never played, low power
+    else if(cat.parentIds&&cat.parentIds.length>0&&tp<=1&&power<=5)style="kitten";
+    // 4. ELDER — veteran survivor (10+ plays, regardless of traits)
+    else if(tp>=10)style="elder";
+    // 5. ALERT — combat cats (Scrapper, Alpha) or any scarred cat
+    else if(hasT("Scrapper")||hasT("Alpha")||cat.scarred)style="alert";
+    // 6. WILD — untamed energy (Wild, Chimera, Feral, Cursed)
+    else if(hasT("Wild")||hasT("Chimera")||hasT("Feral")||hasT("Cursed"))style="wild";
+    // 7. GENTLE — support/nurture (Devoted, Provider, Seer, Guardian)
+    else if(hasT("Devoted")||hasT("Provider")||hasT("Seer")||hasT("Guardian"))style="gentle";
+    // 8. NOBLE fallback — any legendary without high power still looks refined
+    else if(hasTier("legendary"))style="noble";
+    // 9. ALERT fallback — any remaining traited cat
+    else if(allT.length>0)style="alert";
+    // 10. PLAIN — no traits, no history
 
     return `${PORTRAIT_BASE}${style}-${season}.png`;
   }catch(e){return "";}
@@ -2157,13 +2263,15 @@ function CC({cat:_cat,sel,onClick,sm,dis,hl,fog,chemHint,denMode,onTraitClick}){
       <div style={{position:"absolute",top:sm?3:4,left:sm?3:4,right:sm?3:4,bottom:sm?3:4,
         borderRadius:sm?5:8,border:"1px solid "+nd,pointerEvents:"none",zIndex:1}}/>
 
-      {/* Portrait — fills card, bottom cropped to hide watermark */}
+      {/* Portrait — fills card, bottom cropped. Plain cats dimmed to 20% */}
       <div style={{position:"absolute",top:0,left:0,right:0,bottom:sm?28:38,
         overflow:"hidden",borderRadius:(sm?6:10)+"px "+(sm?6:10)+"px 0 0",zIndex:2}}>
         {(_portraitsAvailable!==false&&getPortraitUrl(cat))?
           <img src={getPortraitUrl(cat)} alt="" loading="eager"
             style={{width:"100%",height:"115%",objectFit:"cover",objectPosition:"center 15%",
-              filter:cat.injured?"saturate(0.3) brightness(0.5)":cat.scarred?"contrast(1.15) brightness(0.9)":"none"}}
+              opacity:isPlain?0.15:1,
+              filter:cat.injured?"saturate(0.3) brightness(0.5)":cat.scarred?"contrast(1.15) brightness(0.9)":"none",
+              transition:"opacity .3s"}}
             onLoad={function(e){_portraitsAvailable=true;}}
             onError={function(e){e.target.style.display="none";}}/>
           :null}
@@ -2323,7 +2431,7 @@ function NinthLife(){
   const[sStep,setSStep]=useState(-1);
   const[runChips,setRunChips]=useState(0);const[runMult,setRunMult]=useState(0);
   const[scoreShake,setScoreShake]=useState(0);const[clutch,setClutch]=useState(false);const[scoringFlash,setScoringFlash]=useState(null); // ★ v47: brightness flash on big hits
-  const[handBests,setHandBests]=useState({});const[newBest,setNewBest]=useState(null);const[handDiscovery,setHandDiscovery]=useState([]);const[scoringDone,setScoringDone]=useState(false);const[traitTip,setTraitTip]=useState(null);const[deckView,setDeckView]=useState(false);
+  const[handBests,setHandBests]=useState({});const[newBest,setNewBest]=useState(null);const[handDiscovery,setHandDiscovery]=useState([]);const[scoringDone,setScoringDone]=useState(false);const[traitTip,setTraitTip]=useState(null);const[deckView,setDeckView]=useState(false);const[handSort,setHandSort]=useState("season"); // "season"|"power"
   const[boss,setBoss]=useState(null);
   const stRef=useRef(null);
   const scoreEndRef=useRef(null); // ★ v38: Pre-computed end state for skip
@@ -2379,6 +2487,9 @@ function NinthLife(){
   const[defeatData,setDefeatData]=useState(null); // v30: defeat interstitial
   const[bloodMemMsg,setBloodMemMsg]=useState(null); // ★ v35: Blood Memory inheritance narration
   const[rerollCount,setRerollCount]=useState(0); // ★ v35: Escalating reroll cost per shop visit
+  const[htLevels,setHtLevels]=useState({}); // ★ Hand type levels — {handName: level} per run
+  const[sScrolls,setSScrolls]=useState([]); // ★ Scrolls for sale in shop
+  const[devotion,setDevotion]=useState({}); // ★ Season devotion counters — {Autumn:5, Winter:3, ...}
   const[hearthDust,setHearthDust]=useState(0); // v30: dust earned from saved cats at run start
   const[anteUp,setAnteUp]=useState(null); // ante transition
   const[nightCard,setNightCard]=useState(null); // v29: night interstitial
@@ -2534,119 +2645,15 @@ function NinthLife(){
   const[introStep,setIntroStep]=useState(0); // ★ v49: Multi-page intro step
   function startAutoPlay(){
     // Find best breed — select ALL matching (up to 5)
-    if(!hand||hand.length===0)return; // guard: hand not yet dealt
+    if(!hand||hand.length===0)return;
     const bc={};hand.forEach((c,i)=>{bc[c.breed]=(bc[c.breed]||0)+1;});
     const best=Object.entries(bc).sort((a,b)=>b[1]-a[1]).find(([,v])=>v>=2);
     const idxs=[];
     if(best)hand.forEach((c,i)=>{if(c.breed===best[0]&&idxs.length<5)idxs.push(i);});
     else{idxs.push(0);if(hand.length>1)idxs.push(1);}
-    if(idxs.length===0)return; // guard: no valid selection
-    setAutoPlay({step:0,idxs});
-
-    // Step 0: banner for 3s, then cascade select cats one by one
-    autoRef.current=setTimeout(()=>{
-      let ci=0;
-      function selectNext(){
-        if(ci>=idxs.length){
-          // All selected — pause then play
-          setAutoPlay(a=>a?{...a,step:3}:null);
-          autoRef.current=setTimeout(()=>{
-            const cats=idxs.map(i=>hand[i]).filter(Boolean);
-            if(cats.length>=1){
-              setScoringCats(cats);setAftermath([]);setFirstHandPlayed(true);Audio.cardPlay();
-              const beatingPace=rScore>=eTgt()*0.4;
-              const activeBT=blind===2?bossTraits:[];
-              const result=calcScore(cats,fams,ferv,cfx,{gold,deckSize:allC.length,discSize:disc.length,handSize:hs(),beatingPace,bossTraitFx:activeBT,scarMult:getMB().scarMult||0,grudgeWisdom:getMB().grudgeWisdom||0,hasMastery:!!(getMB().xp),scavenge,bondBoost:getMB().bondBoost||0,lastHandIds,lastHandLost});
-              setScavenge(0);advancingRef.current=false;
-              setSRes(result);setSStep(0);setPh("scoring");setRunChips(0);setRunMult(0);setNewBest(null);setHandDiscovery([]);
-              let rC=0,rM=0;
-              const stepTotals=result.bd.map(s=>{rC+=s.chips||0;rM+=s.mult||0;if(s.xMult)rM=Math.round(rM*s.xMult);return{chips:Math.max(0,rC),mult:Math.max(1,rM),total:Math.max(0,rC)*Math.max(1,rM)};});
-              const aft=[];
-              cats.forEach(c=>{
-                const oldXP=getCatXP(c.stats.tp,!!(getMB().xp));const newXP=getCatXP(c.stats.tp+1,!!(getMB().xp));
-                if(newXP&&oldXP&&newXP.label!==oldXP.label&&newXP.bonus.mult>0)aft.push({icon:newXP.icon,text:`${c.name.split(" ")[0]}: ${newXP.label}!`,color:newXP.color});
-                if(result.total>c.stats.bs&&c.stats.bs>0)aft.push({icon:"🏆",text:`${c.name.split(" ")[0]} PB: ${result.total.toLocaleString()}`,color:"#fbbf24"});
-              });
-              // ★ Feature 2: Cat reactions — who carried, who clutched
-              const catSteps=result.bd.filter(s=>s.catIdx!==undefined&&s.type!=="xp_rank");
-              if(catSteps.length>0&&cats.length>=2){
-                const contribs=catSteps.map(s=>{const t=stepTotals[result.bd.indexOf(s)]?.total||0;const prev=result.bd.indexOf(s)>0?stepTotals[result.bd.indexOf(s)-1]?.total||0:0;return{cat:cats[s.catIdx],delta:t-prev};});
-                const totalDelta=contribs.reduce((s,c)=>s+c.delta,0);
-                const best=contribs.sort((a,b)=>b.delta-a.delta)[0];
-                if(best&&totalDelta>0&&best.delta/totalDelta>0.45){
-                  const fn=best.cat.name.split(" ")[0];const pct=Math.round(best.delta/totalDelta*100);
-                  aft.push({icon:"💪",text:pk(CAT_REACTIONS.carry(fn,pct)),color:BREEDS[best.cat.breed]?.color||"#fbbf24"});
-                }
-              }
-              const bondedInHand=cats.filter(c=>c.bondedTo&&cats.find(x=>x.id===c.bondedTo));
-              if(bondedInHand.length>=2){
-                const a=bondedInHand[0].name.split(" ")[0],bN=bondedInHand[1].name.split(" ")[0];
-                aft.push({icon:"💕",text:pk(CAT_REACTIONS.bond(a,bN)),color:"#f472b6"});
-              }
-              scoreEndRef.current={chips:result.chips,mult:result.mult,total:result.total,ht:result.ht,combo:result.combo,aft,shk:getShakeIntensity(result.total),isFirstCascade:true,stepTotals:stepTotals.map(s=>s.total)};
-              let stp=0;const tot=result.bd.length;
-              function getAutoStepDelay(s){
-                const tempo=Math.max(0.5,Math.min(1.4,7/tot));const slow=1.4;
-                const st=result.bd[s];const isLast=s===tot-1;const isPenult=s===tot-2;
-                if(st&&(st.mult<0||st.type==="curse"||st.type==="grudge_tension"))return Math.round(150*tempo*slow);
-                if(st&&st.xMult&&st.xMult>=2)return Math.round(Math.max(900,1100*Math.max(0.7,tempo))*slow); // BIG multipliers hold much longer
-                if(st&&st.xMult)return Math.round(Math.max(700,900*Math.max(0.7,tempo))*slow); // multipliers hold longer
-                if(st&&st.type==="nerve")return Math.round(Math.max(650,850*Math.max(0.7,tempo))*slow); // nerve climax holds
-                if(st&&(st.type==="bond"||st.type==="lineage"))return Math.round(Math.max(450,600*tempo)*slow);
-                if(st&&st.type==="fam")return Math.round(Math.max(400,550*tempo)*slow); // wards hold
-                if(isPenult)return Math.round(Math.max(370,520*tempo)*slow);
-                if(isLast)return Math.round(Math.max(470,670*tempo)*slow);
-                if(s===0)return Math.round(550*tempo*slow);
-                if(st?.isBigCat)return Math.round(Math.max(450,580*tempo)*slow); // big cats hold longer
-                if(s===1)return Math.round(420*tempo*slow);
-                if(s<=3)return Math.round(350*tempo*slow);
-                return Math.round(Math.max(70,(200-s*5)*tempo)*slow);
-              }
-              function animStep(){
-                stp++;
-                if(stp<tot){
-                  setSStep(stp);setRunChips(stepTotals[stp].chips);setRunMult(stepTotals[stp].mult);
-                  const progress=stepTotals[stp].total/(result.total||1);const s=result.bd[stp];
-                  if(s){
-                    if(s.xMult){Audio.xMultSlam(s.xMult);setScoreShake(Math.ceil(s.xMult));setTimeout(()=>setScoreShake(0),300);setScoringFlash(s.xMult>=1.5?"#fef08a":"#fbbf24");setTimeout(()=>setScoringFlash(null),150);}
-                    else if(s.type==="combo"){Audio.comboHit();setScoreShake(1);setTimeout(()=>setScoreShake(0),200);setScoringFlash("#c084fc");setTimeout(()=>setScoringFlash(null),120);}
-                    else if(s.type==="grudge_tension")Audio.grudgeTense();
-                    else if(s.type==="grudge_prove")Audio.grudgeProve();
-                    else if(s.type==="bond"||s.type==="lineage")Audio.bondChime();
-                    else if(s.type==="xp_rank")Audio.bondChime();
-                    else if(s.isBigCat)Audio.bigCatHit(progress);
-                    else if(s.mult>0)Audio.multHit(s.mult,progress);
-                    else if(s.chips>0)Audio.chipUp(s.chips,progress);
-                  }
-                  stRef.current=setTimeout(animStep,getAutoStepDelay(stp));
-                }else{
-                  const end=scoreEndRef.current;
-                  setRunChips(end.chips);setRunMult(end.mult);
-                  setScoreShake(end.shk);setTimeout(()=>setScoreShake(0),400+end.shk*100);
-                  const prev=handBests[end.ht]||0;
-                  if(end.total>prev){setHandBests(b=>({...b,[end.ht]:end.total}));setNewBest(end.ht);}
-                  checkHandDiscovery(end.ht,end.combo);
-                  setAftermath(end.aft);setScoringDone(true);
-                  const tier=getScoreTier(end.total);
-                  if(tier&&tier.label)Audio.tierReveal(Math.min(5,Math.floor(end.total/5000)));
-                }
-              }
-              {const _hti=HT.findIndex(h=>h.name===result.ht);Audio.handType(Math.min(3,Math.floor((_hti>=0?_hti:4)/2)));}
-              stRef.current=setTimeout(animStep,getAutoStepDelay(0));
-            }
-          },2000);
-          return;
-        }
-        // Select next cat with 800ms between each
-        setSel(prev=>{const ns=new Set(prev);ns.add(idxs[ci]);return ns;});
-        Audio.cardSelect();
-        setAutoPlay(a=>a?{...a,step:ci===0?1:2}:null);
-        ci++;
-        autoRef.current=setTimeout(selectNext,800);
-      }
-      // Small delay before first selection so step 0→1 transition is visible
-      autoRef.current=setTimeout(selectNext,600);
-    },2500);
+    if(idxs.length===0)return;
+    // ★ Start with UI tour (step -3 to -1), then auto-play (step 0+)
+    setAutoPlay({step:-3,idxs});
   }
 
   function getMB(){
@@ -2738,7 +2745,8 @@ function NinthLife(){
   function getNextTarget(){
     const nb=blind>=2?0:blind+1;const na=blind>=2?ante+1:ante;
     if(blind>=2&&ante>=MX)return null; // victory next
-    return{ante:na,blind:nb,target:Math.round(getTarget(na,nb,isFirstRun,longDark)),blindName:nb===2?"Boss":(nb===0?"Small":"Big")};
+    const blindNames=["Dusk","Midnight","The Boss"];
+    return{ante:na,blind:nb,target:Math.round(getTarget(na,nb,isFirstRun,longDark)),blindName:blindNames[nb]||"Dusk"};
   }
 
   function drawN(dp,di,n){let d=[...dp],ds=[...di];const r=[];for(let i=0;i<n;i++){if(!d.length&&ds.length){d=shuf(ds);ds=[];setReshuf(true);setTimeout(()=>setReshuf(false),500);}if(d.length)r.push(d.shift());else break;}return{drawn:r,nd:d,ndi:ds};}
@@ -2851,7 +2859,7 @@ function NinthLife(){
     const startFams=[];
     if(startWards>0){for(let i=0;i<startWards;i++){const w=pk(FAMS.filter(f=>!startFams.find(o=>o.id===f.id)));if(w)startFams.push(w);}}
     setFams(startFams);
-    setDen([]);setDenRes(null);setDenStep(-1);setRunLog([]);setFallen([]);setAnteUp(null);setBossReward(null);setBossRewardChoices([]);prevRewardIdsRef.current=[];setRunBonus({hands:0});setDenNews([]);setFirstHandPlayed(false);setScoringCats([]);setAftermath([]);setColEvent(null);setColTargets([]);setTempMods({hands:0,discs:0,nerveLock:0});setEventDenSafe(false);setEventDenBonus(0);setBabyNames({});setFirstDenUsed(false);fcSeenRef.current={};setAutoPlay(null);
+    setDen([]);setDenRes(null);setDenStep(-1);setRunLog([]);setFallen([]);setAnteUp(null);setBossReward(null);setBossRewardChoices([]);prevRewardIdsRef.current=[];setRunBonus({hands:0});setDenNews([]);setFirstHandPlayed(false);setScoringCats([]);setAftermath([]);setColEvent(null);setColTargets([]);setTempMods({hands:0,discs:0,nerveLock:0});setEventDenSafe(false);setEventDenBonus(0);setBabyNames({});setFirstDenUsed(false);fcSeenRef.current={};setAutoPlay(null);setHtLevels({});setSScrolls([]);setDevotion({});
     setRunChips(0);setRunMult(0);setScoreShake(0);setClutch(false);setNewBest(null);setHandDiscovery([]);setDefeatData(null);setRerollCount(0);setScavenge(0);
     // ★ v30: The Hearth — saved cats radiate stardust at start of each run
     if(meta&&meta.cats.length>0){
@@ -3022,6 +3030,41 @@ function NinthLife(){
     setScoringDone(false);
     const tgt=eTgt();const ns=rScore+result.total;
     setRScore(ns);setGold(g=>Math.max(0,g+result.bG));
+    // ★ Hand type leveling — playing a hand type gives it XP toward next level
+    if(result.ht){
+      setHtLevels(prev=>{
+        const cur=prev[result.ht]||1;
+        const xpNeeded=cur*3;
+        const xpKey=result.ht+"_xp";
+        const curXp=(prev[xpKey]||0)+1;
+        if(curXp>=xpNeeded){
+          toast("📜",`${result.ht} leveled up! Lv${cur+1}`,"#fbbf24");
+          return{...prev,[result.ht]:cur+1,[xpKey]:0};
+        }
+        return{...prev,[xpKey]:curXp};
+      });
+    }
+    // ★ Season Devotion — count each cat's season + mixed diversity
+    setDevotion(prev=>{
+      const next={...prev};
+      cats.forEach(c=>{next[c.breed]=(next[c.breed]||0)+1;});
+      // Mixed track: count unique seasons in this hand, add if 2+
+      const uniqueSeasons=new Set(cats.map(c=>c.breed)).size;
+      if(uniqueSeasons>=2)next.Mixed=(next.Mixed||0)+uniqueSeasons;
+      // Check for newly unlocked milestones
+      Object.keys(DEVOTION_MILESTONES).forEach(breed=>{
+        const oldCount=(prev[breed]||0);const newCount=(next[breed]||0);
+        const ms=DEVOTION_MILESTONES[breed]||[];
+        ms.forEach(m=>{
+          if(oldCount<m.at&&newCount>=m.at){
+            const icon=breed==="Mixed"?"🌈":(BREEDS[breed]?.icon||"✦");
+            const color=breed==="Mixed"?"#e8e6e3":(BREEDS[breed]?.color||"#fbbf24");
+            toast(icon,`${breed} Devotion: ${m.name}! ${m.desc}`,color);
+          }
+        });
+      });
+      return next;
+    });
     // ★ Track last hand for Loyal/Stubborn traits
     setLastHandIds(cats.map(c=>c.id));
     setLastHandLost(result.total < tgt * 0.3); // "lost" = scored less than 30% of target
@@ -3112,7 +3155,7 @@ function NinthLife(){
     // ★ v35: beatingPace — used for Nerve gain thresholds
     const beatingPace=rScore>=eTgt()*0.4;
     const activeBT=blind===2?bossTraits:[];
-    const result=calcScore(cats,fams,ferv,cfx,{gold,deckSize:allC.length,discSize:disc.length,handSize:hs(),beatingPace,bossTraitFx:activeBT,scarMult:getMB().scarMult||0,grudgeWisdom:getMB().grudgeWisdom||0,hasMastery:!!(getMB().xp),scavenge,bondBoost:getMB().bondBoost||0,lastHandIds,lastHandLost});
+    const result=calcScore(cats,fams,ferv,cfx,{gold,deckSize:allC.length,discSize:disc.length,handSize:hs(),beatingPace,bossTraitFx:activeBT,scarMult:getMB().scarMult||0,grudgeWisdom:getMB().grudgeWisdom||0,hasMastery:!!(getMB().xp),scavenge,bondBoost:getMB().bondBoost||0,lastHandIds,lastHandLost,htLevels,devotion});
     setScavenge(0); // ★ Scavenge consumed on play
     advancingRef.current=false; // ★ FIX: Reset re-entry guard for new hand
     actionLock.current=false; // ★ FIX: Clear action lock
@@ -3467,6 +3510,8 @@ function NinthLife(){
       c._price=catPrice(ante,c);sc.push(c);
     }
     setSCats(sc);
+    // ★ Generate scrolls for hand type leveling
+    setSScrolls(genScrolls(ante,htLevels));
     const ul=getUnlocks(meta);
     // ★ v36: Starter wards — first-timers get a curated pick from simple, breed-agnostic wards
     const STARTER_WARD_IDS=["f5","f6","f8"]; // Golden Yarn, Moonstone, Witch's Bell
@@ -3490,6 +3535,11 @@ function NinthLife(){
     const buyLines=["Another mouth. Another heartbeat.","They were waiting for a colony that would have them.","One more name to remember.","The colony grows."];
     toast(BREEDS[c.breed].icon,`${c.name.split(" ")[0]} joined. ${buyLines[(c.power+ante)%buyLines.length]}`,BREEDS[c.breed].color);}
   function buyFam(i){const f=sFams[i];const fp=famPrice(f);if(gold<fp||fams.length>=MF)return;Audio.buy();setGold(g=>g-fp);const clean={...f};delete clean._starter;setFams(fs=>[...fs,clean]);setSFams(s=>s.filter((_,j)=>j!==i));toast(f.icon,`${f.name} watches over you`,"#fbbf24");}
+  function buyScroll(i){const s=sScrolls[i];if(!s||gold<s.price)return;Audio.buy();setGold(g=>g-s.price);
+    setHtLevels(prev=>({...prev,[s.name]:(prev[s.name]||1)+1,[s.name+"_xp"]:0}));
+    setSScrolls(sc=>sc.filter((_,j)=>j!==i));
+    toast("📜",`${s.name} → Lv${s.nextLv}! ${s.nextBase?s.nextBase.c+"C×"+s.nextBase.m+"M":""}`,"#fbbf24");
+  }
   // ★ v36: Potions removed — ward actives replace them
 
   // ★ v34 ECON: Reroll scales with ante (prevents trivial late-game rerolling)
@@ -5263,7 +5313,7 @@ function NinthLife(){
   // EVENT OUTCOME
   if(ph==="eventResult"&&eventOutcome){
     const eo=eventOutcome;
-    const advanceEvent=()=>{setEventOutcome(null);if(skipShop){setSkipShop(false);nextBlind();}else{genShop();setPh("shop");}};
+    const advanceEvent=()=>{setEventOutcome(null);nextBlind();};
     return(<div style={W}><div style={BG}/><style>{CSS}</style>
       <div onClick={advanceEvent} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",zIndex:1,gap:10,padding:20,maxWidth:480,cursor:"pointer"}}>
         {/* What you chose. quiet, past tense */}
@@ -5293,7 +5343,7 @@ function NinthLife(){
             </div>
           ))}
         </div>
-        <button onClick={()=>{setEventOutcome(null);if(skipShop){setSkipShop(false);nextBlind();}else{genShop();setPh("shop");}}} style={{...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)","#0a0a1a"),marginTop:12,padding:"10px 32px",fontSize:13,animation:`fadeIn .5s ease-out ${0.6+eo.desc.length*0.35+0.3}s both`,boxShadow:isFirstRun&&!skipShop&&!seen.shop?"0 0 16px #fbbf2444":"none"}}>{skipShop?"Continue":"Continue to Market"}</button>
+        <button onClick={()=>{setEventOutcome(null);nextBlind();}} style={{...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)","#0a0a1a"),marginTop:12,padding:"10px 32px",fontSize:13,animation:`fadeIn .5s ease-out ${0.6+eo.desc.length*0.35+0.3}s both`}}>Continue →</button>
       </div>
     </div>);
   }
@@ -5411,8 +5461,8 @@ function NinthLife(){
         </div>);
       })()
         :<div style={{display:"flex",gap:8,marginTop:6}}>
-          <button onClick={()=>{setOData(null);setSkipShop(false);if(blind<=1){fireEvent();}else{genShop();setPh("shop");}}} style={{...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)","#0a0a1a"),padding:"10px 32px",fontSize:14,animation:isFirstRun&&!seen.shop?"breathe 2s ease-in-out infinite":"none",boxShadow:isFirstRun&&!seen.shop?"0 0 16px #fbbf2444":"none"}}>Visit the Market</button>
-          <button onClick={()=>{const skipG=3+ante;setOData(null);setGold(g=>g+skipG);if(blind<=1){setSkipShop(true);fireEvent();}else{nextBlind();}}} style={{...BTN("#1a1a2e","#fbbf24"),padding:"10px 16px",fontSize:11,border:"1px solid #fbbf2444"}}>Skip Market +{3+ante}🐟</button>
+          <button onClick={()=>{setOData(null);setSkipShop(false);genShop();setPh("shop");}} style={{...BTN(isFirstRun&&!seen.shop?"linear-gradient(135deg,#4ade80,#22d3ee)":"linear-gradient(135deg,#fbbf24,#f59e0b)",isFirstRun&&!seen.shop?"#0a0a1a":"#0a0a1a"),padding:isFirstRun&&!seen.shop?"12px 36px":"10px 32px",fontSize:isFirstRun&&!seen.shop?16:14,animation:isFirstRun&&!seen.shop?"breathe 2s ease-in-out infinite":"none",boxShadow:isFirstRun&&!seen.shop?"0 0 20px #4ade8066":"none"}}>{isFirstRun&&!seen.shop?"Enter the Market ✦":"Visit the Market"}</button>
+          <button onClick={()=>{const skipG=3+ante;setOData(null);setGold(g=>g+skipG);if(blind<=1){fireEvent();}else{nextBlind();}}} style={{...BTN("#1a1a2e","#fbbf24"),padding:"10px 16px",fontSize:11,border:"1px solid #fbbf2444"}}>Skip Market +{3+ante}🐟</button>
         </div>}
     </div></div>);}
 
@@ -5895,15 +5945,24 @@ function NinthLife(){
           return <div style={{fontSize:11,color:"#fbbf2433",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:320,lineHeight:1.4,animation:"fadeIn 1.5s ease-out"}}>{WHISPER_SHOP[(ante*3+blind)%WHISPER_SHOP.length]}</div>;
         })()}
 
-        {/* First-encounter shop hint */}
-        {!seen.shop&&<div style={{padding:"10px 16px",borderRadius:8,background:"#fbbf2408",border:"1px solid #fbbf2422",fontSize:14,fontFamily:"system-ui",color:"#fbbf24aa",lineHeight:1.6,textAlign:"center",maxWidth:400,animation:"fadeIn .6s ease-out"}}>
-          Buy strong cats to improve your deck. Release weak ones from the Colony tab to keep hands focused. Wards give passive bonuses every hand. Unspent rations earn interest.
-          <div style={{marginTop:4}}><button onClick={()=>setSeen(s=>({...s,shop:true}))} style={{fontSize:10,background:"none",border:"1px solid #fbbf2433",borderRadius:4,color:"#fbbf24",cursor:"pointer",padding:"2px 8px",fontFamily:"system-ui"}}>Got it</button></div>
+        {/* First-encounter shop hint — explain rations, scrolls, devotion */}
+        {!seen.shop&&<div style={{padding:"12px 18px",borderRadius:10,background:"linear-gradient(145deg,#fbbf2408,#f59e0b04)",border:"1px solid #fbbf2433",fontSize:12,fontFamily:"system-ui",color:"#e8e6e3cc",lineHeight:1.7,textAlign:"left",maxWidth:400,animation:"fadeIn .6s ease-out"}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#fbbf24",marginBottom:6,letterSpacing:1}}>THE MARKET</div>
+          <div><span style={{color:"#fbbf24"}}>🐟 Rations</span> are currency. Save them for <span style={{color:"#4ade80"}}>interest</span> (every 5🐟 = +1 per round) or spend on:</div>
+          <div style={{marginTop:6,display:"flex",flexDirection:"column",gap:3}}>
+            <div><span style={{color:"#fbbf24"}}>🐱 Cats</span> — stronger cats with traits boost your score</div>
+            <div><span style={{color:"#fbbf24"}}>📜 Scrolls</span> — level up hand types for bigger base scores</div>
+            <div><span style={{color:"#fbbf24"}}>🛡️ Wards</span> — passive bonuses that trigger every hand</div>
+          </div>
+          <div style={{marginTop:8,padding:"6px 10px",borderRadius:6,background:"#ffffff06",border:"1px solid #ffffff0a"}}>
+            <div style={{fontSize:11,color:"#fbbf24bb"}}>💡 <b>Season Devotion</b>: The more cats of one season you play, the stronger that season becomes. Check your progress in the Scrolls tab.</div>
+          </div>
+          <div style={{marginTop:8,textAlign:"center"}}><button onClick={()=>setSeen(s=>({...s,shop:true}))} style={{fontSize:11,background:"linear-gradient(135deg,#fbbf24,#f59e0b)",border:"none",borderRadius:5,color:"#0a0a1a",cursor:"pointer",padding:"5px 16px",fontWeight:700}}>Got it</button></div>
         </div>}
 
         {/* ★ v41: Tab bar */}
         <div style={{display:"flex",gap:0,width:"100%",borderBottom:"1px solid #ffffff0a"}}>
-          {[["cats","🐱 Cats"],["wards","🛡️ Wards"],["colony","👥 Colony"]].map(([id,label])=>{
+          {[["cats","🐱 Cats"],["scrolls","📜 Scrolls"],["wards","🛡️ Wards"],["colony","👥 Colony"]].map(([id,label])=>{
             const isWardNudge=id==="wards"&&shopTab!=="wards"&&sFams.some(f=>f._starter)&&fams.length===0;
             return(<button key={id} onClick={()=>{setShopTab(id);if(id!=="colony")setSellMode(false);}} style={{flex:1,padding:"8px 4px",fontSize:12,fontFamily:"system-ui",fontWeight:shopTab===id?700:400,color:shopTab===id?"#fbbf24":isWardNudge?"#fbbf24":"#666",background:shopTab===id?"#fbbf2408":isWardNudge?"#fbbf2406":"transparent",border:"none",borderBottom:shopTab===id?"2px solid #fbbf24":isWardNudge?"2px solid #fbbf2466":"2px solid transparent",cursor:"pointer",transition:"all .2s",animation:isWardNudge?"breathe 2s ease-in-out infinite":"none"}}>{label}{isWardNudge?" ✦":""}</button>);
           })}
@@ -5911,6 +5970,14 @@ function NinthLife(){
 
         {/* ═══ CATS TAB ═══ */}
         {shopTab==="cats"&&<div style={{width:"100%",animation:"fadeIn .3s ease-out"}}>
+          {/* ★ Compact colony summary — see your deck while shopping */}
+          <div style={{display:"flex",gap:3,flexWrap:"wrap",justifyContent:"center",padding:"4px 0 8px",borderBottom:"1px solid #ffffff08",marginBottom:8}}>
+            {(()=>{const uAll2=[...hand,...draw,...disc];const bCounts={};uAll2.forEach(c=>{bCounts[c.breed]=(bCounts[c.breed]||0)+1;});
+              return Object.entries(bCounts).sort(([,a],[,b])=>b-a).map(([br,ct])=>
+                <span key={br} style={{fontSize:10,color:BREEDS[br]?.color||"#888",fontFamily:"system-ui",padding:"1px 5px",borderRadius:3,background:BREEDS[br]?.color+"11",border:"1px solid "+BREEDS[br]?.color+"22"}}>{BREEDS[br]?.icon}{ct}</span>
+              );})()}
+            <span style={{fontSize:10,color:"#666",fontFamily:"system-ui",padding:"1px 5px"}}>{[...hand,...draw,...disc].length} cats · avg P{Math.round([...hand,...draw,...disc].reduce((s,c)=>s+c.power,0)/Math.max(1,[...hand,...draw,...disc].length))}</span>
+          </div>
           {(()=>{
             const featured=sCats.find(c=>c.trait.tier==="mythic")||sCats.find(c=>c.trait.tier==="legendary")||sCats.find(c=>c.trait.tier==="rare")||sCats.find(c=>c.trait.name!=="Plain")||sCats[0];
             const rest=featured?sCats.filter(c=>c!==featured):[];
@@ -5943,6 +6010,65 @@ function NinthLife(){
           })()}
         </div>}
 
+        {/* ═══ SCROLLS TAB — hand type leveling ═══ */}
+        {shopTab==="scrolls"&&<div style={{width:"100%",animation:"fadeIn .3s ease-out"}}>
+          <div style={{fontSize:10,color:"#fbbf24bb",letterSpacing:2,marginBottom:6}}>HAND TYPE SCROLLS</div>
+          <div style={{fontSize:10,color:"#888",fontFamily:"system-ui",marginBottom:8,lineHeight:1.5}}>Scrolls permanently level up a hand type for this run. Higher levels = bigger base chips and mult.</div>
+          {sScrolls.length>0?<div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {sScrolls.map((s,i)=>{const can=gold>=s.price;
+              return(<div key={s.name} onClick={()=>can&&buyScroll(i)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:8,
+                background:can?"#fbbf2406":"#ffffff04",border:`1px solid ${can?"#fbbf2433":"#ffffff0a"}`,
+                cursor:can?"pointer":"default",opacity:can?1:.5,transition:"all .2s"}}>
+                <span style={{fontSize:22}}>📜</span>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:12,fontWeight:700,color:"#fbbf24"}}>{s.name}</div>
+                  <div style={{fontSize:10,color:"#888",fontFamily:"system-ui"}}>
+                    Lv{s.lv} → Lv{s.nextLv}
+                    {s.nextBase&&<span style={{color:"#4ade80"}}> ({s.nextBase.c}C × {s.nextBase.m}M)</span>}
+                  </div>
+                </div>
+                <div style={{fontSize:12,color:"#fbbf24",fontWeight:700}}>{s.price}🐟</div>
+              </div>);
+            })}
+          </div>:<div style={{color:"#444",fontSize:10,fontFamily:"system-ui",textAlign:"center",padding:16}}>No scrolls available</div>}
+          {/* Current hand type levels overview */}
+          <div style={{marginTop:12,borderTop:"1px solid #ffffff0a",paddingTop:8}}>
+            <div style={{fontSize:10,color:"#888",letterSpacing:2,marginBottom:4}}>YOUR HAND LEVELS</div>
+            <div style={{display:"flex",flexDirection:"column",gap:3}}>
+              {HT.filter(h=>!h.hidden).map(h=>{const lv=getHtLevel(h.name,htLevels);const sc=getHtScaled(h,lv);const xp=htLevels[h.name+"_xp"]||0;const needed=lv*3;
+                return(<div key={h.name} style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:10,fontFamily:"system-ui",color:lv>1?"#fbbf24":"#666",padding:"2px 0"}}>
+                  <span>{h.name}{lv>1?` Lv${lv}`:""}</span>
+                  <span style={{color:lv>1?"#4ade80":"#444"}}>{sc.c}C × {sc.m}M {lv>1?"":<span style={{color:"#333"}}>({xp}/{needed} xp)</span>}</span>
+                </div>);
+              })}
+            </div>
+          </div>
+          {/* ★ Season Devotion progress */}
+          <div style={{marginTop:12,borderTop:"1px solid #ffffff0a",paddingTop:8}}>
+            <div style={{fontSize:10,color:"#888",letterSpacing:2,marginBottom:4}}>SEASON DEVOTION</div>
+            <div style={{fontSize:10,color:"#666",fontFamily:"system-ui",marginBottom:6,lineHeight:1.4}}>Play cats of a season to unlock permanent run bonuses. Go mono for deep rewards, or mix for diversity bonuses.</div>
+            <div style={{display:"flex",flexDirection:"column",gap:4}}>
+              {Object.keys(DEVOTION_MILESTONES).map(breed=>{
+                const dev=getDevotionLevel(breed,devotion);
+                const icon=breed==="Mixed"?"🌈":(BREEDS[breed]?.icon||"?");
+                const color=breed==="Mixed"?"#e8e6e3":(BREEDS[breed]?.color||"#888");
+                return(<div key={breed}>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color,fontFamily:"system-ui"}}>
+                    <span>{icon} {breed} ({dev.count})</span>
+                    <span style={{color:color+"88"}}>{dev.unlocked.length}/{dev.total} unlocked</span>
+                  </div>
+                  <div style={{display:"flex",gap:2,marginTop:2}}>
+                    {(DEVOTION_MILESTONES[breed]||[]).map((m,i)=>{
+                      const unlocked=dev.count>=m.at;
+                      return(<div key={i} title={`${m.at}: ${m.name} — ${m.desc}`} style={{flex:1,height:4,borderRadius:2,background:unlocked?color:"#ffffff0a",transition:"background .3s"}}/>);
+                    })}
+                  </div>
+                </div>);
+              })}
+            </div>
+          </div>
+        </div>}
+
         {/* ═══ WARDS TAB ═══ */}
         {shopTab==="wards"&&<div style={{width:"100%",animation:"fadeIn .3s ease-out"}}>
           {/* ★ First-ward introduction */}
@@ -5959,8 +6085,12 @@ function NinthLife(){
           </div>);})}{!sFams.length&&(ul.fams||isFirstRun?<div style={{color:"#444",fontSize:10,fontFamily:"system-ui",textAlign:"center",padding:16}}>Sold out</div>:<div style={{color:"#333",fontSize:10,fontFamily:"system-ui",fontStyle:"italic",textAlign:"center",padding:16}}>🔒 Complete a run to unlock Wards</div>)}</div>
           {/* Your wards */}
           {fams.length>0&&<div style={{marginTop:12,borderTop:"1px solid #ffffff0a",paddingTop:8}}>
-            <div style={{fontSize:10,color:"#fbbf24bb",letterSpacing:2,marginBottom:4}}>YOUR WARDS ({fams.length}/{MF}) {sellMode&&<span style={{color:"#ef4444"}}>(sell 3🐟)</span>}</div>
-            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{fams.map(f=><div key={f.id} style={{textAlign:"center"}}><FS f={f} sm onClick={sellMode?()=>sellFam(f):undefined}/><div style={{fontSize:10,color:"#888",fontFamily:"system-ui",marginTop:1,maxWidth:70}}>{f.name}</div></div>)}</div>
+            <div style={{fontSize:10,color:"#fbbf24bb",letterSpacing:2,marginBottom:4}}>YOUR WARDS ({fams.length}/{MF})</div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{fams.map(f=><div key={f.id} style={{textAlign:"center",position:"relative"}}>
+              <FS f={f} sm/>
+              <div style={{fontSize:10,color:"#888",fontFamily:"system-ui",marginTop:1,maxWidth:70}}>{f.name}</div>
+              <button onClick={()=>sellFam(f)} style={{fontSize:8,color:"#ef4444aa",background:"none",border:"1px solid #ef444433",borderRadius:3,cursor:"pointer",padding:"1px 4px",marginTop:2,fontFamily:"system-ui"}}>sell 3🐟</button>
+            </div>)}</div>
           </div>}
         </div>}
 
@@ -6018,13 +6148,13 @@ function NinthLife(){
               <span style={{color:"#c084fc",fontSize:10}}>✦{meta?.dust||0}</span>
             </div>
             <div style={{fontSize:10,fontFamily:"system-ui",color:"#888"}}>
-              {nt?<span>Next: <span style={{color:nt.blind===2?"#ef4444":"#fbbf24",fontWeight:700}}>{nt.blindName}</span> Night {nt.ante} · Threshold: <span style={{color:"#e8e6e3",fontWeight:700}}>{nt.target.toLocaleString()}</span></span>
-              :<span style={{color:"#4ade80",fontWeight:700}}>Final Round!</span>}
+              {nt?<span>{nt.blind===2?<span style={{color:"#ef4444",fontWeight:700}}>{boss?.icon||"👁️"} {nt.blindName} approaches</span>:<span style={{color:"#fbbf24"}}>{nt.blindName} falls</span>} · Night {nt.ante} · <span style={{color:"#e8e6e3",fontWeight:700}}>{nt.target.toLocaleString()}</span> to survive</span>
+              :<span style={{color:"#4ade80",fontWeight:700}}>Dawn approaches...</span>}
             </div>
           </div>
           {blind>=2?
-            <button onClick={()=>{setDen([]);setPh("denSelect");}} style={{...BTN("linear-gradient(135deg,#c084fc,#a855f7)","#fff"),padding:"10px 20px",fontSize:12}}>🌙 Into the Night</button>
-            :<button onClick={()=>{nextBlind();}} style={{...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)","#0a0a1a"),padding:"10px 20px",fontSize:12}}>Next Round →</button>}
+            <button onClick={()=>{setDen([]);setPh("denSelect");}} style={{...BTN("linear-gradient(135deg,#c084fc,#a855f7)","#fff"),padding:"10px 20px",fontSize:12}}>🌙 Into the Den</button>
+            :<button onClick={()=>{fireEvent();}} style={{...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)","#0a0a1a"),padding:"10px 20px",fontSize:12}}>{nt?nt.blindName+" awaits →":"Face the dawn →"}</button>}
         </div>
       </div>
     </div>);
@@ -6060,20 +6190,152 @@ function NinthLife(){
 
       {/* ★ v40: Guided first hand. teach by doing, not by reading */}
       {/* ★ v47: AUTO-PLAY BANNER. shows during first-hand demo */}
-      {autoPlay&&ph==="playing"&&<div style={{position:"fixed",bottom:60,left:"50%",transform:"translateX(-50%)",zIndex:150,padding:"14px 24px",borderRadius:12,background:"#0a0a1aee",border:"1px solid #4ade8044",maxWidth:340,animation:"fadeIn .6s ease-out",textAlign:"center",fontFamily:"system-ui",boxShadow:"0 8px 32px #00000088"}}>
-        <div style={{fontSize:14,color:"#4ade80",fontWeight:700,marginBottom:4}}>{
-          autoPlay.step===0?"👀 Watch this first hand..."
-          :autoPlay.step===1?"Selecting same-season cats..."
-          :autoPlay.step===2?`Selecting ${autoPlay.idxs?.length||0} ${hand[autoPlay.idxs?.[0]]?BREEDS[hand[autoPlay.idxs[0]].breed]?.name:""} cats`
-          :"Playing the hand..."
-        }</div>
-        <div style={{fontSize:11,color:"#4ade80aa",lineHeight:1.5}}>{
-          autoPlay.step===0?"The game will play one hand to show you how scoring works."
-          :autoPlay.step<=2?"More cats of the same season = stronger hand."
-          :"Watch how each cat adds to the score..."
-        }</div>
-        <button onClick={()=>{if(autoRef.current)clearTimeout(autoRef.current);if(stRef.current)clearTimeout(stRef.current);setSel(new Set());setAutoPlay(null);setGuide({step:3,msg:""});}} style={{marginTop:8,fontSize:10,background:"none",border:"1px solid #4ade8033",borderRadius:4,color:"#4ade8066",cursor:"pointer",padding:"3px 10px"}}>Skip demo →</button>
-      </div>}
+      {autoPlay&&ph==="playing"&&(()=>{
+        const step=autoPlay.step;
+        const isUiTour=step<0;
+        // UI Tour highlight positions
+        const tourSteps=[
+          {step:-3,title:"YOUR FIRST NIGHT",msg:"Let me show you how this works. Watch closely — I'll play the first hand for you.",highlight:null,pos:"center"},
+          {step:-2,title:"SCORE & TARGET",msg:"Score enough each round to survive. Fall below the threshold and the dark forgets you were here.",highlight:"score",pos:"top"},
+          {step:-1,title:"YOUR COLONY",msg:"These are your cats. Cards of the same season score better together. Watch what happens when I play matching cats.",highlight:"hand",pos:"bottom"},
+        ];
+        const tour=tourSteps.find(t=>t.step===step);
+
+        if(isUiTour&&tour)return(<>
+          {/* Dim overlay */}
+          <div style={{position:"fixed",inset:0,background:"#000000dd",zIndex:140,pointerEvents:"auto"}} onClick={()=>setAutoPlay(a=>a?{...a,step:a.step+1}:null)}/>
+          {/* Highlight box — glow effect on relevant UI element */}
+          {tour.highlight==="score"&&<div style={{position:"fixed",top:0,left:"30%",right:"30%",height:60,border:"2px solid #fbbf2466",borderRadius:12,boxShadow:"0 0 20px #fbbf2444,inset 0 0 20px #fbbf2422",zIndex:141,pointerEvents:"none",animation:"guidePulse 1.5s ease-in-out infinite"}}/>}
+          {tour.highlight==="hand"&&<div style={{position:"fixed",bottom:60,left:"5%",right:"5%",height:160,border:"2px solid #4ade8066",borderRadius:12,boxShadow:"0 0 20px #4ade8044,inset 0 0 20px #4ade8022",zIndex:141,pointerEvents:"none",animation:"guidePulse 1.5s ease-in-out infinite"}}/>}
+          {/* Tour message */}
+          <div style={{position:"fixed",top:tour.pos==="center"?"35%":tour.pos==="top"?80:"auto",bottom:tour.pos==="bottom"?240:"auto",left:"50%",transform:"translateX(-50%)",zIndex:142,
+            padding:"20px 28px",borderRadius:14,background:"#0d1117",border:"1.5px solid #fbbf2444",maxWidth:360,animation:"fadeIn .5s ease-out",textAlign:"center",fontFamily:"system-ui",boxShadow:"0 12px 48px #00000099"}}>
+            <div style={{fontSize:10,color:"#fbbf2488",letterSpacing:4,marginBottom:6}}>{tour.title}</div>
+            <div style={{fontSize:14,color:"#e8e6e3",lineHeight:1.6}}>{tour.msg}</div>
+            <button onClick={()=>setAutoPlay(a=>a?{...a,step:a.step+1}:null)} style={{marginTop:12,fontSize:12,background:"linear-gradient(135deg,#fbbf24,#f59e0b)",border:"none",borderRadius:6,color:"#0a0a1a",cursor:"pointer",padding:"8px 20px",fontWeight:700,fontFamily:"system-ui",letterSpacing:1}}>
+              {step===-1?"Show me →":"Next →"}
+            </button>
+            <div style={{marginTop:8}}><button onClick={()=>{if(autoRef.current)clearTimeout(autoRef.current);if(stRef.current)clearTimeout(stRef.current);setSel(new Set());setAutoPlay(null);setGuide({step:3,msg:""});}} style={{fontSize:10,background:"none",border:"none",color:"#ffffff33",cursor:"pointer",padding:"3px 10px"}}>Skip tutorial</button></div>
+          </div>
+        </>);
+
+        // Auto-play steps (0+) — trigger card selection cascade when transitioning from tour
+        if(step===0&&!autoRef.current){
+          autoRef.current=setTimeout(()=>{
+            let ci=0;
+            function selectNext(){
+              if(ci>=autoPlay.idxs.length){
+                setAutoPlay(a=>a?{...a,step:3}:null);
+                autoRef.current=setTimeout(()=>{
+                  const cats=autoPlay.idxs.map(i=>hand[i]).filter(Boolean);
+                  if(cats.length>=1){
+                    setScoringCats(cats);setAftermath([]);setFirstHandPlayed(true);Audio.cardPlay();
+                    const beatingPace=rScore>=eTgt()*0.4;
+                    const activeBT=blind===2?bossTraits:[];
+                    const result=calcScore(cats,fams,ferv,cfx,{gold,deckSize:allC.length,discSize:disc.length,handSize:hs(),beatingPace,bossTraitFx:activeBT,scarMult:getMB().scarMult||0,grudgeWisdom:getMB().grudgeWisdom||0,hasMastery:!!(getMB().xp),scavenge,bondBoost:getMB().bondBoost||0,lastHandIds,lastHandLost,htLevels,devotion});
+                    setScavenge(0);advancingRef.current=false;
+                    setSRes(result);setSStep(0);setPh("scoring");setRunChips(0);setRunMult(0);setNewBest(null);setHandDiscovery([]);
+                    let rC=0,rM=0;
+                    const stepTotals=result.bd.map(s=>{rC+=s.chips||0;rM+=s.mult||0;if(s.xMult)rM=Math.round(rM*s.xMult);return{chips:Math.max(0,rC),mult:Math.max(1,rM),total:Math.max(0,rC)*Math.max(1,rM)};});
+                    const aft=[];
+                    cats.forEach(c=>{
+                      const oldXP=getCatXP(c.stats.tp,!!(getMB().xp));const newXP=getCatXP(c.stats.tp+1,!!(getMB().xp));
+                      if(newXP&&oldXP&&newXP.label!==oldXP.label&&newXP.bonus.mult>0)aft.push({icon:newXP.icon,text:`${c.name.split(" ")[0]}: ${newXP.label}!`,color:newXP.color});
+                      if(result.total>c.stats.bs&&c.stats.bs>0)aft.push({icon:"🏆",text:`${c.name.split(" ")[0]} PB: ${result.total.toLocaleString()}`,color:"#fbbf24"});
+                    });
+                    const catSteps=result.bd.filter(s=>s.catIdx!==undefined&&s.type!=="xp_rank");
+                    if(catSteps.length>0&&cats.length>=2){
+                      const contribs=catSteps.map(s=>{const t=stepTotals[result.bd.indexOf(s)]?.total||0;const prev=result.bd.indexOf(s)>0?stepTotals[result.bd.indexOf(s)-1]?.total||0:0;return{cat:cats[s.catIdx],delta:t-prev};});
+                      const totalDelta=contribs.reduce((s,c)=>s+c.delta,0);
+                      const best2=contribs.sort((a,b)=>b.delta-a.delta)[0];
+                      if(best2&&totalDelta>0&&best2.delta/totalDelta>0.45){
+                        const fn2=best2.cat.name.split(" ")[0];const pct2=Math.round(best2.delta/totalDelta*100);
+                        aft.push({icon:"💪",text:pk(CAT_REACTIONS.carry(fn2,pct2)),color:BREEDS[best2.cat.breed]?.color||"#fbbf24"});
+                      }
+                    }
+                    const bondedInHand=cats.filter(c=>c.bondedTo&&cats.find(x=>x.id===c.bondedTo));
+                    if(bondedInHand.length>=2){
+                      const a2=bondedInHand[0].name.split(" ")[0],bN2=bondedInHand[1].name.split(" ")[0];
+                      aft.push({icon:"💕",text:pk(CAT_REACTIONS.bond(a2,bN2)),color:"#f472b6"});
+                    }
+                    scoreEndRef.current={chips:result.chips,mult:result.mult,total:result.total,ht:result.ht,combo:result.combo,aft,shk:getShakeIntensity(result.total),isFirstCascade:true,stepTotals:stepTotals.map(s=>s.total)};
+                    let stp=0;const tot=result.bd.length;
+                    function getAutoStepDelay2(s){
+                      const tempo=Math.max(0.5,Math.min(1.4,7/tot));const slow=1.4;
+                      const st=result.bd[s];const isLast=s===tot-1;const isPenult=s===tot-2;
+                      if(st&&(st.mult<0||st.type==="curse"||st.type==="grudge_tension"))return Math.round(150*tempo*slow);
+                      if(st&&st.xMult&&st.xMult>=2)return Math.round(Math.max(900,1100*Math.max(0.7,tempo))*slow);
+                      if(st&&st.xMult)return Math.round(Math.max(700,900*Math.max(0.7,tempo))*slow);
+                      if(st&&st.type==="nerve")return Math.round(Math.max(650,850*Math.max(0.7,tempo))*slow);
+                      if(st&&(st.type==="bond"||st.type==="lineage"))return Math.round(Math.max(450,600*tempo)*slow);
+                      if(st&&st.type==="fam")return Math.round(Math.max(400,550*tempo)*slow);
+                      if(isPenult)return Math.round(Math.max(370,520*tempo)*slow);
+                      if(isLast)return Math.round(Math.max(470,670*tempo)*slow);
+                      if(s===0)return Math.round(550*tempo*slow);
+                      if(st?.isBigCat)return Math.round(Math.max(450,580*tempo)*slow);
+                      if(s===1)return Math.round(420*tempo*slow);
+                      if(s<=3)return Math.round(350*tempo*slow);
+                      return Math.round(Math.max(70,(200-s*5)*tempo)*slow);
+                    }
+                    function animStep2(){
+                      stp++;
+                      if(stp<tot){
+                        setSStep(stp);setRunChips(stepTotals[stp].chips);setRunMult(stepTotals[stp].mult);
+                        const progress=stepTotals[stp].total/(result.total||1);const s2=result.bd[stp];
+                        if(s2){
+                          if(s2.xMult){Audio.xMultSlam(s2.xMult);setScoreShake(Math.ceil(s2.xMult));setTimeout(()=>setScoreShake(0),300);setScoringFlash(s2.xMult>=1.5?"#fef08a":"#fbbf24");setTimeout(()=>setScoringFlash(null),150);}
+                          else if(s2.type==="combo"){Audio.comboHit();setScoreShake(1);setTimeout(()=>setScoreShake(0),200);setScoringFlash("#c084fc");setTimeout(()=>setScoringFlash(null),120);}
+                          else if(s2.type==="grudge_tension")Audio.grudgeTense();
+                          else if(s2.type==="grudge_prove")Audio.grudgeProve();
+                          else if(s2.type==="bond"||s2.type==="lineage")Audio.bondChime();
+                          else if(s2.type==="xp_rank")Audio.bondChime();
+                          else if(s2.isBigCat)Audio.bigCatHit(progress);
+                          else if(s2.mult>0)Audio.multHit(s2.mult,progress);
+                          else if(s2.chips>0)Audio.chipUp(s2.chips,progress);
+                        }
+                        stRef.current=setTimeout(animStep2,getAutoStepDelay2(stp));
+                      }else{
+                        const end=scoreEndRef.current;
+                        setRunChips(end.chips);setRunMult(end.mult);
+                        setScoreShake(end.shk);setTimeout(()=>setScoreShake(0),400+end.shk*100);
+                        const prev=handBests[end.ht]||0;
+                        if(end.total>prev){setHandBests(b=>({...b,[end.ht]:end.total}));setNewBest(end.ht);}
+                        checkHandDiscovery(end.ht,end.combo);
+                        setAftermath(end.aft);setScoringDone(true);
+                        const tier=getScoreTier(end.total);
+                        if(tier&&tier.label)Audio.tierReveal(Math.min(5,Math.floor(end.total/5000)));
+                      }
+                    }
+                    {const _hti=HT.findIndex(h=>h.name===result.ht);Audio.handType(Math.min(3,Math.floor((_hti>=0?_hti:4)/2)));}
+                    stRef.current=setTimeout(animStep2,getAutoStepDelay2(0));
+                  }
+                },2000);
+                return;
+              }
+              setSel(prev=>{const ns=new Set(prev);ns.add(autoPlay.idxs[ci]);return ns;});
+              Audio.cardSelect();
+              setAutoPlay(a=>a?{...a,step:ci===0?1:2}:null);
+              ci++;
+              autoRef.current=setTimeout(selectNext,800);
+            }
+            autoRef.current=setTimeout(selectNext,600);
+          },1200);
+        }
+
+        // Auto-play banner (step 0+)
+        return(<div style={{position:"fixed",bottom:60,left:"50%",transform:"translateX(-50%)",zIndex:150,padding:"14px 24px",borderRadius:12,background:"#0a0a1aee",border:"1px solid #4ade8044",maxWidth:340,animation:"fadeIn .6s ease-out",textAlign:"center",fontFamily:"system-ui",boxShadow:"0 8px 32px #00000088"}}>
+          <div style={{fontSize:14,color:"#4ade80",fontWeight:700,marginBottom:4}}>{
+            step===0?"Selecting same-season cats..."
+            :step<=2?("Selecting "+hand[autoPlay.idxs?.[0]]?BREEDS[hand[autoPlay.idxs[0]].breed]?.name+" cats...":"cats...")
+            :"Playing the hand..."
+          }</div>
+          <div style={{fontSize:11,color:"#4ade80aa",lineHeight:1.5}}>{
+            step<=2?"More cats of the same season = stronger hand."
+            :"Watch how each cat adds to the score..."
+          }</div>
+          <button onClick={()=>{if(autoRef.current)clearTimeout(autoRef.current);if(stRef.current)clearTimeout(stRef.current);setSel(new Set());setAutoPlay(null);setGuide({step:3,msg:""});}} style={{marginTop:8,fontSize:10,background:"none",border:"1px solid #4ade8033",borderRadius:4,color:"#4ade8066",cursor:"pointer",padding:"3px 10px"}}>Skip demo →</button>
+        </div>);
+      })()}
       {guide&&!autoPlay&&ante===1&&blind===0&&ph==="playing"&&(()=>{
         // Compute guide context
         const selCats=[...sel].map(i=>hand[i]).filter(Boolean);
@@ -6098,7 +6360,7 @@ function NinthLife(){
           const need=Math.max(0,tgt-rScore);
           const postAuto=!autoPlay&&isFirstRun&&ante===1&&blind===0&&hLeft>=2;
           msg=postAuto?"Your turn! 🎮":need>0?(hLeft===1?`⚠ FINAL HAND. Need ${need.toLocaleString()} to survive.`:`${hLeft} hand${hLeft!==1?"s":""} left. Need ${need.toLocaleString()} more.`):"Threshold cleared! 🎉";
-          sub=postAuto?`${hLeft} hands left. Tap cats that share a season, then hit Play.`:need>0?(hLeft<=2?"Make this count.":"Pick a different group, or discard to draw new ones."):"Keep playing for bonus rations.";
+          sub=postAuto?`${hLeft} hands left. Tap cats that share a season, then hit Play.`:need>0?(hLeft<=2?"Make this count.":"Pick a different group, or discard to draw new ones."):"The bigger you score beyond the threshold, the more bonus rations and Nerve you earn.";
         }
         return(<div style={{position:"fixed",bottom:guide.step>=2?280:220,left:"50%",transform:"translateX(-50%)",zIndex:150,padding:"12px 20px",borderRadius:12,background:"#0a0a1aee",border:"1px solid #fbbf2444",maxWidth:340,animation:"fadeIn .6s ease-out",textAlign:"center",fontFamily:"system-ui",boxShadow:"0 8px 32px #00000088"}}>
           <div style={{fontSize:14,color:"#fbbf24",fontWeight:700,marginBottom:3}}>{msg}</div>
@@ -6116,6 +6378,25 @@ function NinthLife(){
         <div style={{textAlign:"right"}}><div style={{color:"#fbbf24",fontWeight:700,fontSize:13}}>🐟{gold}</div><div style={{fontSize:10,color:"#4ade80",fontFamily:"system-ui"}}>{Math.min(5,Math.floor(gold/5))>0?`+${Math.min(5,Math.floor(gold/5))} stores`:""}</div></div>
         <button onClick={e=>{e.stopPropagation();toggleMute();}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer",opacity:.4,padding:4}} title={muted?"Unmute":"Mute"}>{muted?"🔇":"🔊"}</button>
         <button onClick={e=>{e.stopPropagation();setDeckView(true);}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer",opacity:.4,padding:4}} title="View deck">📋</button>
+        <button onClick={e=>{e.stopPropagation();setHandSort(s=>s==="season"?"power":"season");}} style={{background:"none",border:"none",fontSize:10,cursor:"pointer",opacity:.4,padding:4,fontFamily:"system-ui",color:"#888"}} title="Sort hand">{handSort==="season"?"☀ season":"⚡ power"}</button>
+      </div>
+
+      {/* ★ Season Devotion compact tracker */}
+      <div style={{display:"flex",gap:3,padding:"2px 16px",zIndex:1,maxWidth:700,width:"100%",justifyContent:"center"}}>
+        {Object.keys(DEVOTION_MILESTONES).map(breed=>{
+          const dev=getDevotionLevel(breed,devotion);
+          if(breed==="Mixed"&&dev.count===0)return null;
+          const icon=breed==="Mixed"?"🌈":(BREEDS[breed]?.icon||"?");
+          const color=breed==="Mixed"?"#e8e6e3":(BREEDS[breed]?.color||"#888");
+          const pct=dev.next?Math.min(100,dev.count/dev.next.at*100):100;
+          return(<div key={breed} title={dev.next?`${breed}: ${dev.count}/${dev.next.at} → ${dev.next.name}`:`${breed}: MAX`} style={{display:"flex",alignItems:"center",gap:2,fontSize:9,color:color+"88",fontFamily:"system-ui"}}>
+            <span style={{fontSize:10}}>{icon}</span>
+            <span>{dev.count}</span>
+            <div style={{width:20,height:3,background:"#ffffff0a",borderRadius:2,overflow:"hidden"}}>
+              <div style={{height:"100%",width:`${pct}%`,background:color,borderRadius:2,transition:"width .3s"}}/>
+            </div>
+          </div>);
+        })}
       </div>
 
       {isBoss&&curses.length>0&&<div style={{display:"flex",gap:4,padding:"3px 16px",zIndex:1,maxWidth:700,width:"100%",flexWrap:"wrap"}}>
@@ -6184,7 +6465,7 @@ function NinthLife(){
               :s.type==="grudge_tension"?"#fb923c"
               :s.type==="xp_rank"?(s.xMult?"#fbbf24":"#c084fc")
               :s.type==="trait"||s.type==="scar"?"#60a5fa"
-              :s.type==="cat"&&s.passiveBreed?(BREEDS[s.passiveBreed]?.color||"#3b82f6")
+              :s.type==="cat"?"#3b82f6"
               :s.type==="curse"||(s.mult<0)?"#ef4444"
               :s.chips&&!s.mult?"#60a5fa"
               :"#e8e6e3";
@@ -6208,7 +6489,7 @@ function NinthLife(){
               grudge_tension:["Old wounds fester.","They can't focus.","History weighs."],
               nerve:NERVE[ferv]?.desc?[NERVE[ferv].desc]:[],
               fam:["A ward watches.","Silent guardian."],
-              cat:s?.passiveBreed&&BREED_PASSIVE[s.passiveBreed]?[BREED_PASSIVE[s.passiveBreed].desc]:["Holding the line.","Every cat counts."],
+              cat:["Holding the line.","Every cat counts.","Power becomes chips.","They add up."],
               trait:["Instinct kicks in.","Bred for this.","It's in their nature.","Training pays off."],
               trait_rare:["Power compounds.","The engine roars.","It keeps stacking.","Transcendent."],
               scar:["What doesn't kill…","Battle-hardened.","Scars are armor.","Earned, not given."],
@@ -6237,7 +6518,7 @@ function NinthLife(){
             const flavor=pool&&pool.length>0?pool[sStep%pool.length]:null;
 
             // Step label color — ★ DOPAMINE: collapsed types (cat with passiveBreed gets breed color)
-            const stepColor=!s?"#888":s.type==="hand"?"#fbbf24":s.type==="combo"?"#c084fc":s.type==="cat"?(s.passiveBreed?BREEDS[s.passiveBreed]?.color||"#3b82f6":"#3b82f6"):s.type==="trait"?"#60a5fa":s.type==="trait_rare"?"#fbbf24":s.type==="scar"?"#fb923c":s.type==="fam"?"#c084fc":s.type==="bond"?"#4ade80":s.type==="lineage"?"#34d399":s.type==="grudge_prove"?"#fbbf24":s.type==="grudge_tension"?"#fb923c":s.type==="boss_trait"?"#ef4444":s.type==="provider"?"#4ade80":s.type==="xp_rank"?"#c084fc":s.type==="nerve"?(NERVE[ferv]?.color||"#d97706"):s.type==="curse"?"#ef4444":s.type==="gold"?"#fbbf24":"#888";
+            const stepColor=!s?"#888":s.type==="hand"?"#fbbf24":s.type==="combo"?"#c084fc":s.type==="cat"?"#3b82f6":s.type==="trait"?"#60a5fa":s.type==="trait_rare"?"#fbbf24":s.type==="scar"?"#fb923c":s.type==="fam"?"#c084fc":s.type==="bond"?"#4ade80":s.type==="lineage"?"#34d399":s.type==="grudge_prove"?"#fbbf24":s.type==="grudge_tension"?"#fb923c":s.type==="boss_trait"?"#ef4444":s.type==="provider"?"#4ade80":s.type==="xp_rank"?"#c084fc":s.type==="nerve"?(NERVE[ferv]?.color||"#d97706"):s.type==="curse"?"#ef4444":s.type==="gold"?"#fbbf24":"#888";
 
             return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:0,
               transform:`scale(${counterScale})`,transition:"transform .3s ease-out",
@@ -6353,8 +6634,9 @@ function NinthLife(){
               {done&&newBest&&<div style={{fontSize:10,fontWeight:700,color:"#fbbf24",letterSpacing:3,animation:"newBestPop .5s ease-out",fontFamily:"system-ui",background:"#fbbf2418",padding:"3px 12px",borderRadius:20,border:"1px solid #fbbf2433",marginTop:4}}>NEW BEST {newBest.toUpperCase()}</div>}
 
               {/* ★ v47: First-cascade completion summary */}
-              {done&&_fc&&<div style={{fontSize:11,color:"#4ade80",fontFamily:"system-ui",marginTop:6,padding:"6px 14px",borderRadius:8,background:"#4ade800a",border:"1px solid #4ade8022",animation:"fadeIn .6s ease-out .3s both",maxWidth:300,textAlign:"center",lineHeight:1.5}}>
-                <b>Chips × Mult = Score.</b> Match seasons, stack traits, and multiply everything. That's the whole game.
+              {done&&_fc&&<div style={{fontSize:11,color:"#4ade80",fontFamily:"system-ui",marginTop:6,padding:"8px 16px",borderRadius:8,background:"#4ade800a",border:"1px solid #4ade8022",animation:"fadeIn .6s ease-out .3s both",maxWidth:320,textAlign:"center",lineHeight:1.6}}>
+                <div style={{fontWeight:700,marginBottom:4}}>Chips × Mult = Score</div>
+                <div style={{color:"#4ade80bb",fontSize:10}}>Each cat's <span style={{color:"#3b82f6"}}>Power adds Chips</span>. Traits and bonds add <span style={{color:"#ef4444"}}>Mult</span>. More same-season cats = stronger hand type = bigger base numbers. Stack everything.</div>
               </div>}
 
             </div>);
@@ -6483,11 +6765,12 @@ function NinthLife(){
                 <div style={{fontSize:13,color:"#c8c8c8",textAlign:"center",lineHeight:1.5,marginTop:6,fontFamily:"system-ui"}}>{TRAIT_DETAIL[t.name]||t.desc}</div>
               </div>
             );}));})()}
-            {/* Breed passive */}
-            {BREED_PASSIVE[traitTip.breed]&&<div style={{marginTop:10,padding:"8px 12px",borderRadius:8,background:"#ffffff06",border:"1px solid #ffffff0a"}}>
-              <div style={{fontSize:10,color:"#888",letterSpacing:2,marginBottom:3}}>SEASON PASSIVE</div>
-              <div style={{fontSize:12,color:BREEDS[traitTip.breed]?.color||"#888",fontFamily:"system-ui"}}>{BREED_PASSIVE[traitTip.breed]?.icon} {BREED_PASSIVE[traitTip.breed]?.name}: {BREED_PASSIVE[traitTip.breed]?.desc}</div>
-            </div>}
+            {/* Season Devotion progress */}
+            {(()=>{const dev=getDevotionLevel(traitTip.breed,devotion);return dev.count>0||dev.next?<div style={{marginTop:10,padding:"8px 12px",borderRadius:8,background:"#ffffff06",border:"1px solid #ffffff0a"}}>
+              <div style={{fontSize:10,color:"#888",letterSpacing:2,marginBottom:3}}>SEASON DEVOTION · {dev.count} played</div>
+              {dev.unlocked.map((m,i)=><div key={i} style={{fontSize:11,color:BREEDS[traitTip.breed]?.color||"#888",fontFamily:"system-ui"}}>✓ {m.name}: {m.desc}</div>)}
+              {dev.next&&<div style={{fontSize:11,color:"#555",fontFamily:"system-ui"}}>○ {dev.next.at} plays: {dev.next.name} — {dev.next.desc}</div>}
+            </div>:null;})()}
             {/* Relationships & status */}
             <div style={{display:"flex",flexDirection:"column",gap:4,marginTop:8}}>
               {traitTip.bondedTo&&<div style={{fontSize:11,color:"#f472b6",textAlign:"center",fontFamily:"system-ui"}}>💕 Bonded. ×1.5 mult, ×1.25 for second pair</div>}
@@ -6618,17 +6901,24 @@ function NinthLife(){
         return null;
       })()}
       <div style={{display:"flex",gap:mob?3:4,padding:"0 8px",zIndex:1,justifyContent:"center",flexWrap:"wrap",maxWidth:mob?400:750,width:"100%"}}>
-        {hand.map((c,i)=>{
+        {(()=>{
+          // Sort display order but preserve original indices for selection
+          const seasonOrder={Autumn:0,Summer:1,Winter:2,Spring:3};
+          const indexed=hand.map((c,i)=>({c,i}));
+          const sorted=handSort==="season"
+            ?[...indexed].sort((a,b)=>(seasonOrder[a.c.breed]||0)-(seasonOrder[b.c.breed]||0)||b.c.power-a.c.power)
+            :[...indexed].sort((a,b)=>b.c.power-a.c.power);
+          return sorted.map(({c,i})=>{
           const selCats=[...sel].map(idx=>hand[idx]).filter(Boolean);
           const isRelated=!sel.has(i)&&selCats.some(sc=>(sc.bondedTo===c.id)||(c.parentIds?.includes(sc.id))||(sc.parentIds?.includes(c.id))||(c.stats?.par&&c.stats.par.includes(sc.name.split(" ")[0])));
           const relType=isRelated?(selCats.some(sc=>sc.bondedTo===c.id)?"mate":"kin"):null;
           const isGuideHL=hand._guideHL?.has(i)&&!sel.has(i);
           return(<div key={c.id} style={{position:"relative",flexShrink:0,animation:isGuideHL?"guidePulse 1.5s ease-in-out infinite":"none"}}>
-            <CC cat={c} sel={sel.has(i)} onClick={()=>toggleS(i)} dis={ph!=="playing"} fog={cfx.fog&&!sel.has(i)} chemHint={!sel.has(i)?getHint(c):null} hl={isRelated||isGuideHL} onTraitClick={ct=>setTraitTip(ct)} sm={mob}/>
+            <CC cat={c} sel={sel.has(i)} onClick={()=>toggleS(i)} dis={ph!=="playing"||!!autoPlay} fog={cfx.fog&&!sel.has(i)} chemHint={!sel.has(i)?getHint(c):null} hl={isRelated||isGuideHL} onTraitClick={ct=>setTraitTip(ct)} sm={mob}/>
             {isRelated&&<div style={{position:"absolute",top:-8,left:"50%",transform:"translateX(-50%)",fontSize:10,fontWeight:700,fontFamily:"system-ui",background:"#0a0a1a",padding:"0 4px",borderRadius:3,whiteSpace:"nowrap",animation:"countUp .3s ease-out",zIndex:2,color:relType==="mate"?"#f472b6":"#4ade80"}}>{relType==="mate"?"💕 mate":"👪 kin"}</div>}
             {isGuideHL&&<div style={{position:"absolute",top:-8,left:"50%",transform:"translateX(-50%)",fontSize:10,fontWeight:700,fontFamily:"system-ui",background:"#0a0a1a",padding:"0 4px",borderRadius:3,whiteSpace:"nowrap",animation:"fadeIn .5s ease-out",zIndex:2,color:"#fbbf24"}}>👆 tap</div>}
           </div>);
-        })}
+        });})()}
       </div>
 
       <div style={{display:"flex",gap:8,padding:"8px",zIndex:10,alignItems:"center",position:mob?"sticky":"static",bottom:mob?0:"auto",background:mob?"#0a0a1aee":"transparent",borderTop:mob?"1px solid #ffffff0a":"none",justifyContent:"center"}}>
@@ -6714,7 +7004,7 @@ function NinthLife(){
             <span>★ Cats rank up every 3 plays: Novice → Experienced → Expert → Veteran → Icon → CATALYST → Purrrfect</span>
           </div>
           <div style={{display:"flex",gap:8,paddingBottom:6,fontSize:10,fontFamily:"system-ui",color:"#666",flexWrap:"wrap"}}>
-            {Object.entries(BREED_PASSIVE).map(([k,v])=>(<span key={k} style={{color:BREEDS[k]?.color||"#888"}}>{v.icon} {v.name}: {v.desc}</span>))}
+            {Object.keys(DEVOTION_MILESTONES).map(k=>(<span key={k} style={{color:BREEDS[k]?.color||"#888"}}>{BREEDS[k]?.icon} {k}: Play {k} cats to unlock devotion bonuses</span>))}
           </div>
         </details>
       </div>
