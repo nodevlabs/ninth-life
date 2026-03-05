@@ -134,13 +134,6 @@ const DEVOTION_MILESTONES={
     {at:80,name:"Renewal",desc:"+1 Shelter slot",fx:{shelter:1}},
     {at:120,name:"The Eternal Garden",desc:"All Spring cats +3 Power",fx:{powerBoost:3}},
   ],
-  Mixed:[
-    {at:8,name:"First Crossing",desc:"Two Kin & Full Den +1 level",fx:{mixedHandBoost:1}},
-    {at:20,name:"Melting Pot",desc:"+2M per unique season in hand",fx:{diversityMult:2}},
-    {at:40,name:"Four Winds",desc:"Cross-season bonds score ×1.75",fx:{crossBondScale:1.75}},
-    {at:65,name:"Convergence",desc:"+1 hand per round",fx:{hands:1}},
-    {at:100,name:"The United Colony",desc:"×1.3 if 3+ seasons in one hand",fx:{diversityXMult:1.3}},
-  ],
 };
 function getDevotionLevel(breed,counts){
   const c=(counts||{})[breed]||0;
@@ -404,7 +397,12 @@ const FAMS=[
   {id:"f12",name:"Brawler's Belt",icon:"🥋",desc:"+3 mult per Scrapper",eff:c=>({mult:c.filter(x=>catHas(x,"Scrapper")).length*3})},
   {id:"f18",name:"Iron Will",icon:"🛡️",desc:"×1.15 per scarred cat",eff:c=>{const sc=c.filter(x=>x.scarred&&!x.injured).length;return sc>0?{xMult:Math.round(Math.pow(1.15,sc)*100)/100}:{}}},
   {id:"f19",name:"Nesting Ward",icon:"🏠",desc:"+1 Shelter slot",eff:()=>({shelter:1}),passive:true},
-  {id:"f20",name:"Lineage Keeper",icon:"👪",desc:"+6 mult per parent-child pair",eff:c=>{let n=0;c.forEach(x=>{if(x.parentIds)c.forEach(p=>{if(x.parentIds.includes(p.id))n++;});});return{mult:n*6};}},
+  // ★ Hand-type bonus wards — steer hand selection strategy
+  {id:"f20",name:"Pair Bond",icon:"💎",desc:"Kin ×1.4",eff:()=>({}),htBonus:{Kin:{xMult:1.4}}},
+  {id:"f21",name:"Pack Howl",icon:"🐺",desc:"Clowder ×1.3, Colony ×1.5",eff:()=>({}),htBonus:{Clowder:{xMult:1.3},Colony:{xMult:1.5}}},
+  {id:"f22",name:"Harmony",icon:"🎵",desc:"Two Kin ×1.5, Full Den ×1.4",eff:()=>({}),htBonus:{"Two Kin":{xMult:1.5},"Full Den":{xMult:1.4}}},
+  {id:"f23",name:"Lone Wolf",icon:"🌑",desc:"Stray ×2.5",eff:()=>({}),htBonus:{Stray:{xMult:2.5}}},
+  {id:"f24",name:"Bench Coach",icon:"🪑",desc:"+3M per benched cat",eff:(c,ctx)=>({mult:(ctx?.benchSize||0)*3})},
 ];
 
 const CURSES=[
@@ -1803,9 +1801,6 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
     chips+=combo.bonus.c;mult+=combo.bonus.m;
     bd.push({label:`⚡ ${combo.name}`,chips:combo.bonus.c,mult:combo.bonus.m,type:"combo"});
   }
-  // ★ Scavenge: bonus chips from discarded cats' power
-  const scavBonus=ctx.scavenge||0;
-  if(scavBonus>0){chips+=scavBonus;bd.push({label:`🔧 Scavenged`,chips:scavBonus,mult:0,type:"scavenge"});}
   // ★ v34: Boss trait breakdown labels
   const btFxAll=ctx.bossTraitFx||[];
   if(btFxAll.length>0){btFxAll.forEach(bt=>{
@@ -1886,17 +1881,6 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
     if(c.injured&&!c._re){cm-=2;icons.push("🩹");}
     else if(c.scarred&&!c._re){cx*=devFx.scarMult||1.25;const sm=ctx.scarMult||0;if(sm)cm+=sm;icons.push("⚔️");}
 
-    // ★ Cat XP — Novice penalty applied here (quiet), rank bonuses scored separately (dramatic)
-    // (tracked here, scored as separate breakdown steps after all cats for visibility)
-    if(!c._re&&c.stats){
-      const xpTier=getCatXP(c.stats.tp,!!ctx.hasMastery);
-      if(xpTier){
-        c._xpTier=xpTier;
-        // Novice ×0.9 debuff folded into per-cat multiplier (quiet penalty)
-        if(xpTier.bonus.xMult<1){cx*=xpTier.bonus.xMult;icons.push("·");}
-      }
-    }
-
     // ★ Season Devotion — per-cat mult/chips bonuses from milestone unlocks
     if(!c._re){
       const breed=c.breed;
@@ -1940,47 +1924,13 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
     });
   });
 
-  // ★ XP RANKS — separate scoring step per ranked cat (Blooded+ only, Novice is silent)
-  const xpCats=cats.filter(c=>c._xpTier&&(c._xpTier.bonus.mult>0||c._xpTier.bonus.xMult>1));
-  xpCats.forEach(c=>{
-    const t=c._xpTier;
-    mult+=t.bonus.mult;
-    const xm=t.bonus.xMult||1;
-    if(xm>1)mult=Math.round(mult*xm);
-    bd.push({
-      label:`${t.icon} ${c.name.split(" ")[0]} — ${t.label}`,
-      chips:0,mult:t.bonus.mult,xMult:xm>1?xm:null,
-      type:"xp_rank",catIdx:c._ci,
-    });
-  });
-
-  // ★ MIXED DEVOTION — diversity bonuses for multi-season hands
-  const uniqueSeasons=new Set(cats.map(c=>c.breed)).size;
-  if(devFx.diversityMult>0&&uniqueSeasons>=2){
-    const dm=devFx.diversityMult*uniqueSeasons;
-    mult+=dm;
-    bd.push({label:`🌈 ${uniqueSeasons} Seasons +${dm}M`,chips:0,mult:dm,type:"diversity"});
-  }
-  if(devFx.diversityXMult>1&&uniqueSeasons>=3){
-    mult=Math.round(mult*devFx.diversityXMult);
-    bd.push({label:`🌈 United Colony`,chips:0,mult:0,xMult:devFx.diversityXMult,type:"diversity"});
-  }
-
-  // ★ v31/v34: GRUDGES — personal rivalries. Tension vs Something to Prove
+  // ★ v31/v34: GRUDGES — personal rivalries. Always tension (simplified)
   const grudges=getGrudges(cats);
   let hasGrudgeProve=false;
-  // ★ v34 ECON: Grudge Wisdom upgrade shifts prove chance from 25% to 30%
-  const proveChance=ctx.grudgeWisdom?0.30:0.25;
   if(!cfx.noTraits&&grudges.length>0){
     grudges.forEach(([a,b])=>{
-      const outcome=Math.random()<proveChance?"prove":"tension";
-      if(outcome==="prove"){
-        mult+=4;hasGrudgeProve=true;
-        bd.push({label:`⚡ ${a.name.split(" ")[0]}+${b.name.split(" ")[0]} Prove!`,chips:0,mult:4,type:"grudge_prove"});
-      }else{
-        mult=Math.max(1,mult-2);
-        bd.push({label:`⚡ ${a.name.split(" ")[0]}+${b.name.split(" ")[0]} Tension`,chips:0,mult:-2,type:"grudge_tension"});
-      }
+      mult=Math.max(1,mult-2);
+      bd.push({label:`⚡ ${a.name.split(" ")[0]}+${b.name.split(" ")[0]} Tension`,chips:0,mult:-2,type:"grudge_tension"});
     });
   }
 
@@ -1998,25 +1948,6 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
     });
   }
 
-  // ★ v46: LINEAGE — parent+child in hand = ×1.15 per pair (family fights harder)
-  {
-    const lineagePairs=[];
-    cats.forEach(c=>{
-      if(c.parentIds){
-        c.parentIds.forEach(pid=>{
-          const parent=cats.find(x=>x.id===pid);
-          if(parent&&!lineagePairs.find(p=>(p[0]===pid&&p[1]===c.id)||(p[0]===c.id&&p[1]===pid)))
-            lineagePairs.push([pid,c.id]);
-        });
-      }
-    });
-    lineagePairs.forEach(([pid,cid])=>{
-      const pa=cats.find(c=>c.id===pid),ch=cats.find(c=>c.id===cid);
-      const lpXM=1.15;
-      mult=Math.round(mult*lpXM);bd.push({label:`👪 ${pa.name.split(" ")[0]}→${ch.name.split(" ")[0]} Lineage`,chips:0,mult:0,xMult:lpXM,type:"lineage"});
-    });
-  }
-
   // Wards (positive crescendo continues)
   let bG=0;
   if(!cfx.silence){
@@ -2026,6 +1957,36 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
       if(fc||fm||fxm>1)bd.push({label:`${f.icon} ${f.name}`,chips:fc,mult:fm,xMult:fxm>1?fxm:null,type:"fam"});
     });
   }else if(fams.length)bd.push({label:"🤐 Silenced",chips:0,mult:0,type:"curse"});
+
+  // ★ BENCH — cats in hand that weren't played give passive bonuses
+  const bench=ctx.bench||[];
+  if(bench.length>0){
+    let bc=0,bm=0;
+    bench.forEach(c=>{
+      if(catIsKitten(c))return; // kittens on bench do nothing
+      // Bench bonus based on trait
+      if(catHas(c,"Seer")){bm+=3;} // Seer watches from the bench
+      else if(catHas(c,"Guardian")){bm+=Math.min(4,cats.filter(x=>x.scarred||x.injured).length*2);} // Guards the played cats
+      else if(catHas(c,"Devoted")&&c.bondedTo&&cats.find(x=>x.id===c.bondedTo)){bm+=5;} // Cheering for mate
+      else if(catHas(c,"Forager")){bG+=1;} // Forages while others fight
+      else if(catHas(c,"Nocturnal")){bm+=Math.floor(fLvl/2);} // Watches from the shadows
+      else{bc+=Math.floor(c.power/2);} // Default: half power as chips
+    });
+    if(bc>0){chips+=bc;bd.push({label:`🪑 Bench +${bc}C`,chips:bc,mult:0,type:"bench"});}
+    if(bm>0){mult+=bm;bd.push({label:`🪑 Bench +${bm}M`,chips:0,mult:bm,type:"bench"});}
+  }
+
+  // ★ WARD HAND-TYPE BONUSES — some wards boost specific hand types
+  if(!cfx.silence){
+    const htName=type.name;
+    fams.forEach(f=>{
+      if(f.htBonus&&f.htBonus[htName]){
+        const hb=f.htBonus[htName];
+        if(hb.xMult){mult=Math.round(mult*hb.xMult);bd.push({label:`${f.icon} ${f.name}: ${htName} ×${hb.xMult}`,chips:0,mult:0,xMult:hb.xMult,type:"fam"});}
+        if(hb.mult){mult+=hb.mult;bd.push({label:`${f.icon} ${f.name}: ${htName} +${hb.mult}M`,chips:0,mult:hb.mult,type:"fam"});}
+      }
+    });
+  }
 
   // NERVE always last — the climax
   const fv=NERVE[fLvl];if(fv.xM>1){mult=Math.round(mult*fv.xM);bd.push({label:`🔥 ${fv.name}`,chips:0,mult:0,xMult:fv.xM,type:"nerve"});}
@@ -2241,7 +2202,6 @@ function CC({cat:_cat,sel,onClick,sm,dis,hl,fog,chemHint,denMode,onTraitClick}){
   const nd=neon+"55";const ng=neon+"33";
   const tierGlow=isMythicTier?",0 0 12px #c084fc44,0 0 20px #c084fc22":isLegendaryTier?",0 0 10px #f59e0b33":isRareTier?",0 0 8px #4ade8022":"";
   let rankLabel=null;
-  try{if(cat.stats){const xp=getCatXP(cat.stats.tp,!!(getMB().xp));if(xp&&xp.bonus.mult>0)rankLabel=xp.label;}}catch(e){}
 
   if(fog)return(<div onClick={dis?undefined:onClick} style={{width:w,height:h,borderRadius:sm?8:12,background:"#0d1117",border:"2px solid #ffffff12",boxShadow:"0 2px 8px #00000066",cursor:dis?"default":"pointer",transition:"all .15s",transform:sel?"translateY(-12px) scale(1.05)":"",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontFamily:"'Cinzel',serif"}}><span style={{fontSize:sm?22:30,opacity:.12,color:neon}}>?</span></div>);
 
@@ -2271,7 +2231,12 @@ function CC({cat:_cat,sel,onClick,sm,dis,hl,fog,chemHint,denMode,onTraitClick}){
               filter:cat.injured?"saturate(0.3) brightness(0.5)":cat.scarred?"contrast(1.15) brightness(0.9)":"none",
               transition:"opacity .3s"}}
             onLoad={function(e){_portraitsAvailable=true;}}
-            onError={function(e){e.target.style.display="none";}}/>
+            onError={function(e){
+              const src=e.target.src;const season=src.match(/-(\w+)\.png/)?.[1]||"autumn";
+              const fallback=PORTRAIT_BASE+"plain-"+season+".png";
+              if(src!==fallback){e.target.src=fallback;}
+              else{e.target.style.display="none";}
+            }}/>
           :null}
       </div>
 
@@ -2892,7 +2857,7 @@ function NinthLife(){
     if(startWards>0){for(let i=0;i<startWards;i++){const w=pk(FAMS.filter(f=>!startFams.find(o=>o.id===f.id)));if(w)startFams.push(w);}}
     setFams(startFams);
     setDen([]);setDenRes(null);setDenStep(-1);setRunLog([]);setFallen([]);setAnteUp(null);setBossReward(null);setBossRewardChoices([]);prevRewardIdsRef.current=[];setRunBonus({hands:0});setDenNews([]);setFirstHandPlayed(false);setScoringCats([]);setAftermath([]);setColEvent(null);setColTargets([]);setTempMods({hands:0,discs:0,nerveLock:0});setEventDenSafe(false);setEventDenBonus(0);setBabyNames({});setFirstDenUsed(false);fcSeenRef.current={};setAutoPlay(null);setHtLevels({});setSScrolls([]);setDevotion({});
-    setRunChips(0);setRunMult(0);setScoreShake(0);setClutch(false);setNewBest(null);setHandDiscovery([]);setDefeatData(null);setRerollCount(0);setScavenge(0);
+    setRunChips(0);setRunMult(0);setScoreShake(0);setClutch(false);setNewBest(null);setHandDiscovery([]);setDefeatData(null);setRerollCount(0);
     // ★ v30: The Hearth — saved cats radiate stardust at start of each run
     if(meta&&meta.cats.length>0){
       const dustBonus=getMB().dustBonus||0;
@@ -2944,7 +2909,7 @@ function NinthLife(){
     setScoringCats([]);setAftermath([]);setColEvent(null);setColTargets([]);
     setEventDenSafe(false);setEventDenBonus(0);setBabyNames({});
     setRunChips(0);setRunMult(0);setScoreShake(0);setClutch(false);setNewBest(null);
-    setDefeatData(null);setRerollCount(0);setBloodMemMsg(null);setScavenge(0);
+    setDefeatData(null);setRerollCount(0);setBloodMemMsg(null);
     const bh=4+mb.hands+(hfx.handMod||0)+(sr.runBonus?.hands||0);
     const bd=3+mb.discards+(hfx.discMod||0);
     setHLeft(bh);setDLeft(bd);
@@ -3080,8 +3045,6 @@ function NinthLife(){
     setDevotion(prev=>{
       const next={...prev};
       cats.forEach(c=>{next[c.breed]=(next[c.breed]||0)+1;});
-      const uniqueSeasons=new Set(cats.map(c=>c.breed)).size;
-      if(uniqueSeasons>=2)next.Mixed=(next.Mixed||0)+uniqueSeasons;
       Object.keys(DEVOTION_MILESTONES).forEach(breed=>{
         const oldCount=(prev[breed]||0);const newCount=(next[breed]||0);
         const ms=DEVOTION_MILESTONES[breed]||[];
@@ -3195,8 +3158,8 @@ function NinthLife(){
     // ★ v35: beatingPace — used for Nerve gain thresholds
     const beatingPace=rScore>=eTgt()*0.4;
     const activeBT=blind===2?bossTraits:[];
-    const result=calcScore(cats,fams,ferv,cfx,{gold,deckSize:allC.length,discSize:disc.length,handSize:hs(),beatingPace,bossTraitFx:activeBT,scarMult:getMB().scarMult||0,grudgeWisdom:getMB().grudgeWisdom||0,hasMastery:!!(getMB().xp),scavenge,bondBoost:getMB().bondBoost||0,lastHandIds,lastHandLost,htLevels,devotion});
-    setScavenge(0); // ★ Scavenge consumed on play
+    const result=calcScore(cats,fams,ferv,cfx,{gold,deckSize:allC.length,discSize:disc.length,handSize:hs(),beatingPace,bossTraitFx:activeBT,scarMult:getMB().scarMult||0,grudgeWisdom:getMB().grudgeWisdom||0,hasMastery:!!(getMB().xp),bondBoost:getMB().bondBoost||0,lastHandIds,lastHandLost,htLevels,devotion,bench:hand.filter(c=>!cats.find(x=>x.id===c.id))});
+     // ★ Scavenge consumed on play
     advancingRef.current=false; // ★ FIX: Reset re-entry guard for new hand
     actionLock.current=false; // ★ FIX: Clear action lock
     setSRes(result);setSStep(0);setPh("scoring");
@@ -3219,9 +3182,6 @@ function NinthLife(){
     // ★ v38: Pre-compute aftermath so skip can use it
     const aft=[];
     cats.forEach(c=>{
-      const oldTp=c.stats.tp;const newTp=oldTp+1;
-      const oldXP=getCatXP(oldTp,!!(getMB().xp));const newXP=getCatXP(newTp,!!(getMB().xp));
-      if(newXP&&oldXP&&newXP.label!==oldXP.label&&newXP.bonus.mult>0)aft.push({icon:newXP.icon,text:`${c.name.split(" ")[0]}: ${newXP.label}!`,color:newXP.color});
       if(result.total>c.stats.bs)aft.push({icon:"🏆",text:`${c.name.split(" ")[0]} PB: ${result.total.toLocaleString()}`,color:"#fbbf24"});
     });
     const bondedInHand=cats.filter(c=>c.bondedTo&&cats.find(x=>x.id===c.bondedTo));
@@ -3364,7 +3324,7 @@ function NinthLife(){
     });
     // ★ Scavenge: discarded cats' power×2 becomes bonus chips on next played hand
     const scavPow=d.reduce((s,c)=>s+(c.injured?Math.floor(c.power/2):c.power),0)*2;
-    if(scavPow>0){setScavenge(v=>v+scavPow);toast("🔧",`Scavenged +${scavPow}C from discards`,"#67e8f9");}
+    if(scavPow>0){toast("🔧",`Scavenged +${scavPow}C from discards`,"#67e8f9");}
     // Apply power-ups and heals to all piles
     const applyMods=arr=>arr.map(c=>{
       let nc={...c};
@@ -6273,8 +6233,8 @@ function NinthLife(){
                     setScoringCats(cats);setAftermath([]);setFirstHandPlayed(true);Audio.cardPlay();
                     const beatingPace=rScore>=eTgt()*0.4;
                     const activeBT=blind===2?bossTraits:[];
-                    const result=calcScore(cats,fams,ferv,cfx,{gold,deckSize:allC.length,discSize:disc.length,handSize:hs(),beatingPace,bossTraitFx:activeBT,scarMult:getMB().scarMult||0,grudgeWisdom:getMB().grudgeWisdom||0,hasMastery:!!(getMB().xp),scavenge,bondBoost:getMB().bondBoost||0,lastHandIds,lastHandLost,htLevels,devotion});
-                    setScavenge(0);advancingRef.current=false;
+                    const result=calcScore(cats,fams,ferv,cfx,{gold,deckSize:allC.length,discSize:disc.length,handSize:hs(),beatingPace,bossTraitFx:activeBT,scarMult:getMB().scarMult||0,grudgeWisdom:getMB().grudgeWisdom||0,hasMastery:!!(getMB().xp),bondBoost:getMB().bondBoost||0,lastHandIds,lastHandLost,htLevels,devotion,bench:hand.filter(c=>!cats.find(x=>x.id===c.id))});
+                    advancingRef.current=false;
                     setSRes(result);setSStep(0);setPh("scoring");setRunChips(0);setRunMult(0);setNewBest(null);setHandDiscovery([]);
                     let rC=0,rM=0;
                     const stepTotals=result.bd.map(s=>{rC+=s.chips||0;rM+=s.mult||0;if(s.xMult)rM=Math.round(rM*s.xMult);return{chips:Math.max(0,rC),mult:Math.max(1,rM),total:Math.max(0,rC)*Math.max(1,rM)};});
@@ -6886,7 +6846,7 @@ function NinthLife(){
           const bondPairCount=selC.filter(c=>c.bondedTo&&selC.find(x=>x.id===c.bondedTo)).length/2;
           const ubActive=getMB().bondBoost||0;
           const bondPairXM=bondPairCount>=2?(ubActive?1.75*1.4:1.5*1.25):bondPairCount>=1?(ubActive?1.75:1.5):1;
-          const sig=(baseC+catPow+(scavenge||0))*(baseM+traitCount*2)*Math.max(1,NERVE[ferv].xM)*scarredXM*bondPairXM;
+          const sig=(baseC+catPow+0)*(baseM+traitCount*2)*Math.max(1,NERVE[ferv].xM)*scarredXM*bondPairXM;
           const tgt2=eTgt();const need=Math.max(0,tgt2-rScore);
           const pacePerHand=hLeft>0?need/hLeft:need;
           const ratio=pacePerHand>0?sig/pacePerHand:99;
@@ -6897,7 +6857,6 @@ function NinthLife(){
               {preview.combo&&<span style={{fontSize:12,fontWeight:700,color:"#c084fc",letterSpacing:1}}>+ {(meta?.stats?.dh||[]).includes(preview.combo.name)?preview.combo.name:"????"}</span>}
               <span style={{fontSize:11,color:"#888",fontFamily:"system-ui"}}>{baseC}×{baseM}</span>
               <span style={{fontSize:14,fontWeight:900,color:tier.c,letterSpacing:1,fontFamily:"system-ui",textShadow:`0 0 8px ${tier.c}44`}}>{tier.w}</span>
-              {scavenge>0&&<span style={{fontSize:10,color:"#67e8f9",fontFamily:"system-ui",fontWeight:700}}>🔧+{scavenge}C</span>}
             </div>
             <div style={{display:"flex",gap:8,alignItems:"center"}}>
               <div style={{width:100,height:4,background:"#1a1a2e",borderRadius:3,overflow:"hidden",border:"1px solid #ffffff08"}}>
@@ -6923,20 +6882,28 @@ function NinthLife(){
         })():(<div style={{textAlign:"center"}}><span style={{color:"#444",fontSize:10}}>Select up to 5 cats to play</span></div>)}
       </div>
 
-      {/* Play preview strip. shows selected cats in scoring order */}
-      {sel.size>=2&&(()=>{
+      {/* Play preview strip + bench info */}
+      {sel.size>=1&&(()=>{
         const ordered=[...sel].map(idx=>hand[idx]).filter(Boolean);
+        const benchCats=hand.filter(c=>!ordered.find(x=>x.id===c.id));
+        const benchTraited=benchCats.filter(c=>!catIsPlain(c)&&!catIsKitten(c));
         return(
-          <div style={{display:"flex",gap:3,padding:"4px 16px",zIndex:1,maxWidth:700,width:"100%",justifyContent:"center",alignItems:"flex-end"}}>
-            {ordered.map((cat,pos)=>{
-              if(!cat)return null;const b=BREEDS[cat.breed];
-              return(<div key={cat.id} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:0}}>
-                <span style={{fontSize:10,color:"#fbbf24",fontFamily:"system-ui",fontWeight:700}}>{pos+1}</span>
-                <div style={{width:24,height:28,borderRadius:4,background:b.bg,border:`1px solid ${b.color}44`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontSize:10}}>
-                  <span>{b.icon}</span><span style={{fontSize:10,color:b.color,fontWeight:700}}>{cat.power}</span>
-                </div>
-              </div>);
-            })}
+          <div style={{display:"flex",gap:6,padding:"4px 16px",zIndex:1,maxWidth:700,width:"100%",justifyContent:"center",alignItems:"center"}}>
+            <div style={{display:"flex",gap:3,alignItems:"flex-end"}}>
+              {ordered.map((cat,pos)=>{
+                if(!cat)return null;const b=BREEDS[cat.breed];
+                return(<div key={cat.id} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:0}}>
+                  <span style={{fontSize:10,color:"#fbbf24",fontFamily:"system-ui",fontWeight:700}}>{pos+1}</span>
+                  <div style={{width:24,height:28,borderRadius:4,background:b.bg,border:`1px solid ${b.color}44`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontSize:10}}>
+                    <span>{b.icon}</span><span style={{fontSize:10,color:b.color,fontWeight:700}}>{cat.power}</span>
+                  </div>
+                </div>);
+              })}
+            </div>
+            {benchTraited.length>0&&<div style={{display:"flex",gap:2,alignItems:"center",padding:"2px 6px",borderRadius:4,background:"#ffffff06",border:"1px solid #ffffff0a"}}>
+              <span style={{fontSize:9,color:"#888",fontFamily:"system-ui"}}>🪑</span>
+              {benchTraited.slice(0,3).map(c=><span key={c.id} style={{fontSize:10}} title={`${c.name.split(" ")[0]}: bench bonus`}>{(c.trait||{}).icon||"·"}</span>)}
+            </div>}
           </div>);
       })()}
 
