@@ -459,6 +459,41 @@ const DEN_PHOENIX=[
   (a,b,risen)=>`The fight should have ended ${risen}. It did, for a moment. But something older than death flickered behind those eyes, and ${risen} rose, changed, burning with what comes after the last chance.`,
   (a,b,risen)=>`${risen} lay still. The others turned away. Then: light. Heat. The cat that stood up was not the cat that fell. Something had been traded. Something had been gained.`,
 ];
+
+// ★ EMOTIONAL SYSTEM 1: Death memorial lines — personal eulogy based on cat stats
+function getDeathMemorial(cat,ante){
+  const fn=cat.name.split(" ")[0];const tp=cat.stats?.tp||0;const bs=cat.stats?.bs||0;
+  const bonded=cat.bondedTo;const scarred=cat.scarred;
+  if(tp>=10&&bonded)return`${fn} played ${tp} hands. Bonded. Scarred. Carried more than their share. The colony will feel this space for a long time.`;
+  if(tp>=8)return`${fn} played ${tp} hands. Best score: ${bs.toLocaleString()}. They knew every fight. Every number. Gone.`;
+  if(bonded)return`${fn} was bonded. The mate will look for them tomorrow. And the day after. And the day after that.`;
+  if(scarred)return`${fn} carried scars from Night ${Math.max(1,ante-1)}. Survived that. Didn't survive this.`;
+  if(tp>=3)return`${fn} was finding their rhythm. ${tp} hands played. A story just getting started.`;
+  if(tp===0)return`${fn} never played a single hand. Never got the chance. Remember them anyway.`;
+  return`${fn}. Say the name. That's all you can do now.`;
+}
+
+// ★ EMOTIONAL SYSTEM 2: Cat reactions after exceptional scoring
+const CAT_REACTIONS={
+  pb:(fn)=>[`${fn} has never scored higher.`,`${fn} just peaked. They know it. You can tell.`,`The best hand ${fn} will ever play? Maybe. Maybe not.`],
+  carry:(fn,pct)=>[`${fn} carried that hand alone.`,`Without ${fn}, that hand collapses.`,`${fn} did ${pct}% of the work. The others watched.`],
+  clutch:(fn)=>[`${fn}. One number. That was all that stood between survival and silence.`,`${fn} pulled them through. Ask the others — they'll tell you.`],
+  bond:(a,b)=>[`${a} and ${b}. Together, more. Always more.`,`${a} fights harder when ${b} is watching. They both do.`],
+};
+
+// ★ EMOTIONAL SYSTEM 5: Night 5 roll call — names of fallen + survivors
+function getRollCall(fallen,allCats,ante){
+  const lines=[];
+  if(fallen.length>0){
+    fallen.forEach(f=>lines.push({name:f.name.split(" ")[0],type:"fallen",night:f.night}));
+  }
+  allCats.forEach(c=>{
+    const fn=c.name.split(" ")[0];
+    const desc=c.scarred?"scarred":c.bondedTo?"bonded":c.injured?"wounded":"still here";
+    lines.push({name:fn,type:"alive",desc});
+  });
+  return lines;
+}
 const DEN_FOUND=[
   (cat)=>`${cat} nosed at something in the rubble. A glint. Not much, but enough.`,
   (cat)=>`${cat} came back at dawn with something between teeth. No one asked where.`,
@@ -1785,8 +1820,28 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
     const hasScar=c.scarred&&!c.injured&&!c._re;
     const hasTrait=icons.length>0;
     const catType=hasRareTrait?"trait_rare":hasScar&&hasTrait?"scar":hasTrait?"trait":"cat";
+    // ★ ATTRIBUTION: Build human-readable reason explaining WHY this cat scored what it did
+    const reasons=[];
+    if(cc>0)reasons.push("P"+basePow);
+    if(!cfx.noTraits){
+      if(catHas(c,"Scrapper"))reasons.push("Scrapper"+(c.scarred?" (scarred!)":""));
+      if(catHas(c,"Devoted")&&c.bondedTo&&cats.find(x=>x.id===c.bondedTo))reasons.push("Devoted to mate");
+      if(catHas(c,"Alpha")&&c.power>=Math.max(...powers))reasons.push("Alpha (highest P)");
+      if(catHas(c,"Nocturnal")&&fLvl>0)reasons.push("Nocturnal (Nerve "+fLvl+")");
+      if(catHas(c,"Chimera")&&cats.length>=3)reasons.push("Chimera \u00d71.5");
+      if(catHas(c,"Eternal"))reasons.push("Eternal \u00d73");
+      if(catHas(c,"Phoenix"))reasons.push("Phoenix \u00d7"+(c.scarred?"4":"2.5"));
+      if(catHas(c,"Echo")&&c._re)reasons.push("Echo (replay)");
+      if(catHas(c,"Guardian")&&cats.filter(x=>x.id!==c.id&&(x.scarred||x.injured)).length>0)reasons.push("Guardian (protecting "+cats.filter(x=>x.id!==c.id&&(x.scarred||x.injured)).length+")");
+      if(catHas(c,"Cursed")){const myB=getCatBreeds(c);const al=!cats.some(x=>x.id!==c.id&&getCatBreeds(x).some(b=>myB.includes(b)));reasons.push(al?"Cursed (lone \u2192 +8M)":"Cursed (\u22123M)");}
+      if(catHas(c,"Fragile"))reasons.push("Fragile (+2M/ally)");
+    }
+    if(c.scarred&&!c.injured&&!c._re)reasons.push("Scarred \u00d71.25");
+    if(c.injured&&!c._re)reasons.push("Injured (halved)");
+    if(passiveBreed)reasons.push(c.breed+" passive");
     bd.push({
-      label:`${iconStr}${iconStr?" ":""}${c._re?"↻ ":""}${c.name.split(" ")[0]}`,
+      label:`${iconStr}${iconStr?" ":""}${c._re?"\u21BB ":""}${c.name.split(" ")[0]}`,
+      reason:reasons.length>0?reasons.join(" \u00B7 "):"",
       chips:cc,mult:cm,xMult:cx!==1?cx:null,
       type:catType,catIdx:c._ci,
       passiveBreed:passiveBreed,
@@ -2011,7 +2066,29 @@ const PORTRAIT_BASE="https://raw.githubusercontent.com/greatgamesgonewild/ninth-
 function getPortraitUrl(cat){
   try{
     const season=(cat.breed||"autumn").toLowerCase();
-    const style=(cat.trait&&cat.trait.name!=="Plain")?"alert":"plain";
+    // ★ 8 portrait archetypes: mythic > noble > elder > alert > wild > gentle > kitten > plain
+    let style="plain";
+    const trait=cat.trait?.name||"Plain";
+    const tier=cat.trait?.tier||"common";
+    const tp=cat.stats?.tp||0;
+    const power=cat.power||1;
+    const isMythic=tier==="mythic"||trait==="Eternal"||trait==="Phoenix";
+    const isLegendary=tier==="legendary";
+    const isWild=trait==="Wild"||trait==="Chimera"||trait==="Feral"||trait==="Cursed";
+    const isGentle=trait==="Devoted"||trait==="Provider"||trait==="Seer"||trait==="Guardian";
+    const isScrappy=trait==="Scrapper"||trait==="Alpha";
+    const isKitten=!!(cat.parentIds&&cat.parentIds.length>0&&power<=4);
+
+    if(isMythic)style="mythic";
+    else if(isLegendary&&power>=8)style="noble";
+    else if(tp>=10||cat.scarred)style="elder";
+    else if(isScrappy||cat.scarred)style="alert";
+    else if(isWild)style="wild";
+    else if(isGentle)style="gentle";
+    else if(isKitten)style="kitten";
+    else if(trait!=="Plain")style="alert";
+    // else: plain
+
     return `${PORTRAIT_BASE}${style}-${season}.png`;
   }catch(e){return "";}
 }
@@ -2488,23 +2565,39 @@ function NinthLife(){
               cats.forEach(c=>{
                 const oldXP=getCatXP(c.stats.tp,!!(getMB().xp));const newXP=getCatXP(c.stats.tp+1,!!(getMB().xp));
                 if(newXP&&oldXP&&newXP.label!==oldXP.label&&newXP.bonus.mult>0)aft.push({icon:newXP.icon,text:`${c.name.split(" ")[0]}: ${newXP.label}!`,color:newXP.color});
-                if(result.total>c.stats.bs)aft.push({icon:"🏆",text:`${c.name.split(" ")[0]} PB: ${result.total.toLocaleString()}`,color:"#fbbf24"});
+                if(result.total>c.stats.bs&&c.stats.bs>0)aft.push({icon:"🏆",text:`${c.name.split(" ")[0]} PB: ${result.total.toLocaleString()}`,color:"#fbbf24"});
               });
+              // ★ Feature 2: Cat reactions — who carried, who clutched
+              const catSteps=result.bd.filter(s=>s.catIdx!==undefined&&s.type!=="xp_rank");
+              if(catSteps.length>0&&cats.length>=2){
+                const contribs=catSteps.map(s=>{const t=stepTotals[result.bd.indexOf(s)]?.total||0;const prev=result.bd.indexOf(s)>0?stepTotals[result.bd.indexOf(s)-1]?.total||0:0;return{cat:cats[s.catIdx],delta:t-prev};});
+                const totalDelta=contribs.reduce((s,c)=>s+c.delta,0);
+                const best=contribs.sort((a,b)=>b.delta-a.delta)[0];
+                if(best&&totalDelta>0&&best.delta/totalDelta>0.45){
+                  const fn=best.cat.name.split(" ")[0];const pct=Math.round(best.delta/totalDelta*100);
+                  aft.push({icon:"💪",text:pk(CAT_REACTIONS.carry(fn,pct)),color:BREEDS[best.cat.breed]?.color||"#fbbf24"});
+                }
+              }
               const bondedInHand=cats.filter(c=>c.bondedTo&&cats.find(x=>x.id===c.bondedTo));
-              if(bondedInHand.length>=2)aft.push({icon:"💕",text:`${bondedInHand[0].name.split(" ")[0]} & ${bondedInHand[1].name.split(" ")[0]}: Together`,color:"#f472b6"});
+              if(bondedInHand.length>=2){
+                const a=bondedInHand[0].name.split(" ")[0],bN=bondedInHand[1].name.split(" ")[0];
+                aft.push({icon:"💕",text:pk(CAT_REACTIONS.bond(a,bN)),color:"#f472b6"});
+              }
               scoreEndRef.current={chips:result.chips,mult:result.mult,total:result.total,ht:result.ht,combo:result.combo,aft,shk:getShakeIntensity(result.total),isFirstCascade:true,stepTotals:stepTotals.map(s=>s.total)};
               let stp=0;const tot=result.bd.length;
               function getAutoStepDelay(s){
                 const tempo=Math.max(0.5,Math.min(1.4,7/tot));const slow=1.4;
                 const st=result.bd[s];const isLast=s===tot-1;const isPenult=s===tot-2;
                 if(st&&(st.mult<0||st.type==="curse"||st.type==="grudge_tension"))return Math.round(150*tempo*slow);
-                if(st&&st.xMult)return Math.round(Math.max(520,720*Math.max(0.7,tempo))*slow);
-                if(st&&st.type==="nerve")return Math.round(Math.max(420,620*Math.max(0.7,tempo))*slow);
-                if(st&&(st.type==="bond"||st.type==="lineage"))return Math.round(Math.max(320,470*tempo)*slow);
+                if(st&&st.xMult&&st.xMult>=2)return Math.round(Math.max(900,1100*Math.max(0.7,tempo))*slow); // BIG multipliers hold much longer
+                if(st&&st.xMult)return Math.round(Math.max(700,900*Math.max(0.7,tempo))*slow); // multipliers hold longer
+                if(st&&st.type==="nerve")return Math.round(Math.max(650,850*Math.max(0.7,tempo))*slow); // nerve climax holds
+                if(st&&(st.type==="bond"||st.type==="lineage"))return Math.round(Math.max(450,600*tempo)*slow);
+                if(st&&st.type==="fam")return Math.round(Math.max(400,550*tempo)*slow); // wards hold
                 if(isPenult)return Math.round(Math.max(370,520*tempo)*slow);
                 if(isLast)return Math.round(Math.max(470,670*tempo)*slow);
                 if(s===0)return Math.round(550*tempo*slow);
-                if(st?.isBigCat)return Math.round(Math.max(300,420*tempo)*slow);
+                if(st?.isBigCat)return Math.round(Math.max(450,580*tempo)*slow); // big cats hold longer
                 if(s===1)return Math.round(420*tempo*slow);
                 if(s<=3)return Math.round(350*tempo*slow);
                 return Math.round(Math.max(70,(200-s*5)*tempo)*slow);
@@ -3283,7 +3376,10 @@ function NinthLife(){
     }catch(e){console.error("endRun crashed:",e);setPh("defeat");setDefeatData({score:finalScore||rScore||0,target:0,line:"Something went wrong.",blind:"?"});}
   }
 
-  async function saveCatM(cat){if(!meta)return;
+  const savingRef=useRef(false);
+  async function saveCatM(cat){if(!meta||savingRef.current)return;
+    savingRef.current=true;
+    try{
     // ★ v46: Check if cat has lineage (parent or child in current colony)
     const allC=[...hand,...draw,...disc];
     const hasKids=allC.some(c=>c.parentIds?.includes(cat.id));
@@ -3304,9 +3400,12 @@ function NinthLife(){
       if(!newDisc.includes(d1))newDisc.push(d1);if(!newDisc.includes(d2))newDisc.push(d2);
       const u={...meta,cats:[...meta.cats,...newPair],stats:{...meta.stats,disc:newDisc}};
       setMeta(u);await saveS(u);setHearthPair(null); // null = done
+      savingRef.current=false;
     }else{
       setHearthPair(newPair); // one picked, need the other sex
+      savingRef.current=false;
     }
+    }catch(e){savingRef.current=false;}
   }
 
   function nextBlind(){
@@ -3574,7 +3673,11 @@ function NinthLife(){
       }
       if(r.type==="breed")logEvent("breed",{parents:r.c1.name.split(" ")[0]+" & "+r.c2.name.split(" ")[0],baby:r.baby.name,breed:r.baby.breed});
       if(r.type==="fight")logEvent("fight",{loser:r.loser.name.split(" ")[0],dmg:r.dmg});
-      if(r.type==="death"){logEvent("death",{victim:r.victim.name});setFallen(f=>[...f,{name:r.victim.name,breed:r.victim.breed,night:ante}]);}
+      if(r.type==="death"){logEvent("death",{victim:r.victim.name});setFallen(f=>{
+        const isFirstEver=f.length===0&&(meta?.stats?.r||0)<=1;
+        if(isFirstEver)toast("🕯️","You will lose cats. This is the first. Remember their name.","#ef4444");
+        return[...f,{name:r.victim.name,breed:r.victim.breed,night:ante,memorial:getDeathMemorial(r.victim,ante)}];
+      });}
       if(r.type==="mentor")logEvent("mentor",{elder:r.elder.name.split(" ")[0],young:r.young.name.split(" ")[0]});
       if(r.type==="found")logEvent("found",{cat:r.cat.name.split(" ")[0],gold:r.gold});
       if(r.type==="growth")logEvent("growth",{cat:r.cat.name.split(" ")[0]});
@@ -4562,7 +4665,11 @@ function NinthLife(){
               <div style={{fontSize:12,fontFamily:"system-ui",color:b.color,marginTop:4,lineHeight:1.3,fontWeight:700}}>{c.name.split(" ")[0]} <span style={{fontWeight:400,opacity:.6,fontSize:10}}>{c.sex==="M"?"\u2642":"\u2640"}</span></div>
               <div style={{fontSize:10,color:"#ffffff99",fontStyle:"italic",fontFamily:"system-ui",lineHeight:1.4,minHeight:28,marginTop:3}}>"{voice}"</div>
               {c.trait.name!=="Plain"&&<div style={{fontSize:9,color:tierColor(c.trait),fontFamily:"system-ui",marginTop:2,lineHeight:1.3,maxWidth:100}}>{c.trait.desc}</div>}
-              {c.stats?.par&&<div style={{color:"#34d399",fontSize:9,fontFamily:"system-ui"}}>👪 {c.stats.par}</div>}
+              {c.stats?.par&&<div style={{color:"#c084fc",fontSize:9,fontFamily:"system-ui",fontStyle:"italic",lineHeight:1.3,marginTop:1}}>
+                {meta?.cats?.find(h=>c.parentIds?.includes(h.name))?
+                  `${c.stats.par.split("×")[0]?.trim()}'s blood. The Hearth remembers.`
+                  :`Child of ${c.stats.par}`}
+              </div>}
             </div>);
           })}
         </div>
@@ -4601,6 +4708,24 @@ function NinthLife(){
           return <div style={{fontSize:11,color:"#fbbf2444",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:300,lineHeight:1.5,animation:"fadeIn 2s ease-out .5s both"}}>{wLine}</div>;
         })()}
         {isNinthDawn&&<div style={{fontSize:10,color:"#fbbf2466",letterSpacing:4,fontFamily:"system-ui",animation:"fadeIn 1.8s ease-out"}}>THE NINTH DAWN</div>}
+        {/* ★ Feature 5: Night 5 Dusk roll call — name the fallen and the survivors */}
+        {nightCard.ante>=MX&&nightCard.blind===0&&(fallen.length>0||allC.length>0)&&<div style={{
+          animation:"fadeIn 1.8s ease-out .8s both",textAlign:"center",maxWidth:300,
+          padding:"8px 12px",borderRadius:10,background:"#ffffff04",border:"1px solid #ffffff08",marginTop:4}}>
+          {fallen.length>0&&<div style={{marginBottom:6}}>
+            <div style={{fontSize:9,color:"#ef444488",letterSpacing:3,marginBottom:3}}>DID NOT MAKE IT</div>
+            {fallen.map((f,i)=><div key={i} style={{fontSize:10,color:BREEDS[f.breed]?.color||"#ef4444",fontFamily:"system-ui",opacity:.6,lineHeight:1.5}}>
+              {f.name.split(" ")[0]} <span style={{color:"#ffffff33",fontSize:8}}>Night {f.night}</span>
+              {f.memorial&&<div style={{fontSize:8,color:"#ffffff22",fontStyle:"italic",lineHeight:1.3}}>{f.memorial}</div>}
+            </div>)}
+          </div>}
+          <div style={{fontSize:9,color:"#4ade8066",letterSpacing:3,marginBottom:3}}>{allC.length} STILL HERE</div>
+          <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"center"}}>
+            {allC.slice(0,14).map((c,i)=><span key={i} style={{fontSize:9,color:BREEDS[c.breed]?.color||"#888",fontFamily:"system-ui",opacity:.5}}>
+              {c.name.split(" ")[0]}{c.scarred?"*":""}
+            </span>)}
+          </div>
+        </div>}
         {/* ★ v49: Threshold. the minimum to not be forgotten */}
         {(()=>{const ncMb=getMB();const ncHfx=getHeatFx(meta?.heat);const ncDiscs=3+ncMb.discards+(ncHfx.discMod||0);return(
         <div style={{display:"flex",gap:16,alignItems:"center",marginTop:12,animation:"fadeIn 1.5s ease-out .3s both"}}>
@@ -5342,8 +5467,11 @@ function NinthLife(){
         </div>}
         {fallen.length>0&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,marginTop:4}}>
           <div style={{fontSize:10,color:"#ef4444bb",letterSpacing:3}}>THEY WERE HERE</div>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center"}}>
-            {fallen.map((f,i)=>(<span key={i} style={{fontSize:10,color:BREEDS[f.breed]?.color||"#888",fontFamily:"system-ui",opacity:.6}}>{f.name.split(" ")[0]}</span>))}
+          <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"center"}}>
+            {fallen.map((f,i)=>(<div key={i} style={{textAlign:"center"}}>
+              <span style={{fontSize:11,color:BREEDS[f.breed]?.color||"#888",fontFamily:"'Cinzel',serif",fontWeight:700}}>{f.name.split(" ")[0]}</span>
+              {f.memorial&&<div style={{fontSize:9,color:"#ffffff33",fontStyle:"italic",fontFamily:"system-ui",lineHeight:1.3,maxWidth:260}}>{f.memorial}</div>}
+            </div>))}
           </div>
         </div>}
         {/* ★ v50: Show ALL colony members on defeat — the memorial includes everyone */}
@@ -6066,10 +6194,10 @@ function NinthLife(){
             const curStepTotal=sStep>=0&&sStep<stepTotalsRef.length?stepTotalsRef[sStep]:0;
             const jumpPct=prevStepTotal>0?(curStepTotal-prevStepTotal)/prevStepTotal:0;
             const counterScale=done?1.1
-              :hasX?(s.xMult>=2?1.35:1.25)
-              :jumpPct>0.5?1.18    // 50%+ jump = visible pop
-              :jumpPct>0.2?1.1     // 20%+ jump = subtle pop
-              :s?.isBigCat?1.08
+              :hasX?(s.xMult>=2?1.5:s.xMult>=1.5?1.35:1.25)
+              :jumpPct>0.5?1.22
+              :jumpPct>0.2?1.12
+              :s?.isBigCat?1.1
               :1;
 
             // Flavor pools — variable ratio reinforcement (prevents habituation)
@@ -6176,8 +6304,9 @@ function NinthLife(){
                 </div>
               </div>
 
-              {/* Flavor. subtitle OF the counter, not a separate zone */}
-              {!done&&flavor&&<div style={{fontSize:11,color:counterColor+"bb",fontFamily:"system-ui",fontStyle:"italic",letterSpacing:1.5,marginTop:2,animation:"fadeIn .15s ease-out",maxWidth:260,textAlign:"center",lineHeight:1.3}}>{flavor}</div>}
+              {/* Flavor + attribution. subtitle OF the counter, not a separate zone */}
+              {!done&&s?.reason&&<div style={{fontSize:10,color:stepColor+"cc",fontFamily:"system-ui",letterSpacing:.5,marginTop:1,animation:"fadeIn .15s ease-out",maxWidth:280,textAlign:"center",lineHeight:1.3}}>{s.reason}</div>}
+              {!done&&flavor&&!s?.reason&&<div style={{fontSize:11,color:counterColor+"bb",fontFamily:"system-ui",fontStyle:"italic",letterSpacing:1.5,marginTop:2,animation:"fadeIn .15s ease-out",maxWidth:260,textAlign:"center",lineHeight:1.3}}>{flavor}</div>}
               {/* ★ v47: First-cascade plain-english annotation */}
               {!done&&annotation&&<div style={{fontSize:10,color:"#4ade80",fontFamily:"system-ui",marginTop:4,padding:"3px 12px",borderRadius:8,background:"#4ade800a",border:"1px solid #4ade8022",animation:"fadeIn .3s ease-out",maxWidth:280,textAlign:"center",lineHeight:1.4,letterSpacing:.5}}>💡 {annotation}</div>}
 
