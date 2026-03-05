@@ -129,7 +129,7 @@ const DEVOTION_MILESTONES={
   ],
   Spring:[
     {at:10,name:"First Bloom",desc:"+1 mult per bonded cat in hand",fx:{bondMult:1}},
-    {at:25,name:"Overgrowth",desc:"Den breeding chance +25%",fx:{breedBoost:0.25}},
+    {at:25,name:"Overgrowth",desc:"Breed cap 75% → 100%",fx:{breedBoost:0.25}},
     {at:50,name:"Deep Roots",desc:"Bonds score ×1.75",fx:{bondScale:1.75}},
     {at:80,name:"Renewal",desc:"+1 Shelter slot",fx:{shelter:1}},
     {at:120,name:"The Eternal Garden",desc:"All Spring cats +3 Power",fx:{powerBoost:3}},
@@ -188,7 +188,7 @@ function getGrudges(cats){
   }
   return grudges;
 }
-// Grudge resolution: 75% Tension (−2M), 25% Something to Prove (+4M). Grudge Wisdom upgrade → 30%.
+// Grudge resolution: Always −2 mult when grudged cats play together. Simplified in v51.
 // Resolution is inline in calcScore() — see proveChance variable
 
 // ═══════════════════════════════════════════════════════════════
@@ -340,12 +340,12 @@ function addTrait(cat,trait){
 const HT=[
   {name:"Stray",base:{c:15,m:2},ex:"Any cat alone",echo:"alone"},
   {name:"Kin",base:{c:40,m:4},ex:"2 same season",echo:"together"},
-  {name:"Two Kin",base:{c:65,m:4},ex:"2 of one season + 2 of another",echo:"balanced"},
-  {name:"Clowder",base:{c:100,m:5},ex:"3 of the same season",echo:"pack"},
-  {name:"Kindred",base:{c:100,m:5},ex:"3+ sharing a trait",hidden:true,echo:"chosen family"},
-  {name:"Full Den",base:{c:140,m:7},ex:"3 of one season + 2 of another",echo:"home"},
-  {name:"Colony",base:{c:165,m:8},ex:"4 of the same season",echo:"unified"},
-  {name:"Litter",base:{c:200,m:10},ex:"5 of the same season",echo:"one blood"},
+  {name:"Two Kin",base:{c:80,m:4},ex:"2 of one season + 2 of another",echo:"balanced"},  // ★ v52: 65→80C. Floor hand needs to be viable (50% chance)
+  {name:"Clowder",base:{c:110,m:6},ex:"3 of the same season",echo:"pack"},  // ★ v52: 100→110C, 5→6M. Rarer than Full Den, should outscore it
+  {name:"Kindred",base:{c:110,m:6},ex:"3+ sharing a trait",hidden:true,echo:"chosen family"},  // ★ v52: Matched to Clowder
+  {name:"Full Den",base:{c:120,m:5},ex:"3 of one season + 2 of another",echo:"home"},  // ★ v52: 140→120C, 7→5M. Common (32%) — nerfed to create Clowder>FDen tension
+  {name:"Colony",base:{c:180,m:9},ex:"4 of the same season",echo:"unified"},  // ★ v52: 165→180C, 8→9M. 6× rarer than FDen = big payoff
+  {name:"Litter",base:{c:260,m:14},ex:"5 of the same season",echo:"one blood"},  // ★ v52: 200→260C, 10→14M. Unicorn hand
 ];
 
 // ★ HAND TYPE LEVELING — each play gives XP, scrolls give +1 level directly
@@ -368,16 +368,16 @@ function genScrolls(ante,htLevels){
 
 // Power combos — standalone hidden hands OR stacking bonuses on season hands
 const POWER_COMBOS=[
-  // ★ Pairs/matching — poker-style hidden combos based on power values
-  {name:"Twins",bonus:{c:30,m:3},standalone:{c:50,m:4},ex:"2 same power",hidden:true,echo:"matched pair"},
-  {name:"Two Pair",bonus:{c:60,m:5},standalone:{c:90,m:6},ex:"2+2 same power",hidden:true,echo:"double matched"},
-  {name:"Prowl",bonus:{c:80,m:6},standalone:{c:120,m:7},ex:"3 consecutive power",hidden:true,echo:"in step"},
-  {name:"Triplets",bonus:{c:85,m:6},standalone:{c:130,m:7},ex:"3 same power",hidden:true,echo:"equals"},
-  {name:"Full House",bonus:{c:120,m:8},standalone:{c:180,m:9},ex:"3+2 same power",hidden:true,echo:"a perfect den"},
-  {name:"Stalk",bonus:{c:130,m:9},standalone:{c:200,m:10},ex:"4 consecutive power",hidden:true,echo:"rising"},
-  {name:"Mirrors",bonus:{c:140,m:9},standalone:{c:210,m:11},ex:"4 same power",hidden:true,echo:"matched"},
-  {name:"Nine Lives",bonus:{c:200,m:12},standalone:{c:290,m:13},ex:"5 consecutive power",hidden:true,echo:"the last hand"},
-  {name:"Quintuplets",bonus:{c:250,m:15},standalone:{c:350,m:18},ex:"5 same power",hidden:true,echo:"impossible odds"},
+  // ★ v52: Probabilities for play-5 from draw-6 (18 deck, power 1-9)
+  {name:"Twins",bonus:{c:20,m:2},standalone:{c:40,m:3},ex:"2 same power",hidden:true,echo:"matched pair"},
+  {name:"Two Pair",bonus:{c:40,m:3},standalone:{c:70,m:5},ex:"2+2 same power",hidden:true,echo:"double matched"},
+  {name:"Prowl",bonus:{c:30,m:2},standalone:{c:60,m:4},ex:"3 consecutive power",hidden:true,echo:"in step"},            // ~23%
+  {name:"Triplets",bonus:{c:60,m:5},standalone:{c:110,m:6},ex:"3 same power",hidden:true,echo:"equals"},                // ~10%
+  {name:"Full House",bonus:{c:100,m:7},standalone:{c:160,m:8},ex:"3+2 same power",hidden:true,echo:"a perfect den"},
+  {name:"Stalk",bonus:{c:50,m:3},standalone:{c:90,m:5},ex:"4 consecutive power",hidden:true,echo:"rising"},             // ~7%
+  {name:"Mirrors",bonus:{c:140,m:9},standalone:{c:210,m:11},ex:"4 same power",hidden:true,echo:"matched"},              // ~0.6%
+  {name:"Nine Lives",bonus:{c:80,m:5},standalone:{c:140,m:7},ex:"5 consecutive power",hidden:true,echo:"the last hand"},// ~1%
+  {name:"Quintuplets",bonus:{c:250,m:15},standalone:{c:350,m:18},ex:"5 same power",hidden:true,echo:"impossible odds"}, // near 0%
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -446,7 +446,7 @@ const UPGRADES=[
   // --- TIER 3: POWER (expensive, visible after 4+ purchases) ---
   {id:"u_c",name:"Bloodline",icon:"📿",desc:"Companion +2 power, drafted cats +1 power",cost:100,b:{heirloom:2,draftPower:1},max:1},
   {id:"u_scr",name:"Scar Memory",icon:"🩹",desc:"Scarred cats gain +2 mult (stacks with trait)",cost:100,b:{scarMult:2},max:1},
-  {id:"u_grd",name:"Grudge Wisdom",icon:"⚡",desc:"'Something to Prove' triggers at 30% (not 25%)",cost:110,b:{grudgeWisdom:1},max:1},
+  {id:"u_grd",name:"Grudge Tempering",icon:"⚡",desc:"Grudge penalty reduced: −2 mult → −1 mult",cost:110,b:{grudgeWisdom:1},max:1},
   // --- TIER 4: ENDGAME (very expensive, visible after 6+ purchases) ---
   {id:"u_o",name:"What The Stars Owe",icon:"🔍",desc:"+50% Stardust from the Hearth",cost:120,b:{dustBonus:.5},max:1},
   {id:"u_draft",name:"Wider Horizons",icon:"🌅",desc:"See 4 cats per draft wave instead of 3",cost:130,b:{draftSize:1},max:1},
@@ -1618,53 +1618,51 @@ function breedC(p1,p2){
 
 // ★ DEN AFFINITY: Calculates what happens between two cats overnight
 function calcAffinity(c1,c2,ctx={}){
-  let breedCh=0,fightCh=0; // ★ v48: base 3→0% fight (trait modifiers + denRisk provide all fight chance)
-  // Note: heatDenFight applied by caller if needed
+  let breedCh=0,fightCh=0;
   const oppSex=c1.sex!==c2.sex;
-  if(oppSex)breedCh=20; // ★ v46: base 15→20% breed chance. the den should produce life
-  // ★ v46: Incest prevention — parent and child cannot breed
+  // ★ v52: Base breed 20→30%. Targets: 45% diff season, 60% same, 75% bonded same
+  if(oppSex)breedCh=30;
+  // Incest prevention
   const isParentChild=c1.parentIds?.includes(c2.id)||c2.parentIds?.includes(c1.id);
   const isSibling=c1.parentIds&&c2.parentIds&&c1.parentIds.some(p=>c2.parentIds.includes(p));
-  if(isParentChild||isSibling)breedCh=0; // shelter together for teaching, not breeding
+  if(isParentChild||isSibling)breedCh=0;
   const b1=c1.breed,b2=c2.breed;
   const personalBond=(c1.bondedTo===c2.id||c2.bondedTo===c1.id);
-  if(personalBond){breedCh+=25;fightCh=Math.max(0,fightCh-3);}
-  // ★ v31→v33: Personal grudges increase tension (array-based)
+  if(personalBond){breedCh+=15;fightCh=Math.max(0,fightCh-3);}
   const hasGrudgeFlag=hasGrudge(c1,c2);
   if(hasGrudgeFlag){fightCh+=12;}
-  if(b1===b2){breedCh+=15;fightCh+=5;} // ★ v44: same breed = familiarity BUT territorial (+5% fight)
+  if(b1===b2){breedCh+=15;fightCh+=5;} // same breed familiarity + territorial
 
-  // ★ v28: Simplified trait modifiers
   [c1,c2].forEach(c=>{
-    if(catHas(c,"Scrapper"))fightCh+=5;    // ★ v48: fighters still fight, but less dominant
-    if(catHas(c,"Cursed"))fightCh+=8;      // ★ v48: cursed cats are volatile but not fight magnets
-    
-    if(catHas(c,"Alpha"))fightCh+=4;        // alphas assert dominance
-    if(catHas(c,"Guardian"))fightCh-=3;     // guardians de-escalate
-    if(catHas(c,"Devoted")&&c.bondedTo)breedCh+=10; // devoted cats bond deeper
+    if(catHas(c,"Scrapper"))fightCh+=5;
+    if(catHas(c,"Cursed"))fightCh+=8;
+    if(catHas(c,"Alpha"))fightCh+=4;
+    if(catHas(c,"Guardian"))fightCh-=3;
+    if(catHas(c,"Devoted")&&c.bondedTo)breedCh+=10;
   });
-  if(!oppSex)breedCh=0; // same sex can't breed
-  if(isParentChild||isSibling)breedCh=0; // ★ v46: family can't breed (overrides all bonuses)
+  if(!oppSex)breedCh=0;
+  if(isParentChild||isSibling)breedCh=0;
 
-  // ★ v46: Den size social bonus — more cats = more social activity, not just more fights
   const denSize=ctx.denSize||2;
-  if(oppSex)breedCh+=Math.max(0,(denSize-2)*2); // +2% breed per extra cat
+  if(oppSex)breedCh+=Math.max(0,(denSize-2)*2);
 
-  // ★ v44→v46: Nerve affects den — softened. High nerve = tense, but life still finds a way.
   const nerveLvl=ctx.nerveLvl||0;
   if(nerveLvl>=4){
-    const nerveExcess=nerveLvl-3; // 1-6 for levels 4-9
-    fightCh+=nerveExcess*2;       // ★ v46: +3→+2 per level (was too aggressive)
-    breedCh-=nerveExcess*2;       // ★ v46: −4→−2 per level (was sterilizing at high nerve)
+    const nerveExcess=nerveLvl-3;
+    fightCh+=nerveExcess*2;
+    breedCh-=nerveExcess*2;
   }
 
-  // ★ v44: Same-breed crowding — too many of one breed creates territorial tension
-  const sameBreedCount=ctx.sameBreedCount||0; // how many of THIS breed in the den
+  const sameBreedCount=ctx.sameBreedCount||0;
   if(b1===b2&&sameBreedCount>2){
-    fightCh+=(sameBreedCount-2)*4; // +4% per extra same-breed cat above 2
+    fightCh+=(sameBreedCount-2)*4;
   }
 
-  return{breedCh:clamp(breedCh,0,85),fightCh:clamp(fightCh,0,70)}; // ★ v44: fight cap 60→70 (nerve can push higher)
+  // ★ v52: Spring Overgrowth devotion raises breed cap from 75% → 100%
+  const springBoost=ctx.breedBoost||0; // from Spring devotion milestone
+  const breedCap=springBoost>0?100:75;
+
+  return{breedCh:clamp(breedCh,0,breedCap),fightCh:clamp(fightCh,0,70)};
 }
 
 function resolveDen(denCats,hasMatchmaker,denSafe,heatDenFight,ctx={}){
@@ -1678,17 +1676,17 @@ function resolveDen(denCats,hasMatchmaker,denSafe,heatDenFight,ctx={}){
   const noBreed=ctx.noBreed||false;
   // ★ v44: Breed census for territorial crowding
   const breedCensus={};cats.forEach(c=>{breedCensus[c.breed]=(breedCensus[c.breed]||0)+1;});
-  // ★ v48: Den event count — shelter is active (breeding, bonding), wilds are dangerous
-  // Shelter: 1-2 base events + 10% bonus per extra cat (love finds a way)
-  // Wilds: 2-3 base events + 10% bonus per cat above 4 (more cats = more chaos)
-  const baseEvents=breedOnly?(1+Math.floor(Math.random()*2)):(2+Math.floor(Math.random()*2));
+  // ★ v52: Event count — min 1 per 2 cats, max 1 per cat
+  const minEvents=Math.max(1,Math.floor(cats.length/2));
+  const maxEvents=cats.length;
+  const baseEvents=breedOnly?minEvents:Math.min(maxEvents,2+Math.floor(Math.random()*2));
   let bonusEvents=0;
   if(breedOnly){
-    for(let e=0;e<Math.max(0,cats.length-2);e++){if(Math.random()<0.10)bonusEvents++;}
+    for(let e=0;e<Math.max(0,cats.length-2);e++){if(Math.random()<0.15)bonusEvents++;}
   }else{
     for(let e=0;e<Math.max(0,cats.length-4);e++){if(Math.random()<0.10)bonusEvents++;}
   }
-  const targetEvents=baseEvents+bonusEvents;
+  const targetEvents=Math.min(maxEvents,Math.max(minEvents,baseEvents+bonusEvents));
 
   // Pass 1: Pair-based events (existing affinity logic)
   for(let i=0;i<cats.length;i++){
@@ -1697,12 +1695,12 @@ function resolveDen(denCats,hasMatchmaker,denSafe,heatDenFight,ctx={}){
     for(let j=i+1;j<cats.length;j++){
       if(paired.has(cats[j].id))continue;
       const sameBreed=cats[i].breed===cats[j].breed?breedCensus[cats[i].breed]||0:0;
-      const a=calcAffinity(cats[i],cats[j],{nerveLvl:ctx.nerveLvl||0,sameBreedCount:sameBreed,denSize:cats.length});
-      const denRisk=Math.max(0,Math.round((denCats.length-2)*0.32)); // ★ v48: crowd tension. ~3% for 12 cats
+      const a=calcAffinity(cats[i],cats[j],{nerveLvl:ctx.nerveLvl||0,sameBreedCount:sameBreed,denSize:cats.length,breedBoost:ctx.breedBoost||0});
+      const denRisk=Math.max(0,Math.round((denCats.length-2)*0.32));
       a.fightCh=Math.min(70,a.fightCh+denRisk+(heatDenFight||0));
-      let bCh=a.breedCh;if(hasMatchmaker)bCh=Math.min(90,bCh+10);
-      // ★ v46: Shelter bonus — calm, safe environment = better breeding
-      if(breedOnly)bCh=Math.min(90,bCh+15);
+      let bCh=a.breedCh;if(hasMatchmaker)bCh=Math.min(100,bCh+10);
+      // ★ v52: Shelter bonus +15% (calm environment). Cap already handled by calcAffinity (75 base, 100 with Spring)
+      if(breedOnly)bCh=Math.min(100,bCh+15);
       const roll=Math.random()*100;
       if(!noBreed&&roll<bCh){
         const baby=breedC(cats[i],cats[j]);
@@ -2062,11 +2060,12 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
 
   // ★ v31/v34: GRUDGES — personal rivalries. Always tension (simplified)
   const grudges=getGrudges(cats);
+  const grudgePenalty=(ctx.grudgeWisdom||0)>0?-1:-2; // ★ v52: Grudge Tempering upgrade reduces penalty
   let hasGrudgeProve=false;
   if(!cfx.noTraits&&grudges.length>0){
     grudges.forEach(([a,b])=>{
-      mult=Math.max(1,mult-2);
-      bd.push({label:`⚡ ${a.name.split(" ")[0]}+${b.name.split(" ")[0]} Tension`,chips:0,mult:-2,type:"grudge_tension",catIdxs:[cats.indexOf(a),cats.indexOf(b)]});
+      mult=Math.max(1,mult+grudgePenalty);
+      bd.push({label:`⚡ ${a.name.split(" ")[0]}+${b.name.split(" ")[0]} Tension`,chips:0,mult:grudgePenalty,type:"grudge_tension",catIdxs:[cats.indexOf(a),cats.indexOf(b)]});
     });
   }
 
@@ -2143,7 +2142,7 @@ function getUnlocks(meta){
   };
 }
 
-function getTarget(a,b,firstRun,isLong){const scale=isLong?1.45:1.65;const base=(firstRun?[2000,4000,8000]:[2300,4600,10000])[b]*Math.pow(scale,a-1);const bossDiscount=b===2?(a===1?0.8:a===2&&firstRun?0.85:1):1;return Math.round(base*bossDiscount);} // ★ v52: Boss discount on Night 1 (×0.8) and first-run Night 2 (×0.85) to smooth the difficulty cliff
+function getTarget(a,b,firstRun,isLong){const scale=isLong?1.45:1.65;const base=(firstRun?[1500,3000,6000]:[2300,4600,10000])[b]*Math.pow(scale,a-1);const bossDiscount=b===2?(a===1?0.8:a===2&&firstRun?0.85:1):1;return Math.round(base*bossDiscount);} // ★ v52: First-run bases 2000/4000/8000→1500/3000/6000 (Full Den nerf made N1 too hard for new players)
 function getHeatMult(h){return 1+(h||0)*0.15;} // +15% per heat level (stacks: H5 = +75%)
 function getHeatFx(h){
   // Cumulative mechanical penalties per heat level
@@ -2600,7 +2599,7 @@ function FM({level,prev}){
   return(<div style={{width:"100%",maxWidth:700,padding:"0 16px"}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
       <div style={{display:"flex",alignItems:"center",gap:6}}>
-        <span title={"NERVE multiplies ALL scores.\nGain: Crush thresholds (3x pace = +1).\nGrudge 'Something to Prove' gives bonus gains.\nLose: Discard (-1). Weak hands (-1 to -2).\nDecay: -1 each night transition.\nAt NINTH LIFE (max): ×2.2 to ALL scores."} style={{fontSize:12,fontWeight:700,color:fv.color,letterSpacing:2,textShadow:mx?`0 0 14px ${fv.glow}`:level>3?`0 0 6px ${fv.color}44`:"none",animation:mx?"fp 1s ease-in-out infinite":up?"fpp .4s ease-out":dn?"shake .3s ease":"none",fontFamily:"'Cinzel',serif",cursor:"help"}}>{mx?"✦ ":""}{fv.name}{mx?" ✦":""}</span>
+        <span title={"NERVE multiplies ALL scores.\nGain: Crush thresholds (3× pace = +1).\nLose: Discard (−1). Weak hands (−1 to −2).\nDecay: −1 each night transition.\nAt NINTH LIFE (max): ×2.2 to ALL scores."} style={{fontSize:12,fontWeight:700,color:fv.color,letterSpacing:2,textShadow:mx?`0 0 14px ${fv.glow}`:level>3?`0 0 6px ${fv.color}44`:"none",animation:mx?"fp 1s ease-in-out infinite":up?"fpp .4s ease-out":dn?"shake .3s ease":"none",fontFamily:"'Cinzel',serif",cursor:"help"}}>{mx?"✦ ":""}{fv.name}{mx?" ✦":""}</span>
         <span style={{fontSize:fv.xM>1?13:11,color:fv.color,fontFamily:"system-ui",fontWeight:900,opacity:fv.xM>1?1:.3,letterSpacing:fv.xM>1?1:0,textShadow:fv.xM>1.3?`0 0 8px ${fv.color}44`:"none"}}>{fv.xM>1?`×${fv.xM}`:"×1"}</span>
         {ch&&<span style={{fontSize:10,fontWeight:700,animation:"countUp .4s ease-out",color:up?"#4ade80":"#ef4444"}}>{up?"▲":"▼"}</span>}
       </div>
@@ -2738,7 +2737,7 @@ function NinthLife(){
 
   // ★ v48: First run = 3 nights. Full = 5 nights. Long Dark = 9 nights.
   const isFirstRun=!meta||meta.stats.w===0;
-  const MX=isFirstRun?3:(longDark?9:5),BH=7,MF=5,MIN_DECK=6; // ★ v49: Minimum deck size — never shrink below this
+  const MX=isFirstRun?3:(longDark?9:5),BH=6,MF=5,MIN_DECK=6; // ★ v52: Hand size 7→6 (18 cats made Clowder trivial at 73%, now 50%)
   const BOSSES=[
   // ★ v34: Full narrative bible dialogue — every boss is a fallen colony's echo
   {id:"hunger",name:"The Hunger",icon:"🌪️",taunt:"I was here before you named it.",
@@ -3926,7 +3925,7 @@ function NinthLife(){
     setDenNews([]);
     const hasMM=false;
     const heatFight=getHeatFx(meta?.heat).denFight||0;
-    const baseCtx={draftRejects,deckSize:dAll.length,nerveLvl:ferv};
+    const baseCtx={draftRejects,deckSize:dAll.length,nerveLvl:ferv,breedBoost:getAllDevotionFx(devotion).breedBoost||0};
     // Pass 1: Shelter — breed/bond/reconcile only (calm, safe, +15% breed bonus)
     const shelterResults=shelterCats.length>=2?resolveDen(shelterCats,hasMM,true,0,{...baseCtx,breedOnly:true}):[];
     shelterResults.forEach(r=>r.source="shelter");
@@ -4721,7 +4720,7 @@ function NinthLife(){
 
   async function buyUpg(u){if(!meta||meta.dust<u.cost)return;const cur=meta.ups[u.id]||0;if(cur>=u.max)return;const um={...meta,dust:meta.dust-u.cost,ups:{...meta.ups,[u.id]:cur+1}};setMeta(um);await saveS(um);
     // ★ v50: Upgrade narrative — the Hearth cats left this for you
-    const upgVoice={"gold":"They buried provisions for the ones who came next.","hands":"Steadier now. The old fire taught patience.","discards":"Faster instincts. Borrowed from the ones who didn't make it.","fervor":"The old fire burns in the new colony's veins.","heirloom":"The bloodline carries what the mind forgets.","bloodMemory":"Memory in the blood. Deeper than names.","dustBonus":"The stars owe you. They're starting to pay.","xpBonus":"Every hand teaches more now.","scarMemory":"Scars carry wisdom. The Hearth cats knew this.","startWard":"Protection. The first gift of the remembered.","grudgeWisdom":"Grudges prove something. The Hearth cats learned what.","shelter":"Deeper burrows. Safer dreams."};
+    const upgVoice={"gold":"They buried provisions for the ones who came next.","hands":"Steadier now. The old fire taught patience.","discards":"Faster instincts. Borrowed from the ones who didn't make it.","fervor":"The old fire burns in the new colony's veins.","heirloom":"The bloodline carries what the mind forgets.","bloodMemory":"Memory in the blood. Deeper than names.","dustBonus":"The stars owe you. They're starting to pay.","xpBonus":"Every hand teaches more now.","scarMemory":"Scars carry wisdom. The Hearth cats knew this.","startWard":"Protection. The first gift of the remembered.","grudgeWisdom":"The old scars teach patience. Grudges sting less now.","shelter":"Deeper burrows. Safer dreams."};
     toast("✦",upgVoice[u.id]||"Something the Hearth cats knew. Something they left for you.","#c084fc");}
 
   // ★ v44: Memoize selection-dependent computations
@@ -5215,7 +5214,7 @@ function NinthLife(){
             })}
           </div>
           <div style={{fontSize:12,color:"#888",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",lineHeight:1.6,maxWidth:340,marginTop:8,animation:"fadeIn .8s ease-out .5s both"}}>
-            Three you chose. Thirteen strays who were already here.<br/>
+            Three you chose. Fifteen strays who were already here.<br/>
             <span style={{color:"#77777799"}}>Sixteen souls against the dark.</span>
           </div>
         </>
@@ -5267,7 +5266,7 @@ function NinthLife(){
                 <span style={{fontSize:13,fontWeight:700,color:BREEDS[b].color}}>{ct}</span>
               </div>:null;})}
               <div style={{display:"flex",alignItems:"center",gap:3,padding:"4px 10px",borderRadius:6,background:"#ffffff04",border:"1px solid #ffffff0a"}}>
-                <span style={{fontSize:10,color:"#666",fontFamily:"system-ui"}}>13 strays · all Plain</span>
+                <span style={{fontSize:10,color:"#666",fontFamily:"system-ui"}}>15 strays · all Plain</span>
               </div>
             </div>
           </div>
@@ -5343,7 +5342,7 @@ function NinthLife(){
         </div>
         <h1 style={{fontSize:"clamp(32px,7vw,52px)",fontWeight:900,letterSpacing:6,lineHeight:1.1,background:(meta?.achv||[]).includes("completionist")?"linear-gradient(135deg,#c084fc,#fef08a,#4ade80,#67e8f9)":"linear-gradient(135deg,#b85c2c,#fbbf24,#fef08a)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",margin:0}}>NINTH LIFE{meta?.ninthDawnCleared?" 🌅":""}</h1>
         <div style={{fontSize:10,color:"#888888bb",letterSpacing:3,fontFamily:"system-ui",lineHeight:1.6,animation:"fadeIn 2.5s ease-out"}}>A colony deckbuilder. Match seasons. Multiply everything.</div>
-        <div style={{fontSize:9,color:"#ffffff15",fontFamily:"system-ui",letterSpacing:2,marginTop:-6}}>v0.52</div>
+        <div style={{fontSize:9,color:"#ffffff15",fontFamily:"system-ui",letterSpacing:2,marginTop:-6}}>v0.53</div>
         {/* ★ v52: Chapter title — stat-derived career phase */}
         {(()=>{const ch=getChapterTitle(meta);return ch?<div style={{fontSize:10,color:"#c084fc66",letterSpacing:4,fontFamily:"'Cinzel',serif",animation:"fadeIn 3s ease-out"}}>Chapter {ch.num} · {ch.name}</div>:null;})()}
 
@@ -5406,7 +5405,7 @@ function NinthLife(){
           {meta&&<div style={{display:"flex",gap:14,fontFamily:"system-ui",fontSize:10,color:"#555",alignItems:"center",flexWrap:"wrap"}}><button onClick={()=>setSeen(s=>({...s,howToPlay:!s.howToPlay}))} style={{background:"none",border:"1px solid #ffffff12",borderRadius:12,color:"#555",fontSize:10,cursor:"pointer",padding:"2px 8px",fontFamily:"system-ui"}}>How to Play</button><span>{meta.stats.r} runs</span><span>{meta.stats.w} wins</span></div>}
           {seen.howToPlay&&<div style={{padding:"10px 16px",borderRadius:10,background:"#ffffff06",border:"1px solid #ffffff0a",maxWidth:400,fontSize:13,fontFamily:"system-ui",color:"#aaa",lineHeight:1.6,animation:"fadeIn .4s ease-out",textAlign:"left"}}>
             <div style={{fontWeight:700,color:"#fbbf24",marginBottom:4}}>Quick Rules</div>
-            Draw 7 cats. Pick up to 5. Match seasons for stronger hands. 2 of a kind = Kin, 3 = Clowder, 4 = Colony. Your score = Chips × Mult. Beat the target to survive.
+            Draw 6 cats. Pick up to 5. Match seasons for stronger hands. 2 of a kind = Kin, 3 = Clowder, 4 = Colony. Your score = Chips × Mult. Beat the target to survive.
             <div style={{marginTop:6}}>Scars (×1.25) and Bonds (×1.5) multiply your score. Nerve builds when you crush targets — at max, it more than doubles everything. In the Den, shelter cats to breed. Everyone else enters the wilds to train, fight, and grow.</div>
             <div style={{marginTop:6,color:"#67e8f9"}}>🎯 Match seasons for Clowder or Colony hands. Stack traits for big multipliers. Unplayed cats in your hand give bench bonuses.</div>
             <div style={{marginTop:6,color:"#34d399"}}>👪 Shelter a parent with their child to teach traits. Save a M/F pair to the Hearth — their descendants begin your next colony.</div>
@@ -5641,7 +5640,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
     return(<div style={W}><div style={BG}/><style>{CSS}</style>
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",zIndex:1,gap:20,padding:20,maxWidth:500}}>
       {/* ★ v52: Boss portrait — falls back to emoji if image fails */}
-      {BOSS_PORTRAITS[b.id]?<div style={{width:200,height:280,borderRadius:16,overflow:"hidden",animation:"fadeIn 1.2s ease-out",boxShadow:"0 0 60px #ef444433, 0 0 120px #ef444411",border:"1px solid #ef444422"}}>
+      {BOSS_PORTRAITS[b.id]?<div style={{width:vw<500?140:200,height:vw<500?196:280,borderRadius:14,overflow:"hidden",animation:"fadeIn 1.2s ease-out",boxShadow:"0 0 60px #ef444433, 0 0 120px #ef444411",border:"1px solid #ef444422"}}>
         <img src={BOSS_PORTRAIT_BASE+BOSS_PORTRAITS[b.id]} alt={b.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";e.target.nextSibling.style.display="flex";}}/>
         <div style={{display:"none",width:"100%",height:"100%",alignItems:"center",justifyContent:"center",fontSize:72,background:"#0d1117"}}>{b.icon}</div>
       </div>:<div style={{fontSize:72,filter:"drop-shadow(0 0 30px #ef444488)",animation:"fadeIn 1.2s ease-out"}}>{b.icon}</div>}
@@ -5672,7 +5671,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
       </div>
       {/* ★ v35: Relic 3 (The Vigil). the colony learned to read the dark's patterns */}
       {hasRelic(3)&&<div style={{fontSize:10,color:"#4ade8066",fontFamily:"system-ui",fontStyle:"italic",textAlign:"center",maxWidth:300,lineHeight:1.5,animation:"fadeIn 2.5s ease-out",padding:"4px 12px",borderRadius:6,background:"#4ade8008",border:"1px solid #4ade8018"}}>
-        👁️ The Vigil whispers: {b.id==="hunger"?"Bonds score double here. Fill every hand.":b.id==="territory"?"Scars make you stronger. The Territory respects fighters.":b.id==="mother"?"Don't spread thin. Pick your best five and commit.":b.id==="swarm"?"Nerve is everything. Build it before you get here.":b.id==="forgetting"?"Every name matters. Play your bonded pairs.":b.id==="fraying"?"Resolve your grudges. Or use them. 'Something to Prove' is powerful here.":b.id==="eclipse"?"Don't rest. Momentum carries through.":b.id==="ember"?"Give everything. One more hand is all it takes.":"Trust the colony."}
+        👁️ The Vigil whispers: {b.id==="hunger"?"Bonds score double here. Fill every hand.":b.id==="territory"?"Scars make you stronger. The Territory respects fighters.":b.id==="mother"?"Don't spread thin. Pick your best five and commit.":b.id==="swarm"?"Nerve is everything. Build it before you get here.":b.id==="forgetting"?"Every name matters. Play your bonded pairs.":b.id==="fraying"?"Resolve your grudges before you get here. Every grudge is −2 mult.":b.id==="eclipse"?"Don't rest. Momentum carries through.":b.id==="ember"?"Give everything. One more hand is all it takes.":"Trust the colony."}
       </div>}
       <button onClick={()=>setPh("playing")} style={{...BTN("linear-gradient(135deg,#ef4444,#dc2626)","#fff"),padding:"12px 40px",fontSize:15}}>Defend</button>
     </div></div>);}
@@ -6141,93 +6140,77 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
     const isolated=[...den]; // den state = isolated cats
     const denCats=dAll.filter(c=>!den.find(d=>d.id===c.id)&&!c.injured);
     const nightText=NIGHT_FLAVOR[Math.min(ante-1,4)];
+    const mob=vw<500;
+    // ★ v52: Adaptive card size for den — fit all cats without scroll
+    const denCardW=mob?Math.max(44,Math.min(64,Math.floor((vw-40)/Math.max(6,Math.ceil(dAll.length/3))))):80;
     return(<div style={W}><div style={BG}/><style>{CSS}</style>
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",zIndex:1,gap:12,padding:20,maxWidth:600}}>
-        <div style={{fontSize:32,animation:"float 3s ease-in-out infinite"}}>🌙</div>
-        <h2 style={{fontSize:20,color:"#c084fc",letterSpacing:4,margin:0}}>THE DEN</h2>
-        <div style={{fontSize:12,color:"#ffffff77",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:320,lineHeight:1.7}}>{nightText}</div>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-start",minHeight:"100vh",zIndex:1,gap:10,padding:mob?"16px 12px":"20px",maxWidth:600,paddingTop:mob?40:60}}>
+        <h2 style={{fontSize:mob?18:20,color:"#c084fc",letterSpacing:4,margin:0,fontFamily:"'Cinzel',serif"}}>THE DEN</h2>
+        <div style={{fontSize:mob?11:12,color:"#ffffff55",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:320,lineHeight:1.6}}>{nightText}</div>
 
-        {/* ★ v44: First-encounter hint. flipped mechanic */}
-        {!seen.den&&<div style={{padding:"10px 16px",borderRadius:10,background:"#c084fc08",border:"1px solid #c084fc22",fontSize:12,fontFamily:"system-ui",color:"#c084fccc",lineHeight:1.7,textAlign:"center",maxWidth:380,animation:"fadeIn .6s ease-out"}}>
-          <b>Shelter a ♂ + ♀ pair to breed safely.</b> Everyone else enters the wilds, where they train, bond, or fight. More cats in the wilds = more risk, more growth.
+        {/* ★ v44: First-encounter hint */}
+        {!seen.den&&<div style={{padding:"10px 14px",borderRadius:10,background:"#c084fc08",border:"1px solid #c084fc22",fontSize:12,fontFamily:"system-ui",color:"#c084fccc",lineHeight:1.7,textAlign:"center",maxWidth:380,animation:"fadeIn .6s ease-out"}}>
+          <b>Shelter a ♂ + ♀ pair to breed safely.</b> Everyone else enters the wilds — they train, bond, or fight.
           <div style={{marginTop:6}}><button onClick={()=>setSeen(s=>({...s,den:true}))} style={{fontSize:10,background:"none",border:"1px solid #c084fc33",borderRadius:4,color:"#c084fc",cursor:"pointer",padding:"3px 10px",fontFamily:"system-ui"}}>Got it</button></div>
         </div>}
-        {eventDenSafe&&<div style={{fontSize:10,color:"#4ade80",fontFamily:"system-ui"}}>🕊️ The shrine's protection holds. No fights tonight.</div>}
-        {eventDenBonus>0&&<div style={{fontSize:10,color:"#4ade80",fontFamily:"system-ui"}}>🏠 +{eventDenBonus} extra shelter slot{eventDenBonus>1?"s":""} tonight.</div>}
 
-        {/* Status bar */}
-        <div style={{fontSize:11,color:"#888",fontFamily:"system-ui",textAlign:"center"}}>
-          <b style={{color:"#fb923c"}}>{denCats.length}</b> in wilds{isolated.length>0&&<span> · <b style={{color:"#4ade80"}}>{isolated.length}</b>/{MAX_ISOLATE} sheltered</span>}{injured.length>0&&<span> · <b style={{color:"#fb923c"}}>{injured.length}</b> resting</span>}
+        {/* ★ v52: Split layout — SHELTER on left/top, WILDS on right/bottom */}
+        <div style={{display:"flex",flexDirection:mob?"column":"row",gap:12,width:"100%"}}>
+          {/* SHELTER section */}
+          <div style={{flex:1,padding:"8px 10px",borderRadius:10,background:"#4ade8006",border:"1px solid #4ade8022",minHeight:mob?80:120}}>
+            <div style={{fontSize:10,color:"#4ade80",letterSpacing:2,fontWeight:700,marginBottom:6}}>🛡 SHELTER ({isolated.length}/{MAX_ISOLATE})</div>
+            {eventDenSafe&&<div style={{fontSize:9,color:"#4ade80aa",fontFamily:"system-ui",marginBottom:4}}>🕊️ Shrine protection active</div>}
+            {isolated.length===0?<div style={{fontSize:10,color:"#4ade8044",fontFamily:"system-ui",fontStyle:"italic"}}>Tap cats below to shelter them</div>
+            :<>
+              <div style={{display:"flex",gap:3,flexWrap:"wrap",justifyContent:"center"}}>
+                {isolated.map(c=><div key={c.id} onClick={()=>toggleDen(c)} style={{cursor:"pointer",position:"relative"}}>
+                  <CC cat={c} sm cw={denCardW} sel onTraitClick={ct=>setTraitTip(ct)}/>
+                </div>)}
+              </div>
+              {/* Shelter pair info */}
+              {(()=>{
+                let breedPairs=0;
+                for(let i=0;i<isolated.length;i++)for(let j=i+1;j<isolated.length;j++){
+                  if(isolated[i].sex!==isolated[j].sex&&!isolated[i].injured&&!isolated[j].injured){
+                    const isFamily=isolated[i].parentIds?.includes(isolated[j].id)||isolated[j].parentIds?.includes(isolated[i].id)||(isolated[i].parentIds&&isolated[j].parentIds&&isolated[i].parentIds.some(p=>isolated[j].parentIds.includes(p)));
+                    if(!isFamily)breedPairs++;
+                  }
+                }
+                return breedPairs>0?<div style={{fontSize:10,color:"#4ade80",fontFamily:"system-ui",textAlign:"center",marginTop:4}}>🤝 {breedPairs} breeding pair{breedPairs>1?"s":""}</div>
+                :isolated.length>=2?<div style={{fontSize:10,color:"#4ade8066",fontFamily:"system-ui",textAlign:"center",marginTop:4}}>No M/F pairs to breed</div>:null;
+              })()}
+            </>}
+          </div>
+
+          {/* WILDS section */}
+          <div style={{flex:2,padding:"8px 10px",borderRadius:10,background:"#fb923c06",border:"1px solid #fb923c22",minHeight:mob?100:120}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <div style={{fontSize:10,color:"#fb923c",letterSpacing:2,fontWeight:700}}>🌲 WILDS ({denCats.length})</div>
+              {/* Risk indicator */}
+              {(()=>{
+                const risk=denCats.length<=4?"Calm":denCats.length<=8?"Active":denCats.length<=12?"Volatile":"Dangerous";
+                const riskColor=denCats.length<=4?"#4ade80":denCats.length<=8?"#fbbf24":denCats.length<=12?"#fb923c":"#ef4444";
+                return <span style={{fontSize:10,color:riskColor,fontWeight:700,fontFamily:"system-ui"}}>{risk}</span>;
+              })()}
+            </div>
+            <div style={{display:"flex",gap:3,flexWrap:"wrap",justifyContent:"center"}}>
+              {denCats.map(c=><div key={c.id} onClick={den.length<MAX_ISOLATE?()=>toggleDen(c):undefined} style={{cursor:den.length<MAX_ISOLATE?"pointer":"default",opacity:den.length>=MAX_ISOLATE?.6:1,position:"relative"}}>
+                <CC cat={c} sm cw={denCardW} denMode onTraitClick={ct=>setTraitTip(ct)}/>
+              </div>)}
+            </div>
+            {injured.length>0&&<div style={{marginTop:6}}>
+              <div style={{fontSize:9,color:"#fb923c88",letterSpacing:1,fontFamily:"system-ui",marginBottom:3}}>🩹 RESTING ({injured.length})</div>
+              <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
+                {injured.map(c=><div key={c.id} style={{position:"relative"}}><CC cat={c} sm cw={denCardW} dis onTraitClick={ct=>setTraitTip(ct)}/></div>)}
+              </div>
+            </div>}
+          </div>
         </div>
 
-        {/* ★ v44: Combined risk line. one glanceable signal */}
-        {(()=>{
-          const risk=denCats.length<=4?"Calm":denCats.length<=7?"Active":denCats.length<=10?"Volatile":"Dangerous";
-          const riskColor=denCats.length<=4?"#4ade80":denCats.length<=7?"#fbbf24":denCats.length<=10?"#fb923c":"#ef4444";
-          const alerts=[];
-          if(ferv>=4)alerts.push({icon:"🔥",text:NERVE[ferv].name,color:ferv>=7?"#ef4444":"#fb923c"});
-          const bc={};denCats.forEach(c=>{bc[c.breed]=(bc[c.breed]||0)+1;});
-          const crowded=Object.entries(bc).filter(([,ct])=>ct>2);
-          if(crowded.length)alerts.push({icon:"⚔",text:crowded.map(([br,ct])=>`${BREEDS[br]?.icon||""}${ct}`).join(" "),color:"#fb923c"});
-          return(<div style={{display:"flex",gap:8,alignItems:"center",justifyContent:"center",fontSize:10,fontFamily:"system-ui"}}>
-            <span style={{color:riskColor,fontWeight:700}}>{risk}</span>
-            {alerts.map((a,i)=><span key={i} style={{color:a.color}}>{a.icon} {a.text}</span>)}
-          </div>);
-        })()}
-
-        {/* ★ v46: Pair summary. shelter breed pairs + wilds danger */}
-        {(isolated.length>=2||denCats.length>=2)&&(()=>{
-          // Shelter pairs — who can breed?
-          let shelterBreedPairs=0,relatedPairs=0;
-          for(let i=0;i<isolated.length;i++){
-            for(let j=i+1;j<isolated.length;j++){
-              if(isolated[i].sex!==isolated[j].sex&&!isolated[i].injured&&!isolated[j].injured){
-                const isFamily=isolated[i].parentIds?.includes(isolated[j].id)||isolated[j].parentIds?.includes(isolated[i].id)||
-                  (isolated[i].parentIds&&isolated[j].parentIds&&isolated[i].parentIds.some(p=>isolated[j].parentIds.includes(p)));
-                if(isFamily)relatedPairs++;else shelterBreedPairs++;
-              }
-            }
-          }
-          // Wilds pairs — who's at risk?
-          const denBC={};denCats.forEach(c=>{denBC[c.breed]=(denBC[c.breed]||0)+1;});
-          let grudgePairs=0,fightRisk=0;
-          for(let i=0;i<denCats.length;i++){
-            for(let j=i+1;j<denCats.length;j++){
-              const sameBreed=denCats[i].breed===denCats[j].breed?denBC[denCats[i].breed]||0:0;
-              const af=calcAffinity(denCats[i],denCats[j],{nerveLvl:ferv,sameBreedCount:sameBreed,denSize:denCats.length});
-              if(hasGrudge(denCats[i],denCats[j]))grudgePairs++;
-              if(af.fightCh>=20)fightRisk++;
-            }
-          }
-          const has=shelterBreedPairs||relatedPairs||grudgePairs||fightRisk;
-          return has?(<div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",fontSize:10,fontFamily:"system-ui"}}>
-            {shelterBreedPairs>0&&<span style={{color:"#4ade80"}}>🤝 {shelterBreedPairs} can breed</span>}
-            {relatedPairs>0&&<span style={{color:"#fb923c"}}>👪 {relatedPairs} kin (can't breed)</span>}
-            {shelterBreedPairs===0&&relatedPairs===0&&isolated.length>=2&&<span style={{color:"#888"}}>🤝 no M/F pairs sheltered</span>}
-            {grudgePairs>0&&<span style={{color:"#fb923c"}}>⚡ {grudgePairs} grudge</span>}
-            {fightRisk>0&&<span style={{color:"#ef4444",fontWeight:700}}>🩹 {fightRisk} tense</span>}
-          </div>):null;
-        })()}
-
-        {/* All cats. tap to shelter */}
-        <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"center",maxWidth:500,maxHeight:220,overflowY:"auto",padding:4}}>
-          {dAll.map(c=>{
-            const isIsolated=den.find(d=>d.id===c.id);
-            const isInjured=c.injured;
-            const canToggle=!isInjured&&(isIsolated||den.length<MAX_ISOLATE);
-            return(<div key={c.id} onClick={isInjured?undefined:canToggle?()=>toggleDen(c):undefined} style={{cursor:isInjured?"default":canToggle?"pointer":"not-allowed",opacity:!canToggle&&!isIsolated&&!isInjured?.7:1,transition:"opacity .2s",position:"relative"}}>
-              <CC cat={c} sm sel={!!isIsolated} denMode={!isIsolated&&!isInjured} dis={isInjured} onTraitClick={ct=>setTraitTip(ct)}/>
-              {/* Shelter badge */}
-              {isIsolated&&<div style={{position:"absolute",top:-4,right:-4,background:"#4ade80",color:"#000",fontSize:10,width:18,height:18,borderRadius:9,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,border:"2px solid #0a0a1a"}}>🛡</div>}
-              {/* Injured badge */}
-              {isInjured&&<div style={{position:"absolute",top:-4,right:-4,background:"#fb923c",color:"#000",fontSize:10,width:18,height:18,borderRadius:9,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,border:"2px solid #0a0a1a"}}>🩹</div>}
-            </div>);
-          })}
-        </div>
-
-        <div style={{display:"flex",gap:8,marginTop:8}}>
-          <button onClick={endNight} style={{...BTN("linear-gradient(135deg,#c084fc,#a855f7)","#fff"),padding:"10px 28px",fontSize:14}}>End Night</button>
-          <button onClick={()=>{setDen([]);nextBlind();}} style={{...BTN("#1a1a2e","#888"),padding:"10px 20px",fontSize:11,border:"1px solid #ffffff12"}}>Skip Den</button>
+        {/* Action buttons */}
+        <div style={{display:"flex",gap:8,marginTop:4}}>
+          <button onClick={endNight} style={{...BTN("linear-gradient(135deg,#c084fc,#a855f7)","#fff"),padding:mob?"12px 24px":"10px 28px",fontSize:14}}>End Night</button>
+          <button onClick={()=>{setDen([]);nextBlind();}} style={{...BTN("#1a1a2e","#888"),padding:mob?"12px 16px":"10px 20px",fontSize:11,border:"1px solid #ffffff12"}}>Skip</button>
         </div>
       </div>
     </div>);
@@ -6237,15 +6220,16 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
   if(ph==="denResults"&&denRes){
     const denDone=denRes.length===0||denStep>=denRes.length-1;
     const skipDen=()=>{if(denDone)return;if(denStRef.current)clearTimeout(denStRef.current);setDenStep(denRes.length-1);};
+    const mob=vw<500;
     return(<div onClick={denDone?undefined:skipDen} style={{...W,cursor:denDone?"default":"pointer"}}><div style={BG}/><style>{CSS}</style>
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-start",minHeight:"100vh",zIndex:1,gap:14,padding:20,maxWidth:550,overflowY:"auto"}}>
-        <div style={{fontSize:32}}>🌙</div>
-        <h2 style={{fontSize:18,color:"#c084fc",letterSpacing:4,margin:0}}>WHAT HAPPENED IN THE DARK</h2>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-start",minHeight:"100vh",zIndex:1,gap:12,padding:mob?"16px 12px":"20px",maxWidth:550,overflowY:"auto",paddingTop:mob?30:40}}>
+        <h2 style={{fontSize:mob?16:18,color:"#c084fc",letterSpacing:4,margin:0,fontFamily:"'Cinzel',serif"}}>WHAT HAPPENED IN THE DARK</h2>
         {denRes.length===0&&<div style={{color:"#666",fontSize:13,fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",lineHeight:1.6,maxWidth:340}}>{pk(DEN_QUIET)()}</div>}
         {denRes.slice(0,denStep+1).map((r,i)=>{
           const isActive=i===denStep;
+          const fs=mob?12:13; // ★ v52: Consistent font size, readable on mobile
           return (
-          <div key={i} style={{width:"100%",padding:"10px 14px",borderRadius:10,
+          <div key={i} style={{width:"100%",padding:mob?"8px 10px":"10px 14px",borderRadius:10,
             background:r.type==="breed"||r.type==="growth"||r.type==="wanderer"||r.type==="mentor"||r.type==="training"||r.type==="teach"?"linear-gradient(145deg,#1b2e1b,#0d0d1a)":r.type==="death"?"linear-gradient(145deg,#2e1111,#0d0d1a)":r.type==="phoenix"||r.type==="found"?"linear-gradient(145deg,#2e2211,#0d0d1a)":r.type==="bond"||r.type==="reconcile_bond"?"linear-gradient(145deg,#2e1b2e,#0d0d1a)":r.type==="grudge"?"linear-gradient(145deg,#2e2211,#0d0d1a)":r.type==="reconcile"?"linear-gradient(145deg,#1b2e3e,#0d0d1a)":"linear-gradient(145deg,#2e1b1b,#0d0d1a)",
             border:`1px solid ${r.type==="breed"||r.type==="growth"||r.type==="wanderer"||r.type==="mentor"||r.type==="training"?"#4ade8044":r.type==="death"?"#ef4444bb":r.type==="phoenix"||r.type==="found"?"#fbbf2466":r.type==="bond"||r.type==="reconcile_bond"?"#f472b644":r.type==="grudge"?"#fb923c44":r.type==="reconcile"?"#67e8f944":"#ef444433"}`,
             animation:isActive?"scorePop .4s ease-out":"none"
@@ -6356,7 +6340,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
             if(r.type==="wanderer")groups.life.push({icon:"🐱",text:`${n(r.cat)} wandered in`,tip:`P${r.cat.power} ${r.cat.breed} joins colony`,color:"#67e8f9",src:r.source});
             if(r.type==="death")groups.conflict.push({icon:"💀",text:`${n(r.victim)} was lost`,tip:"removed from colony",color:"#ef4444",bold:true,src:r.source});
             if(r.type==="fight")groups.conflict.push({icon:"⚔",text:`${n(r.loser)} was ${r.wasInjured?"injured":"scarred"} (−${r.dmg}P) fighting ${n(r.loser.id===r.c1.id?r.c2:r.c1)}`,tip:r.wasInjured?"half power for 2 rounds":"scarred: \u00d71.25 mult",color:"#ef4444",src:r.source});
-            if(r.type==="grudge")groups.conflict.push({icon:"⚡",text:`${n(r.c1)} & ${n(r.c2)} developed a grudge`,tip:"75% tension (−2M) / 25% prove (+4M) together",color:"#fb923c",src:r.source});
+            if(r.type==="grudge")groups.conflict.push({icon:"⚡",text:`${n(r.c1)} & ${n(r.c2)} developed a grudge`,tip:"−2 mult when played together",color:"#fb923c",src:r.source});
             if(r.type==="bond")groups.bonds.push({icon:"💕",text:`${n(r.c1)} & ${n(r.c2)} bonded`,tip:`${bondStr} mult when played together`,color:"#f472b6",src:r.source});
             if(r.type==="reconcile_bond")groups.bonds.push({icon:"💕",text:`${n(r.c1)} & ${n(r.c2)} reconciled and bonded`,tip:`grudge cleared · ${bondStr} mult together`,color:"#f472b6",src:r.source});
             if(r.type==="reconcile")groups.bonds.push({icon:"🕊️",text:`${n(r.c1)} & ${n(r.c2)} made peace`,tip:"grudge cleared — no more tension penalty",color:"#67e8f9",src:r.source});
@@ -7692,7 +7676,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
           </div>
           <div style={{display:"flex",gap:8,paddingBottom:4,fontSize:10,fontFamily:"system-ui",color:"#666",flexWrap:"wrap"}}>
             <span>💕 Bonded pair: ×{getMB().bondBoost?"1.75":"1.5"} mult (from den shelter)</span>
-            <span>⚡ Grudge: From den fights. 75% tension (−2 mult) or 25% something to prove (+4 mult)</span>
+            <span>⚡ Grudge: Always −2 mult when grudged cats play together (from den fights)</span>
             <span>🪑 Bench: Unplayed hand cats give passive bonuses (traits or half power as chips)</span>
           </div>
           <div style={{display:"flex",gap:8,paddingBottom:6,fontSize:10,fontFamily:"system-ui",color:"#666",flexWrap:"wrap"}}>
