@@ -734,7 +734,9 @@ const ACHIEVEMENTS=[
   {id:"completionist",name:"Completionist",desc:"All other achievements",icon:"🌟",check:(s,_,achv)=>ACHIEVEMENTS.filter(a=>a.id!=="completionist").every(a=>achv.includes(a.id)),reward:"Alternate title gradient"},
 ];
 
-// ★ v52: BOSS MASTERY TITLES — earned after 5 wins vs that boss
+// ★ v52: BOSS PORTRAITS — Nano Banana generated, hosted on GitHub
+const BOSS_PORTRAIT_BASE="https://raw.githubusercontent.com/greatgamesgonewild/ninth-life/main/bosses/";
+const BOSS_PORTRAITS={hunger:"hunger.webp",territory:"territory.webp",mother:"mother.webp",swarm:"swarm.webp",forgetting:"forgetting.webp",fraying:"fraying.webp",eclipse:"eclipse.webp",ember:"ember.webp"};
 const BOSS_MASTERY={
   hunger:{title:"FAMINE BREAKER",wins:5},
   territory:{title:"GROUND KEEPER",wins:5},
@@ -5638,7 +5640,11 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
       :null;
     return(<div style={W}><div style={BG}/><style>{CSS}</style>
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",zIndex:1,gap:20,padding:20,maxWidth:500}}>
-      <div style={{fontSize:72,filter:"drop-shadow(0 0 30px #ef444488)",animation:"fadeIn 1.2s ease-out"}}>{b.icon}</div>
+      {/* ★ v52: Boss portrait — falls back to emoji if image fails */}
+      {BOSS_PORTRAITS[b.id]?<div style={{width:200,height:280,borderRadius:16,overflow:"hidden",animation:"fadeIn 1.2s ease-out",boxShadow:"0 0 60px #ef444433, 0 0 120px #ef444411",border:"1px solid #ef444422"}}>
+        <img src={BOSS_PORTRAIT_BASE+BOSS_PORTRAITS[b.id]} alt={b.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";e.target.nextSibling.style.display="flex";}}/>
+        <div style={{display:"none",width:"100%",height:"100%",alignItems:"center",justifyContent:"center",fontSize:72,background:"#0d1117"}}>{b.icon}</div>
+      </div>:<div style={{fontSize:72,filter:"drop-shadow(0 0 30px #ef444488)",animation:"fadeIn 1.2s ease-out"}}>{b.icon}</div>}
       <h2 style={{fontSize:30,color:"#ef4444",letterSpacing:8,margin:0,textShadow:"0 0 40px #ef444488",animation:"tierReveal 1s ease-out"}}>{b.name}</h2>
       {/* ★ v52: Boss mastery title */}
       {hasMastery&&<div style={{fontSize:11,color:"#fbbf24",letterSpacing:4,fontFamily:"system-ui",fontWeight:700,animation:"fadeIn 1.2s ease-out"}}>YOU ARE THE {mastery.title}</div>}
