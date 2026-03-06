@@ -1,6 +1,6 @@
 // NINTH LIFE v0.65
 // A roguelike deckbuilder — cats are cards, seasons are suits, survive the dark.
-// https://greatgamesgonewild.github.io/ninth-live/
+// https://greatgamesgonewild.github.io/ninth-life/
 
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 // Tone.js loaded via CDN
@@ -541,7 +541,7 @@ const EPITHETS={
   scarred:{key:"scarred",test:c=>c.scarred&&!c.epithet,titles:["the Marked","the Scarred","who Bled"],
     bonus:{mult:1},desc:"+1 mult (scar veteran)"},
   bonded:{key:"bonded",test:c=>c.bondedTo&&!c.epithet,titles:["the Devoted","the Beloved","who Chose"],
-    bonus:{bondMult:0.25},desc:"Bond ×1.75 instead of ×1.5"},
+    bonus:{bondMult:true},desc:"+2 mult when bonded partner is played"},
   grudgeResolved:{key:"grudgeResolved",test:c=>c._grudgeResolved&&!c.epithet,titles:["the Forgiven","the Mended","who Let Go"],
     bonus:{grudgeImmune:true},desc:"Immune to future grudges"},
   bossNight:{key:"bossNight",test:(c,ctx)=>ctx?.bossNight&&!c.epithet,gen:(c,ctx)=>[`of the ${["First","Second","Third","Fourth","Fifth"][Math.min((ctx?.ante||1)-1,4)]} Night`],
@@ -792,7 +792,7 @@ const ACHIEVEMENTS=[
   {id:"completionist",name:"Completionist",desc:"All other achievements",icon:"🌟",check:(s,_,achv)=>ACHIEVEMENTS.filter(a=>a.id!=="completionist").every(a=>achv.includes(a.id)),reward:"Alternate title gradient"},
 ];
 
-const BOSS_PORTRAIT_BASE="https://raw.githubusercontent.com/greatgamesgonewild/ninth-life/main/bosses/";
+const BOSS_PORTRAIT_BASE="https://greatgamesgonewild.github.io/ninth-life/bosses/";
 const BOSS_PORTRAITS={hunger:"hunger.webp",territory:"territory.webp",mother:"mother.webp",swarm:"swarm.webp",forgetting:"forgetting.webp",fraying:"fraying.webp",eclipse:"eclipse.webp",ember:"ember.webp"};
 const BOSS_MASTERY={
   hunger:{title:"FAMINE BREAKER",wins:5},
@@ -2212,8 +2212,8 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
       if(epDef?.bonus){
         const eb=epDef.bonus;
         if(eb.mult){cm+=eb.mult;icons.push("🏷️");}
-        if(eb.bondMult&&c.bondedTo&&cats.find(x=>x.id===c.bondedTo)){cm+=Math.round(eb.bondMult*mult);} // extra bond scaling
-        if(eb.clutchMult&&ctx.beatingPace&&ctx.beatingPace<0.3){cm+=eb.clutchMult;icons.push("🏷️");}
+        if(eb.bondMult&&c.bondedTo&&cats.find(x=>x.id===c.bondedTo)){cm+=2;} // flat +2M for devoted epithet
+        if(eb.clutchMult&&!ctx.beatingPace){cm+=eb.clutchMult;icons.push("🏷️");}
         if(eb.soloMult){const myBreeds=getCatBreeds(c);const alone=!cats.some(x=>x.id!==c.id&&getCatBreeds(x).some(b=>myBreeds.includes(b)));if(alone){cm+=eb.soloMult;icons.push("🏷️");}}
       }
     }
@@ -2256,9 +2256,9 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
     if(c.injured&&!c._re)reasons.push("Injured (halved)");
     if(c.epithetKey&&!c._re){const epDef=Object.values(EPITHETS).find(e=>e.key===c.epithetKey);if(epDef?.bonus){
       if(epDef.bonus.mult)reasons.push(`"${c.epithet}" +${epDef.bonus.mult}M`);
-      if(epDef.bonus.clutchMult&&ctx.beatingPace&&ctx.beatingPace<0.3)reasons.push(`"${c.epithet}" clutch +${epDef.bonus.clutchMult}M`);
+      if(epDef.bonus.clutchMult&&!ctx.beatingPace)reasons.push(`"${c.epithet}" clutch +${epDef.bonus.clutchMult}M`);
       if(epDef.bonus.soloMult){const myB=getCatBreeds(c);const al=!cats.some(x=>x.id!==c.id&&getCatBreeds(x).some(b=>myB.includes(b)));if(al)reasons.push(`"${c.epithet}" solo +${epDef.bonus.soloMult}M`);}
-      if(epDef.bonus.bondMult&&c.bondedTo&&cats.find(x=>x.id===c.bondedTo))reasons.push(`"${c.epithet}" bond +25%`);
+      if(epDef.bonus.bondMult&&c.bondedTo&&cats.find(x=>x.id===c.bondedTo))reasons.push(`"${c.epithet}" bond +2M`);
     }}
     bd.push({
       label:`${iconStr}${iconStr?" ":""}${c._re?"\u21BB ":""}${c.name.split(" ")[0]}${c.epithet?" "+c.epithet:""}${(c.trait&&c.trait.name!=="Plain"&&!c._re)?" ("+c.trait.name+")":""}`,
@@ -2568,7 +2568,7 @@ function calcTotalHearthDust(cats,dustBonus=0,heatMult=1){
 // ═══════════════════════════════════════════════════════════════
 
 // Pattern: {style}-{season}.png. Graceful fallback: if portraits don't load, cards look exactly like before.
-const PORTRAIT_BASE="https://raw.githubusercontent.com/greatgamesgonewild/ninth-life/main/portraits/";
+const PORTRAIT_BASE="https://greatgamesgonewild.github.io/ninth-life/portraits/";
 function getPortraitUrl(cat){
   try{
     const season=(cat.breed||"autumn").toLowerCase();
@@ -6792,7 +6792,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
                 a._grudgeResolved=true;b._grudgeResolved=true;assignEpithet(a);assignEpithet(b);
                 if(a._newEpithet){delete a._newEpithet;toast("🏷️",epithetToastMsg(a),BREEDS[a.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
                 if(b._newEpithet){delete b._newEpithet;toast("🏷️",epithetToastMsg(b),BREEDS[b.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
-                [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===a.id?{...x,epithet:a.epithet}:x.id===b.id?{...x,epithet:b.epithet}:x));});
+                [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===a.id?{...x,epithet:a.epithet,epithetKey:a.epithetKey}:x.id===b.id?{...x,epithet:b.epithet,epithetKey:b.epithetKey}:x));});
                 Audio.denBond();
               }else if(canBond&&!isGrudged&&Math.random()<bondChance){
                 [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>{
@@ -6802,7 +6802,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
                 a.bondedTo=b.id;b.bondedTo=a.id;assignEpithet(a);assignEpithet(b);
                 if(a._newEpithet){delete a._newEpithet;toast("🏷️",epithetToastMsg(a),BREEDS[a.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
                 if(b._newEpithet){delete b._newEpithet;toast("🏷️",epithetToastMsg(b),BREEDS[b.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
-                [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===a.id?{...x,epithet:a.epithet,bondedTo:b.id}:x.id===b.id?{...x,epithet:b.epithet,bondedTo:a.id}:x));});
+                [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===a.id?{...x,epithet:a.epithet,epithetKey:a.epithetKey,bondedTo:b.id}:x.id===b.id?{...x,epithet:b.epithet,epithetKey:b.epithetKey,bondedTo:a.id}:x));});
                 Audio.denBond();
               }else{
                 const aCamped=a._camped,bCamped=b._camped;
@@ -7942,7 +7942,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
                   🏷️ <b>"{traitTip.epithet}"</b>{epDef?.desc?<span style={{color:"#fbbf24aa"}}> — {epDef.desc}</span>:""}
                 </div>;
               })()}
-              {traitTip.bondedTo&&<div style={{fontSize:11,color:"#f472b6",textAlign:"center",fontFamily:"system-ui"}}>💕 Bonded. ×1.5 mult{traitTip.epithetKey==="bonded"?" (×1.75 with epithet)":""}, ×1.25 for second pair</div>}
+              {traitTip.bondedTo&&<div style={{fontSize:11,color:"#f472b6",textAlign:"center",fontFamily:"system-ui"}}>💕 Bonded. ×1.5 mult{traitTip.epithetKey==="bonded"?" (+2 from epithet)":""}, ×1.25 for second pair</div>}
               {(traitTip.grudgedWith||[]).length>0&&<div style={{fontSize:11,color:"#fb923c",textAlign:"center",fontFamily:"system-ui"}}>⚡ {(traitTip.grudgedWith||[]).length} Grudge{(traitTip.grudgedWith||[]).length>1?"s":""}. 75% tension / 25% prove per pair</div>}
               {traitTip.epithetKey==="grudgeResolved"&&<div style={{fontSize:11,color:"#4ade80",textAlign:"center",fontFamily:"system-ui"}}>🕊️ Immune to future grudges</div>}
               {traitTip.scarred&&!traitTip.injured&&<div style={{fontSize:11,color:"#fbbf24",textAlign:"center",fontFamily:"system-ui"}}>⚔ Battle-Hardened. ×1.25 mult</div>}
