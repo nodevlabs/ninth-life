@@ -1,4 +1,4 @@
-// NINTH LIFE v0.61
+// NINTH LIFE v0.65
 // A roguelike deckbuilder — cats are cards, seasons are suits, survive the dark.
 // https://greatgamesgonewild.github.io/ninth-live/
 
@@ -150,7 +150,11 @@ function getAllDevotionFx(counts){
 // Autumn+Winter = BOND (the fading seasons — cold and letting go)
 // Summer+Spring  = BOND (the growing seasons — warmth and renewal)
 function hasGrudge(c1,c2){return(c1.grudgedWith||[]).includes(c2.id)||(c2.grudgedWith||[]).includes(c1.id);}
-function addGrudge(c,targetId){if(!(c.grudgedWith||[]).includes(targetId)){c.grudgedWith=[...(c.grudgedWith||[]),targetId];}return c;}
+function addGrudge(c,targetId){
+  // "The Forgiven" epithet grants grudge immunity
+  if(c.epithetKey==="grudgeResolved")return c;
+  if(!(c.grudgedWith||[]).includes(targetId)){c.grudgedWith=[...(c.grudgedWith||[]),targetId];}return c;
+}
 function removeGrudge(c,targetId){c.grudgedWith=(c.grudgedWith||[]).filter(id=>id!==targetId);return c;}
 function getGrudges(cats){
   const grudges=[];
@@ -534,13 +538,20 @@ const TITL_RARE={Eternal:["the Myth","of Legend","the Undying Name","whom the Da
 // EPITHET SYSTEM — earned titles from gameplay events
 // ════════════════════════════════════════════════════
 const EPITHETS={
-  scarred:{test:c=>c.scarred&&!c.epithet,titles:["the Marked","the Scarred","who Bled"]},
-  bonded:{test:c=>c.bondedTo&&!c.epithet,titles:["the Devoted","the Beloved","who Chose"]},
-  grudgeResolved:{test:c=>c._grudgeResolved&&!c.epithet,titles:["the Forgiven","the Mended","who Let Go"]},
-  bossNight:{test:(c,ctx)=>ctx?.bossNight&&!c.epithet,gen:(c,ctx)=>[`of the ${["First","Second","Third","Fourth","Fifth"][Math.min((ctx?.ante||1)-1,4)]} Night`]},
-  decisive:{test:(c,ctx)=>ctx?.decisive&&!c.epithet,titles:["the Decisive","who Tipped the Scale","the Clutch"]},
-  lastStanding:{test:(c,ctx)=>ctx?.lastStanding&&!c.epithet,titles:["the Alone","Last Standing","the Survivor"]},
-  grownUp:{test:c=>c._grewUp&&!c.epithet,titles:["the Grown","the Bloomed","who Found Their Name"]},
+  scarred:{key:"scarred",test:c=>c.scarred&&!c.epithet,titles:["the Marked","the Scarred","who Bled"],
+    bonus:{mult:1},desc:"+1 mult (scar veteran)"},
+  bonded:{key:"bonded",test:c=>c.bondedTo&&!c.epithet,titles:["the Devoted","the Beloved","who Chose"],
+    bonus:{bondMult:0.25},desc:"Bond ×1.75 instead of ×1.5"},
+  grudgeResolved:{key:"grudgeResolved",test:c=>c._grudgeResolved&&!c.epithet,titles:["the Forgiven","the Mended","who Let Go"],
+    bonus:{grudgeImmune:true},desc:"Immune to future grudges"},
+  bossNight:{key:"bossNight",test:(c,ctx)=>ctx?.bossNight&&!c.epithet,gen:(c,ctx)=>[`of the ${["First","Second","Third","Fourth","Fifth"][Math.min((ctx?.ante||1)-1,4)]} Night`],
+    bonus:{mult:1},desc:"+1 mult (boss veteran)"},
+  decisive:{key:"decisive",test:(c,ctx)=>ctx?.decisive&&!c.epithet,titles:["the Decisive","who Tipped the Scale","the Clutch"],
+    bonus:{clutchMult:3},desc:"+3 mult on clutch hands"},
+  lastStanding:{key:"lastStanding",test:(c,ctx)=>ctx?.lastStanding&&!c.epithet,titles:["the Alone","Last Standing","the Survivor"],
+    bonus:{soloMult:4},desc:"+4 mult when only cat of their season"},
+  grownUp:{key:"grownUp",test:c=>c._grewUp&&!c.epithet,titles:["the Grown","the Bloomed","who Found Their Name"],
+    bonus:{power:2},desc:"+2 Power (matured)"},
 };
 function assignEpithet(cat,ctx={}){
   if(cat.epithet)return; // one per cat
@@ -548,8 +559,11 @@ function assignEpithet(cat,ctx={}){
     if(ep.test(cat,ctx)){
       const pool=ep.gen?ep.gen(cat,ctx):ep.titles;
       cat.epithet=pk(pool);
+      cat.epithetKey=ep.key;
       cat.story=[...(cat.story||[]).slice(-4),`Earned: "${cat.epithet}"`];
       cat._newEpithet=true;
+      // Immediate power bonus
+      if(ep.bonus.power)cat.power=Math.min(15,cat.power+ep.bonus.power);
       return;
     }
   }
@@ -557,6 +571,10 @@ function assignEpithet(cat,ctx={}){
 function getFullName(cat){
   const first=cat.name.split(" ")[0];
   return cat.epithet?`${first} ${cat.epithet}`:cat.name;
+}
+function epithetToastMsg(cat){
+  const fn=cat.name.split(" ")[0];
+  return `${fn} earned: "${cat.epithet}"`;
 }
 
 // ════════════════════════════════════════════════════
@@ -662,93 +680,91 @@ const DEN_BOND=[
   (a,b)=>`${a} licked the wound ${b} pretended wasn't there. After that, they were inseparable.`,
 ];
 const NIGHT_FLAVOR=[
-  "The first night, they sleep with their eyes open.",
-  "The second night, they learn the sound of something watching.",
-  "The third night, the den gets quieter. It shouldn't.",
-  "The fourth night. Someone purrs in the dark. The others press closer. They know.",
-  "The last night. They have been afraid of this since the beginning. And they are still here.",
-  "The sixth night. The dark expected them to break by now. They didn't.",
-  "The seventh night. They move like a single creature now. The dark has never seen this.",
-  "The eighth night. They have stopped counting. They are just surviving.",
-  "The ninth night. The last night of the last colony of the last world. Everything ends here.",
+  "The first night. They sleep with their eyes open.",
+  "The second night. Someone keeps watch without being asked. The others pretend not to notice.",
+  "The third night. The den gets quieter. Not from fear. From knowing.",
+  "The fourth night. Someone purrs in the dark. The others press closer. They know what's coming. They're choosing to be here anyway.",
+  "The last night. They don't sleep. They sit together. They know each other's names. That's enough. That's always been enough.",
+  "The sixth night. The ones with scars sleep deepest. The ones without can't stop watching the entrance.",
+  "The seventh night. They move like a single creature now. Whatever they were before, they're a colony now.",
+  "The eighth night. Somebody brought back food and laid it at the entrance without eating any. The others understood.",
+  "The ninth night. Nobody speaks. Nobody needs to. They know.",
 ];
 const BOSS_FLAVOR=[
-  "The cats go still. All of them. At once.",
-  "There is a smell. Every living thing on earth recognizes it.",
-  "A sound at the edge of the dark. Patient. Certain. It has done this before.",
-  "The veterans flatten their ears. The kittens don't understand yet. They will.",
-  "Everything you built. Everyone you kept alive. It all comes down to what happens next.",
-  "It sends something older this time. Something that remembers the first colony.",
-  "The dark doesn't just watch anymore. It studies.",
-  "There is nowhere left to retreat. The den is behind you. Everything else is dark.",
-  "This is the last thing standing between your colony and the dawn. Make it count.",
+  "The cats go still. All of them. At once. They've never felt this before. The dark has sent it eight times.",
+  "A sound at the edge of the dark. Patient. Certain. It has done this before. It expects to do it again.",
+  "The pattern sends its test. Same test it sent the first colony. Same test it sent the eighth.",
+  "Everything you built. Everyone you kept alive. The system doesn't care. It only measures the number.",
+  "Something older than your colony steps forward. It remembers every name it's ever erased.",
+  "The dark doesn't improvise. It sends what worked before. This is what worked before.",
+  "There is nowhere left to retreat. The den is behind you. The test is in front. It has always been in front.",
+  "This is the pattern's favorite part. The part where colonies break. Prove it wrong.",
 ];
 
 const BLIND_WHISPER={
-  dusk:[ // The dark stirs
-    "The dark stirs.",
-    "Something shifts at the edge of hearing.",
-    "The first test. Always the gentlest.",
-    "Prove you're awake.",
+  dusk:[ // The dark stirs — first probe
+    "The dark stirs. Testing.",
+    "Something shifts at the edge of hearing. Calibrating.",
+    "The first test. It was gentle for the first colony too.",
+    "Prove you exist. The threshold doesn't believe you yet.",
   ],
-  midnight:[ // It knows you're here
-    "It knows you're here.",
-    "The dark has your scent now.",
-    "Harder. Because it's paying attention.",
-    "No more warming up.",
+  midnight:[ // Escalation — the system adjusts
+    "It knows you're here now. It's adjusting.",
+    "Midnight. The dark runs the same tests it ran on the second colony. They failed here.",
+    "Halfway through the night. The dark has your shape now. Your weaknesses.",
+    "The threshold rises. Eight colonies met this number. Six couldn't match it.",
   ],
-  boss:[ // It remembers what killed the others
-    "It remembers what killed the others.",
-    "This is why the other colonies fell.",
-    "Everything before this was prologue.",
-    "The real test. The only one that matters.",
+  boss:[ // The pattern sends its champion
+    "The pattern sends what killed the others. It has never failed.",
+    "This is why eight colonies fell. This exact test.",
+    "Everything before this was calibration. This is the real measurement.",
+    "The dark's best pattern. Undefeated. Until maybe now.",
   ],
 };
 
 // The dark's reaction to being defied
 function getThresholdClear(ante,blind,clutch,pct){
-  // Boss clears get their own treatment via boss.defeat dialogue
   if(blind>=2)return null;
   if(clutch){
     return pk([
-      "They almost forgot you were here. Almost.",
-      "One number. Between you and nothing.",
-      "The threshold held. barely.",
-      "Close enough to taste the dark.",
+      "One number between you and nothing. One number was enough.",
+      "The threshold held. You held harder.",
+      "That close. The eighth colony knows what close feels like.",
+      "The margin was a rounding error. The survival wasn't.",
+    ]);
+  }
+  if(pct>=300){
+    return pk([
+      "The threshold didn't break. It evaporated.",
+      "That wasn't survival. That was a statement.",
+      "Somewhere in the dark, something took notes.",
     ]);
   }
   if(pct>=200){
     const crush=[
-      "The dark flinched.",
-      "They couldn't ignore that.",
-      "The threshold shattered.",
-      "More than enough. More than anyone expected.",
+      "The dark flinched. It doesn't do that often.",
+      "More than enough. More than the eight ever managed.",
+      "The threshold shattered like it was never there.",
     ];
-    if(ante>=4)crush.push("This is what a colony looks like.");
+    if(ante>=4)crush.push("Four nights in and still hitting like this. The dark is running out of responses.");
     return pk(crush);
   }
-  // Standard clears — escalate with night
   const lines=[
-    // Night 1
-    ["The dark heard something. It isn't sure what.","Still here. That's a start.","The threshold gives. Barely notices you."],
-    // Night 2
-    ["It noticed. It's starting to pay attention.","Loud enough to be heard. For now.","The ground accepts your weight. Reluctantly."],
-    // Night 3
-    ["The dark knows your name now.","Three nights in. They're still counting you.","Louder than the silence. That's all it takes."],
-    // Night 4
-    ["The dark expected you to stop. You didn't.","Four nights. The other colonies didn't make it this far.","Still burning. Still visible."],
-    // Night 5
-    ["The dark blinked first.","Five nights and the threshold still breaks.","You are not forgettable."],
+    ["The dark heard something. Wasn't sure what. Decided not to check.","One hand in. One threshold down. The smallest victory is still a victory.","They existed loud enough to matter. For one more round."],
+    ["It noticed you. That's the first step to being remembered.","The second night and you're still making noise. The first colony was quiet by now.","Louder. The dark is further away than it was."],
+    ["Three nights deep. The dark knows your name, your number, your shape. You're still here.","Most colonies break on Night 3. You bent. That's different.","The threshold gives like it's getting tired of you."],
+    ["Four nights. The pattern was supposed to break you by now. It didn't.","The eighth colony was this strong on Night 4. Remember what happened to them. Then do it differently.","Still visible. Still burning. The dark expected silence by now."],
+    ["The last threshold. You walked through it like a door you've opened before.","Five nights and every threshold broken. The dark has nothing left to say.","You are not forgettable. You never were."],
   ];
   return pk(lines[Math.min(ante-1,4)]);
 }
 
 const ANTE_ESCALATION=[
-  "", // Night 1: no escalation message
-  "The dark noticed the light. It looks closer now.",
-  "It remembers your name. The threshold rises.",
-  "Four nights. The dark sends what killed the others.",
-  "The last threshold. Everything the dark has left.",
+  "",
+  "The dark noticed the light. It's moving closer.",
+  "It remembers your shape now. The thresholds tighten.",
+  "Four nights. The dark sends the patterns that killed the other eight.",
+  "The last threshold. Everything the dark has. Everything you have. One of you is wrong.",
 ];
 // ════════════════════════════════════════════════════
 // ACHIEVEMENTS — ★ v52: 16 achievements with cosmetic/convenience rewards
@@ -1483,6 +1499,10 @@ const EPIGRAPHS=[
   "A colony is just a word for people who refuse to die alone.",
   "The first colony starved. The second fought. The third loved too much. You get one more try.",
   "Not all fires go out. Some of them become Hearths.",
+  "The same tests. The same dark. The only variable is you.",
+  "Eight iterations. Eight failures. The system doesn't know it's about to break.",
+  "The dark sends the same patterns because they've always worked. Until now.",
+  "Every colony that failed made the next one possible. That's not hope. That's math.",
 ];
 function getEpigraph(meta){
   if(!meta||meta.stats.r===0)return pk(EPIGRAPHS);
@@ -1494,11 +1514,11 @@ function getEpigraph(meta){
     if(meta.ninthDawnCleared)return "Nine colonies. One survived. Not because it was the strongest. Because someone remembered all the rest.";
     return "The Hearth is bright enough to see by now. Something is coming. Not from the dark. From the light.";
   }
-  if(totalBossWins>=20&&w>=10)return pk(["You've been doing this longer than most colonies survived.","The dark tells stories about you now. It doesn't like the endings."]);
-  if(br.forgetting?.w>=3)return "The Forgetting tried. You said their names anyway.";
-  if(cats>=15)return "The Hearth is full of cats with scars. Not injuries — stories.";
-  if((meta.stats.grudgesResolved||0)>=10)return "They fought. They forgave. They fought harder.";
-  if(h>=3&&w>=6)return "They said it couldn't burn this bright.";
+  if(totalBossWins>=20&&w>=10)return pk(["You've broken the pattern so many times the dark is rewriting its tests.","The system was built to process colonies. It wasn't built to process you."]);
+  if(br.forgetting?.w>=3)return "The Forgetting tried three times. You said their names every time. It doesn't know what to do with that.";
+  if(cats>=15)return "The Hearth is full of names the system tried to erase. They're still here.";
+  if((meta.stats.grudgesResolved||0)>=10)return "They fought. They forgave. The system has no model for forgiveness.";
+  if(h>=3&&w>=6)return "The dark is running out of patterns it hasn't tried on you. That's never happened before.";
   if(w>=10)return "You are what the colonies were for.";
   if(r>=6)return "The dark has learned to flinch.";
   if(w>=4)return "They're starting to tell stories about you.";
@@ -1512,11 +1532,11 @@ function getEpigraph(meta){
 const NIGHT_EPI=[
   "I. WHAT REMAINS",
   "II. THE COST OF KEEPING",
-  "III. THE ONES YOU COULDN'T SAVE",
+  "III. THE ONES WHO CAME BEFORE",
   "IV. WHAT YOU CHOSE",
-  "V. WHAT IT WAS ALL FOR",
+  "V. WHAT THEY WERE FOR",
   "VI. WHAT THE DARK LEARNED",
-  "VII. THE ONES WHO STAYED",
+  "VII. THE ANOMALY",
   "VIII. WHAT BURNS LONGER",
   "IX. THE LAST NAME",
 ];
@@ -1524,28 +1544,33 @@ const NIGHT_EPI=[
 // 30% chance to fire. Context-sensitive. Reference the eight fallen colonies.
 const WHISPER_OVERFLOW={
   crush:[ // scored 200%+ of target
-    "None of the eight ever scored like that.",
-    "The dark flinched. It doesn't do that often.",
-    "The fourth colony never hit this hard. They still fell.",
+    "None of the eight ever scored like that. None.",
+    "The dark flinched. Write that down. It flinched.",
+    "The fourth colony never hit this hard. They still fell. Don't get comfortable.",
+    "That number will echo through every colony that comes after this one.",
   ],
   scrape:[ // scored 100-130% of target
-    "The eighth colony made it this far too.",
-    "Close. The third colony lost their nerve here. Don't.",
-    "Enough. Barely. The first colony said the same thing.",
+    "The eighth colony made it this far too. One hand short of everything.",
+    "Close. The third colony lost their nerve here. She couldn't make the choice. You can.",
+    "Enough. Barely enough. The first colony said that on Night 1. Then the food ran out.",
+    "The margin was thin. The survival was not.",
   ],
   boss:[ // after beating a boss
-    "One more echo silenced. Eight to remember.",
-    "The dark sent what killed the others. You're still here.",
-    "Every boss is a colony that died. You just survived their death.",
+    "One more echo silenced. Eight colonies produced that pattern. You just broke it.",
+    "The dark sent what killed the others. You sent it back.",
+    "Every boss is a colony that died wearing a different face. You just survived their death.",
+    "The pattern expected to win. It always had before. Not tonight.",
   ],
 };
 const WHISPER_SHOP=[
-  "The first colony had perfect walls. No food. Choose differently.",
-  "The sixth colony stopped buying. Stopped trying. Don't stop.",
-  "Every ration spent is a bet that tomorrow matters.",
-  "The second colony fought over what the market offered. You get to choose.",
-  "The fifth colony couldn't agree on what to buy. Then they couldn't agree on anything.",
-  "Shop carefully. The eighth colony had one more hand's worth of rations. It wasn't enough.",
+  "The first colony had perfect walls. No food. Every decision has a shadow.",
+  "The sixth colony stopped buying. Stopped fighting. Stopped. Don't stop.",
+  "Every ration spent is a bet that tomorrow exists. Place it wisely.",
+  "The second colony fought over what the market offered. You get to choose. That's the difference.",
+  "The fifth colony couldn't agree on what to buy. The argument outlasted the colony.",
+  "The eighth colony saved everything for one last hand. They were one purchase short.",
+  "The market doesn't care about your story. It cares about your 🐟. Same as the dark.",
+  "Buy what keeps you alive. Sell what doesn't. The math is simple. The choices aren't.",
 ];
 const WHISPER_DEN={
   birth:[ // baby born
@@ -1570,35 +1595,134 @@ const WHISPER_DEN={
   ],
 };
 const WHISPER_NIGHT=[ // contextual night card additions
-  null, // Night 1: no whisper (cold open just happened)
-  (ctx)=>ctx.fallen>0?`The second colony lost ${ctx.fallen===1?"one":"several"} on Night 2. History rhymes.`:"Eight colonies faced a second night. Seven made it. Barely.",
-  (ctx)=>ctx.colony<12?"Getting smaller. The third colony got smaller too. She couldn't stop it.":"All of them, still. The eighth colony said the same thing. On Night 3.",
-  (ctx)=>ctx.fallen===0?"All of them. Still. The eighth colony was whole on Night 4 too.":"You've made the choices she couldn't. The Mother would understand.",
-  (_)=>"The last night. Eight colonies never saw this. You're already further than most.",
-  (_)=>"Six nights. No colony has ever lasted this long.",
-  (_)=>"Seven nights in the dark. Whatever you're doing, it's working.",
-  (_)=>"The eighth colony fell one hand short. You've had eight nights of hands.",
-  (_)=>"Nine nights. Nine colonies. This was always the number.",
+  null, // Night 1: no whisper
+  (ctx)=>ctx.fallen>0?`The dark took ${ctx.fallen===1?"one":"several"} on the second night. It always starts with the second night. The first colony learned that.`:"The second night. The dark is calibrating. Measuring you against the pattern of the eight that failed.",
+  (ctx)=>ctx.colony<12?"Getting smaller. The third colony got smaller too. She tried to save them all. You can't. Nobody can.":"All of them, still here. The system didn't expect that. The third colony was half this size by Night 3.",
+  (ctx)=>ctx.fallen===0?"Not a single name lost. The eighth colony was whole on Night 4 too. One more night and they'd have made it. They didn't.":"You've already made the choices the Mother couldn't. Whether that's enough is the only question left.",
+  (_)=>"The last night. Eight colonies never saw this far. The dark is running a pattern it's never completed. Neither are you.",
+  (_)=>"Six nights. The system is improvising now. It doesn't know this territory. Neither do you.",
+  (_)=>"Seven nights. You've outlived every colony that ever existed. The dark is watching something it doesn't understand.",
+  (_)=>"Eight nights. The eighth colony fell one hand short of this moment. You're standing where they died.",
+  (_)=>"Nine. The number was always nine. Nine colonies. Nine lives. Nine nights. This is why you're here.",
 ];
 const NIGHT_SUB=[
-  "Count them. Remember the number.",
-  "Everything you save costs something else.",
-  "Say their names. Then keep going.",
+  "They're yours now.",
+  "The choices are still breathing.",
+  "This happened before. Not to you.",
   "You are the sum of every choice.",
-  "Answer the question. Then answer it again.",
-  "It adapted. So did you.",
-  "Not the strongest. The ones who refused to leave.",
-  "Longer than hunger. Longer than fear.",
-  "Write it. Before the dark does.",
+  "What were their names?",
+  "You weren't supposed to be here.",
+  "Longer than any of them. Longer than all of them.",
+  "The dark is repeating itself. You're not.",
+  "Nine.",
 ];
 
+// ★ THE NARRATOR — the voice that watches colonies die and remembers
+// Generates a run-aware summary that connects events into a story
+function getNarratorRecap(ante,ctx){
+  const{fallen,bonds,grudges,breeds,colony,eventHistory,scarred,allCats}=ctx;
+  const eh=eventHistory||{};
+
+  // NIGHT 5+: Silence. Just names. The loudest thing is what you don't say.
+  if(ante>=5){
+    if(allCats&&allCats.length>0){
+      const names=allCats.slice(0,8).map(c=>c.name.split(" ")[0]).join(". ")+".";
+      return fallen>0?`${names} Still here. ${fallen} are not.`:names+" All of them. Still.";
+    }
+    return null;
+  }
+
+  // EVENT ECHOES — personal consequences, always available
+  const echoes=[];
+  if(eh.stranger_welcomed)echoes.push("The stranger you let in sleeps by the fire now. They stopped flinching.");
+  if(eh.stranger_rejected&&!eh.stranger_redeemed)echoes.push("The stranger you turned away is still out there. You can feel the watching.");
+  if(eh.stranger_redeemed)echoes.push("The stranger came back. You let them in this time. Something shifted.");
+  if(eh.fire_tended)echoes.push("The fire you chose to tend still burns. It remembers the hand that fed it.");
+  if(eh.sickness_quarantine)echoes.push("The one you quarantined carries the scar like a question you haven't answered.");
+  if(eh.sickness_spread)echoes.push("The sickness touched everyone. Nobody died. But nobody's the same.");
+  if(eh.wall_built)echoes.push("The wall you built is holding. You hear things test it at night.");
+  if(eh.wall_refused)echoes.push("You scattered the stones. Sometimes you wonder what they would have stopped.");
+  if(eh.debt_paid)echoes.push("The debt is paid. Blood price. The dark cashed the check and said nothing.");
+  if(eh.debt_refused)echoes.push("You told the dark no. It hasn't forgotten. It doesn't forget anything.");
+
+  // NIGHT 2: Only event echoes. The world still feels random.
+  if(ante<=2){
+    if(echoes.length>0)return echoes[0];
+    // Colony state — personal, named
+    const ac=allCats||[];
+    const fallenName=ac.length===0?"someone":"";
+    const bondedPair=ac.filter(c=>c.bondedTo);
+    if(fallen>0){const fn=ctx.fallenNames||[];return fn.length?`${fn[0]} is gone. The space where they slept is still warm.`:`${fallen} gone already. The spaces are still warm.`;}
+    if(bondedPair.length>=2){const a=bondedPair[0].name.split(" ")[0];const b=ac.find(c=>c.id===bondedPair[0].bondedTo);return b?`${a} and ${b.name.split(" ")[0]} bonded in the dark. The colony is starting to mean something.`:"Someone bonded in the dark.";}
+    return null;
+  }
+
+  // NIGHT 3: First hint of the pattern. The narrator notices something.
+  if(ante===3){
+    const ac=allCats||[];
+    const scarredCat=ac.find(c=>c.scarred);const grudgedCat=ac.find(c=>(c.grudgedWith||[]).length>0);
+    const bondedPair=ac.filter(c=>c.bondedTo);const baby=ac.find(c=>c.stats?.par);
+    const stateLines=[];
+    if(fallen>0&&bondedPair.length>=2){const bName=bondedPair[0].name.split(" ")[0];stateLines.push(`Loss and love in the same den. ${bName} bonded while the colony grieved. The third colony knew this feeling.`);}
+    else if(grudges>=2&&grudgedCat)stateLines.push(`${grudgedCat.name.split(" ")[0]} is fighting their own. It always starts around Night 3. The fifth colony could tell you why.`);
+    else if(baby)stateLines.push(`${baby.name.split(" ")[0]} was born in the dark. The fourth colony never got this far.`);
+    else if(scarred>=3&&scarredCat)stateLines.push(`${scarredCat.name.split(" ")[0]} carries scars now. The colony is starting to rhyme with the ones that came before.`);
+    const echo=echoes.length>0?echoes[0]+" ":"";
+    const hint=stateLines.length>0?stateLines[0]:"Funny thing about Night 3. It's where the pattern usually starts to show.";
+    return echo+hint;
+  }
+
+  // NIGHT 4: The truth. The system reveals itself.
+  const ac=allCats||[];
+  const strongest=ac.length?[...ac].sort((a,b)=>b.power-a.power)[0]:null;
+  const strongName=strongest?strongest.name.split(" ")[0]:"your colony";
+  const systemLines=[
+    `This has all happened before. The stranger. The sickness. The fire. The dark sends the same tests because they've always worked. But none of them had ${strongName}.`,
+    `You're inside a pattern. The dark built it from eight dead colonies. Every event is a test. Every boss is a failure mode. The only thing the pattern didn't account for is ${strongName} and the others.`,
+    "The dark doesn't improvise. It runs the same sequence it ran on the first colony. The sequence always wins. That's what makes tonight interesting.",
+    "Eight iterations. Eight failures. The system expects you to fail too. It has no contingency for what happens if you don't.",
+  ];
+  // Specific callback + system revelation
+  const echo=echoes.length>0?echoes[0]+" ":"";
+  const bondedCat=ac.find(c=>c.bondedTo);const grudgedCat=ac.find(c=>(c.grudgedWith||[]).length>0);
+  const colState=fallen>0?`${fallen} names the dark already collected. `
+    :bondedCat&&bonds>=2?`${bondedCat.name.split(" ")[0]} is bonded. The system doesn't have a test for that. `
+    :grudgedCat&&grudges>=2?`${grudgedCat.name.split(" ")[0]} is fighting their own. The dark doesn't need to break what's already cracking. `
+    :"";
+  return echo+colState+pk(systemLines);
+}
+
 // ★ SCORE REACTIONS - escalating hype + ★ v34: narrator voice
-const SCORE_TIERS=[{min:0,label:"",color:"",sub:"",nar:""},{min:1200,label:"Alive",color:"#b8956a",sub:"",nar:"Still here."},{min:4500,label:"Defiant",color:"#b85c2c",sub:"they felt that one",nar:"They won't forget this hand."},{min:12000,label:"ROARING",color:"#f59e0b",sub:"the ground shakes",nar:"The dark is listening now."},{min:35000,label:"UNSTOPPABLE",color:"#fbbf24",sub:"nothing can touch them",nar:"This is what a colony looks like."},{min:100000,label:"LEGENDARY",color:"#fef08a",sub:"they will tell stories about this",nar:"Write it down. Someone needs to know."},{min:350000,label:"NINTH LIFE",color:"#ffffffdd",sub:"the dark blinks first",nar:"Nine lives. Nine colonies. This is the one."}];
+const SCORE_TIERS=[{min:0,label:"",color:"",sub:"",nar:""},{min:1200,label:"Alive",color:"#b8956a",sub:"",nar:"Breathing. That counts."},{min:4500,label:"Defiant",color:"#b85c2c",sub:"they felt that one",nar:"The threshold cracked. They heard it."},{min:12000,label:"ROARING",color:"#f59e0b",sub:"the ground shakes",nar:"The dark stopped moving. It's listening."},{min:35000,label:"UNSTOPPABLE",color:"#fbbf24",sub:"nothing can touch them",nar:"Colonies don't score like this. Legends do."},{min:100000,label:"LEGENDARY",color:"#fef08a",sub:"they will tell stories about this",nar:"Scratch it into the stone. Someone needs to find this number."},{min:350000,label:"NINTH LIFE",color:"#ffffffdd",sub:"the dark blinks first",nar:"Nine lives. Nine colonies. One hand. This is the one they'll remember."}];
 function getScoreTier(s){let t=SCORE_TIERS[0];for(const tier of SCORE_TIERS)if(s>=tier.min)t=tier;return t;}
 function getShakeIntensity(s){if(s<1500)return 0;if(s<6000)return 1;if(s<15000)return 2;if(s<45000)return 3;return 5;}
 let _nis=0;const _un=new Set();
+let _belovedNames=[]; // ★ Names the player gave to cats across runs — they live on
+function setBelovedNames(meta){
+  if(!meta)return;
+  const names=new Set();
+  // Hearth cat names — these survived
+  (meta.cats||[]).forEach(c=>{if(c.name)names.add(c.name.split(" ")[0]);});
+  // Explicitly player-named cats — these were chosen
+  (meta.stats?.belovedNames||[]).forEach(n=>names.add(n));
+  _belovedNames=[...names];
+}
 function gN(br,trait){
   const tName=trait&&trait.name&&trait.name!=="Plain"?trait.name:null;
+  // ★ 50% chance to resurrect a beloved name — names survive across runs
+  if(_belovedNames.length>0&&Math.random()<0.5){
+    const avail=_belovedNames.filter(n=>!_un.has(n));
+    if(avail.length>0){
+      const n=avail[Math.floor(Math.random()*avail.length)];
+      _un.add(n);
+      if(tName&&Math.random()<.30){
+        const rareTitles=TITL_RARE[tName];
+        if(rareTitles&&Math.random()<.6)return`${n} ${pk(rareTitles)}`;
+        if(TITL[br])return`${n} ${pk(TITL[br])}`;
+      }
+      return n;
+    }
+  }
   const pool=[...CAT_NAMES];
   if(SEASON_NAMES[br])pool.push(...SEASON_NAMES[br],...SEASON_NAMES[br]);
   if(tName&&TRAIT_NAMES[tName])pool.push(...TRAIT_NAMES[tName],...TRAIT_NAMES[tName],...TRAIT_NAMES[tName]);
@@ -2082,6 +2206,18 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
     if(c.injured&&!c._re){cm-=2;icons.push("🩹");}
     else if(c.scarred&&!c._re){cx*=devFx.scarMult||1.25;const sm=ctx.scarMult||0;if(sm)cm+=sm;icons.push("⚔️");}
 
+    // ★ Epithet bonuses — earned titles grant small mechanical rewards
+    if(c.epithetKey&&!c._re){
+      const epDef=Object.values(EPITHETS).find(e=>e.key===c.epithetKey);
+      if(epDef?.bonus){
+        const eb=epDef.bonus;
+        if(eb.mult){cm+=eb.mult;icons.push("🏷️");}
+        if(eb.bondMult&&c.bondedTo&&cats.find(x=>x.id===c.bondedTo)){cm+=Math.round(eb.bondMult*mult);} // extra bond scaling
+        if(eb.clutchMult&&ctx.beatingPace&&ctx.beatingPace<0.3){cm+=eb.clutchMult;icons.push("🏷️");}
+        if(eb.soloMult){const myBreeds=getCatBreeds(c);const alone=!cats.some(x=>x.id!==c.id&&getCatBreeds(x).some(b=>myBreeds.includes(b)));if(alone){cm+=eb.soloMult;icons.push("🏷️");}}
+      }
+    }
+
     // ★ Season Devotion — per-cat mult/chips bonuses from milestone unlocks
     if(!c._re){
       const breed=c.breed;
@@ -2118,8 +2254,14 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
     }
     if(c.scarred&&!c.injured&&!c._re)reasons.push("Scarred \u00d71.25");
     if(c.injured&&!c._re)reasons.push("Injured (halved)");
+    if(c.epithetKey&&!c._re){const epDef=Object.values(EPITHETS).find(e=>e.key===c.epithetKey);if(epDef?.bonus){
+      if(epDef.bonus.mult)reasons.push(`"${c.epithet}" +${epDef.bonus.mult}M`);
+      if(epDef.bonus.clutchMult&&ctx.beatingPace&&ctx.beatingPace<0.3)reasons.push(`"${c.epithet}" clutch +${epDef.bonus.clutchMult}M`);
+      if(epDef.bonus.soloMult){const myB=getCatBreeds(c);const al=!cats.some(x=>x.id!==c.id&&getCatBreeds(x).some(b=>myB.includes(b)));if(al)reasons.push(`"${c.epithet}" solo +${epDef.bonus.soloMult}M`);}
+      if(epDef.bonus.bondMult&&c.bondedTo&&cats.find(x=>x.id===c.bondedTo))reasons.push(`"${c.epithet}" bond +25%`);
+    }}
     bd.push({
-      label:`${iconStr}${iconStr?" ":""}${c._re?"\u21BB ":""}${c.name.split(" ")[0]}${(c.trait&&c.trait.name!=="Plain"&&!c._re)?" ("+c.trait.name+")":""}`,
+      label:`${iconStr}${iconStr?" ":""}${c._re?"\u21BB ":""}${c.name.split(" ")[0]}${c.epithet?" "+c.epithet:""}${(c.trait&&c.trait.name!=="Plain"&&!c._re)?" ("+c.trait.name+")":""}`,
       reason:reasons.length>0?reasons.join(" \u00B7 "):"",
       chips:cc,mult:cm,xMult:cx!==1?cx:null,
       type:catType,catIdx:c._ci,
@@ -2559,18 +2701,26 @@ function CC({cat:_cat,sel,onClick,sm,cw:_cw,dis,hl,fog,chemHint,denMode,onTraitC
       </div>
 
       {/* Status badges (top-left) — all neon color, vertical stack */}
-      {(cat.injured||cat.scarred||cat.bondedTo||(cat.grudgedWith||[]).length>0||cat.parentIds?.length>0)&&
-      <div style={{position:"absolute",top:sm?2:3,left:sm?2:3,zIndex:5,display:"flex",flexDirection:"column",gap:1}}>
-        {cat.injured&&<div title="Injured: half power, −2 mult. Heals in 1-2 rounds." style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
-          padding:"1px 3px",fontSize:sm?7:9,color:"#ef4444",lineHeight:1}}>{"\u271A"}</div>}
-        {!cat.injured&&cat.scarred&&<div title="Scarred: permanent ×1.25 mult bonus on this cat." style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
-          padding:"1px 3px",fontSize:sm?7:9,color:"#fb923c",lineHeight:1}}>{"\u2694"}</div>}
-        {cat.bondedTo&&<div title="Bonded: ×1.5 mult when played with their partner." style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
-          padding:"1px 3px",fontSize:sm?7:9,color:"#f472b6",lineHeight:1}}>{"\u2661"}</div>}
-        {(cat.grudgedWith||[]).length>0&&<div title="Grudge: −2 mult when played with their rival." style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
-          padding:"1px 3px",fontSize:sm?7:9,color:"#fb923c",lineHeight:1}}>{"\u26A1"}</div>}
-        {cat.parentIds&&cat.parentIds.length>0&&<div title={`Born in the den${cat.stats?.par?" — parents: "+cat.stats.par:""}`} style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
-          padding:"1px 3px",fontSize:sm?7:9,color:"#c084fc",lineHeight:1}}>👪</div>}
+      {(cat.injured||cat.scarred||cat.bondedTo||(cat.grudgedWith||[]).length>0||cat.parentIds?.length>0||cat._hearthChild)&&
+      <div style={{position:"absolute",top:0,left:0,right:0,zIndex:5,display:"flex",gap:0,justifyContent:"center"}}>
+        {cat._hearthChild&&<div title="Hearth Legend: returned to guide this colony. Cannot be saved back." style={{
+          background:"linear-gradient(180deg,#fbbf2433,#fbbf2411)",padding:sm?"2px 4px":"3px 5px",
+          fontSize:sm?9:11,color:"#fbbf24",lineHeight:1,fontWeight:700,borderBottom:"1px solid #fbbf2444"}}>🔥</div>}
+        {cat.injured&&<div title="Injured: half power, −2 mult. Heals in 1-2 rounds." style={{
+          background:"linear-gradient(180deg,#ef444433,#ef444411)",padding:sm?"2px 4px":"3px 5px",
+          fontSize:sm?9:11,color:"#ef4444",lineHeight:1,fontWeight:700,borderBottom:"1px solid #ef444444"}}>✚</div>}
+        {!cat.injured&&cat.scarred&&<div title="Scarred: permanent ×1.25 mult bonus." style={{
+          background:"linear-gradient(180deg,#fb923c33,#fb923c11)",padding:sm?"2px 4px":"3px 5px",
+          fontSize:sm?9:11,color:"#fb923c",lineHeight:1,fontWeight:700,borderBottom:"1px solid #fb923c44"}}>⚔</div>}
+        {cat.bondedTo&&<div title="Bonded: ×1.5 mult when played with partner." style={{
+          background:"linear-gradient(180deg,#f472b633,#f472b611)",padding:sm?"2px 4px":"3px 5px",
+          fontSize:sm?9:11,color:"#f472b6",lineHeight:1,fontWeight:700,borderBottom:"1px solid #f472b644"}}>♡</div>}
+        {(cat.grudgedWith||[]).length>0&&<div title="Grudge: −2 mult when played with rival." style={{
+          background:"linear-gradient(180deg,#fb923c33,#fb923c11)",padding:sm?"2px 4px":"3px 5px",
+          fontSize:sm?9:11,color:"#fb923c",lineHeight:1,fontWeight:700,borderBottom:"1px solid #fb923c44"}}>⚡</div>}
+        {cat.parentIds&&cat.parentIds.length>0&&<div title={`Born in the den${cat.stats?.par?" — parents: "+cat.stats.par:""}`} style={{
+          background:"linear-gradient(180deg,#c084fc33,#c084fc11)",padding:sm?"2px 4px":"3px 5px",
+          fontSize:sm?9:11,color:"#c084fc",lineHeight:1,fontWeight:700,borderBottom:"1px solid #c084fc44"}}>👪</div>}
       </div>}
 
       {/* Rank badge (below power) */}
@@ -2805,64 +2955,64 @@ function NinthLife(){
   const MX=isFirstRun?3:(longDark?9:5),BH=6,MF=5,MIN_DECK=6;
   const BOSSES=[
   {id:"hunger",name:"The Hunger",icon:"🌪️",taunt:"I was here before you named it.",
-    tauntFn:(ctx)=>ctx.fallen>0?`You've already lost ${ctx.fallen}. I can smell the space they left.`
-      :ctx.scarred>2?"So many scars. You wear them like armor. They're not armor."
+    tauntFn:(ctx)=>ctx.fallen>0?`${ctx.fallenName} is gone and the rest are pretending the food will last. It won't.`
+      :ctx.scarred>2?`${ctx.scarredName} carries scars like armor. They're not armor. They're receipts.`
       :ctx.colony>18?"All those mouths. I don't have to break in. I just have to wait."
-      :ctx.bonded>2?"Love is expensive. Every bond is a mouth you'll feed twice."
+      :ctx.bonded>2?`${ctx.bondedName} and ${ctx.bondedMateName}. Love is expensive. Every bond is a mouth you'll feed twice.`
       :ctx.gold<3?"You feel it already, don't you? That tightness. That counting."
-      :"Fresh. Unbroken. That won't last. It never does.",
+      :"Fresh. Unbroken. I've seen that look eight times. It changes.",
     defeat:"...for now. I come back every morning disguised as a plan.",
     defeatFn:(ctx)=>ctx.clutch?"That close. You smelled it. You'll smell it again."
-      :ctx.deathless?"You fed them all. The First Colony said the same thing. On Night One."
-      :"You survived the first hunger. The second is worse.",
+      :ctx.deathless?`You fed them all. Even ${ctx.strongestName||"the strongest"}. Nobody's done that before.`
+      :"You passed the first test. There are others.",
     lore:"Not a creature. A fact."},
   {id:"territory",name:"The Territory",icon:"⛰️",taunt:"You built on someone else's grave.",
-    tauntFn:(ctx)=>ctx.colony>18?`${ctx.colony} of you? This place wasn't built for that many.`
-      :ctx.scarred>3?"Battle-scarred on my ground. Bold. Stupid, but bold."
-      :ctx.bonded>0?"Bonds won't save you from what's underneath."
-      :ctx.grudges>2?"You can't even keep peace among yourselves."
-      :"You smell like prey.",
+    tauntFn:(ctx)=>ctx.colony>18?`${ctx.colony} of you? The second colony had more. This ground ate them anyway.`
+      :ctx.scarred>3?`${ctx.scarredName} has scars from my ground. Bold. Stupid, but bold.`
+      :ctx.bonded>0?`${ctx.bondedName} thinks this is home now. The ground disagrees.`
+      :ctx.grudges>2?"Fighting among yourselves on contested ground. The fifth colony did that."
+      :"Every colony builds here. Every colony thinks it's different.",
     defeat:"Next time, build faster.",
     defeatFn:(ctx)=>ctx.clutch?"Barely. The ground remembers close calls."
-      :ctx.deathless?"Sturdy. The Second Colony was sturdy too. For a while."
-      :"Fine. Stay. But the ground doesn't forget weight.",
+      :ctx.deathless?"Sturdy. The second colony was sturdy too. For a while."
+      :"You held it. This time.",
     lore:"The land remembers who was here first."},
   {id:"mother",name:"The Mother",icon:"💔",taunt:"I had names for them, too. Every one.",
-    tauntFn:(ctx)=>ctx.fallen>2?`I never lost that many that fast. I lost them slowly. That's worse.`
-      :ctx.fallen>0?`${ctx.fallenName}. I would have kept them safe.`
-      :ctx.colony>18?"So many mouths. Can you really feed them all? I thought I could."
-      :ctx.bonded>3?"So much love. It's beautiful. It's also heavy. So, so heavy."
-      :ctx.colony<10?"Getting smaller. I know this part. I know exactly how this goes."
-      :"They look at you the way mine looked at me. Before.",
+    tauntFn:(ctx)=>ctx.fallen>2?`I never lost that many that fast. I lost them slowly. Watching each one go.`
+      :ctx.fallen>0?`${ctx.fallenName}. I would have kept ${ctx.fallenName} safe. I would have kept all of them safe. That's what destroyed me.`
+      :ctx.colony>18?"So many of them looking at you. I know that weight."
+      :ctx.bonded>3?`${ctx.bondedName} loves someone in that colony. It's beautiful. Love is what makes the losing unbearable.`
+      :ctx.colony<10?"Getting smaller. I know this part. I watched it happen to me."
+      :`${ctx.strongestName} leads them, doesn't ${ctx.strongestName==="she"?"she":"he"}? They look at ${ctx.strongestName} the way mine looked at me.`,
     defeat:"Take care of them. Please. Do what I couldn't.",
     defeatFn:(ctx)=>ctx.clutch?"One number. That's all that stood between them and me."
-      :ctx.deathless?"You're stronger than I was. Don't waste it."
-      :ctx.fallen>0?"You've already made the choices I couldn't. Maybe that's enough."
+      :ctx.deathless?"You kept them all. I never could."
+      :ctx.fallen>0?"You've already lost some. And you're still going. That's the choice I couldn't make."
       :"You're stronger than I was. Don't waste it.",
     lore:"She is what you become if you fail."},
   {id:"swarm",name:"The Swarm",icon:"🐀",taunt:"We don't need to be stronger. Just patient.",
-    tauntFn:(ctx)=>ctx.scarred>3?"So many wounded. We've been watching. We're very good at watching."
-      :ctx.colony<12?"Getting smaller. Easier. We appreciate your cooperation."
-      :ctx.colony>18?"Impressive numbers! Still not enough. We've done the math."
-      :ctx.grudges>2?"Fighting each other. We love that. Saves us the trouble."
-      :"We are very, very good at counting.",
+    tauntFn:(ctx)=>ctx.scarred>3?`${ctx.scarredName} is wounded. We can smell it. We're very good at smelling weakness.`
+      :ctx.colony<12?`${ctx.colony} of you. Getting smaller. The math gets easier for us every round.`
+      :ctx.colony>18?"Impressive numbers! Still not enough. We've done this math eight times."
+      :ctx.grudges>2?`${ctx.grudgedName} is fighting their own. We love that. Saves us the trouble.`
+      :`We've been watching ${ctx.strongestName}. Strong. But there's only one of ${ctx.strongestName}. There are so many of us.`,
     defeat:"We are still counting.",
-    defeatFn:(ctx)=>ctx.clutch?"We almost had you. We always almost have you. That's the game."
-      :ctx.fallen>0?`We took ${ctx.fallen}. We'll take more next time. We always take more.`
-      :ctx.deathless?"Fewer of us now. But never none. Never, ever none."
-      :"Fewer of us now. But never none.",
+    defeatFn:(ctx)=>ctx.clutch?"We almost had you. We always almost have you."
+      :ctx.fallen>0?`We took ${ctx.fallenName}. We'll take more next time.`
+      :ctx.deathless?`Not a single one. Not even ${ctx.strongestName||"the weakest"}. The math says that shouldn't happen.`
+      :"Fewer of us now. But never none. Never, ever none.",
     lore:"The math of extinction."},
   {id:"forgetting",name:"The Forgetting",icon:"🌫️",taunt:"What were their names? Say them. Quickly, now.",
-    tauntFn:(ctx)=>ctx.fallen>0?`You've already forgotten something about ${ctx.fallenName}. Don't pretend you haven't.`
-      :ctx.colony>18?`Can you really remember ${ctx.colony} names? All of them? Without looking?`
-      :ctx.scarred>2?"Which scars are from Night 2? Which from Night 4? You don't remember."
-      :ctx.bonded>3?"They bonded. How? When exactly? What were the words? Gone."
+    tauntFn:(ctx)=>ctx.fallen>0?`What color were ${ctx.fallenName}'s eyes? What sound did they make when they slept? You're already forgetting. I don't have to do anything.`
+      :ctx.colony>18?`${ctx.colony} names. Say them. All of them. Without looking. You can't, can you?`
+      :ctx.scarred>2?`${ctx.scarredName} has scars. Which night did they get them? You don't remember. I'm already inside.`
+      :ctx.bonded>3?`${ctx.bondedName} bonded with someone. What were the exact words? What was the weather? Gone. The details go first.`
       :"All of them? Still? Let me fix that.",
     defeat:"You remembered. This time.",
-    defeatFn:(ctx)=>ctx.clutch?"One more number. That's all that stood between you and forgetting."
-      :ctx.deathless?"They'll remember this colony. They'll have to."
-      :ctx.fallen>2?"You'll tell people about the ones who survived. Not the ones who didn't. That's how I win."
-      :"They'll remember this colony. They'll have to.",
+    defeatFn:(ctx)=>ctx.clutch?"One number between you and oblivion."
+      :ctx.deathless?"They'll remember this colony. I couldn't stop you. I've never failed before."
+      :ctx.fallen>2?"You'll tell people about the survivors. Not the fallen. That's how I work. Not with violence. With editing."
+      :"You passed. I'll adapt. I always adapt.",
     lore:"The last enemy is not death. It is being forgotten."},
 ];
   const wins=meta?.stats?.w||0;
@@ -2975,26 +3125,46 @@ function NinthLife(){
     const hands=runLog.filter(e=>e.type==="hand");
     const bestHand=hands.length?hands.reduce((a,b)=>b.data.score>a.data.score?b:a,hands[0]):null;
     const mvpCat=[...allC].sort((a,b)=>(b.stats?.bs||0)-(a.stats?.bs||0))[0];
+    const mvpName=mvpCat?mvpCat.name.split(" ")[0]:"someone";
+    const totalScore=hands.reduce((s,e)=>s+(e.data?.score||0),0);
     const lines=[];
-    // Opening
-    const opener=ante<=2?"They barely lasted two nights."
-      :ante<=3?`Three nights. ${allC.length} survivors out of 14.`
-      :`Colony #${(meta?.stats?.r||0)+1}. ${allC.length} cats. ${ante} nights deep.`;
+
+    // ACT I: The Beginning
     const draftLine=runLog.find(e=>e.type==="draft");
-    lines.push(opener+(draftLine?` It started with ${draftLine.data.picked}, three souls pulled from the draft.`:""));
-    // Middle — pick the most dramatic events
-    const midParts=[];
-    if(bestHand)midParts.push(`Their best moment: a ${bestHand.data.type} worth ${bestHand.data.score.toLocaleString()}. ${bestHand.data.cats} working as one${bestHand.data.nerve&&bestHand.data.nerve!=="Still"?`, ${bestHand.data.nerve} burning through them`:""}.`);
-    if(bonds.length)midParts.push(`${bonds.length===1?bonds[0].data.c1+" and "+bonds[0].data.c2+" found each other":bonds.length+" pairs bonded in the den"}.`);
-    if(grudges.length&&reconciles.length)midParts.push(`${grudges.length} grudge${grudges.length>1?"s":""} formed. ${reconciles.length} healed.`);
-    else if(grudges.length)midParts.push(`${grudges.length} grudge${grudges.length>1?"s":""} festered in the den. None forgiven.`);
-    if(breeds.length)midParts.push(`${breeds.length} kitten${breeds.length>1?"s":""} born, and life found a way even in the dark.`);
-    if(fights.length>2)midParts.push(`The den saw ${fights.length} fights. Scars accumulated.`);
-    lines.push(midParts.slice(0,3).join(" "));
-    // Ending
-    if(won&&fallen.length===0)lines.push(`All of them. Every single one made it through ${ante} nights. ${mvpCat?mvpCat.name.split(" ")[0]+" led the way.":""} Ask me their names. I remember every one.`);
-    else if(won)lines.push(`${fallen.length} didn't make it: ${fallen.map(f=>f.name.split(" ")[0]).join(", ")}. The rest carried their names into the dawn.${mvpCat?" "+mvpCat.name.split(" ")[0]+" carried the heaviest.":""}`);
-    else lines.push(`Night ${ante}${deaths.length?". "+deaths.map(d=>d.data.victim.split(" ")[0]).join(", ")+" fell":""}. The dark doesn't remember the ones it takes. But I do.`);
+    const draftNames=draftLine?.data?.picked||"three strangers";
+    if(ante<=2)lines.push(`It lasted ${ante} night${ante>1?"s":""}. Not long enough for anyone to learn each other's names properly. ${draftNames} were the first to step out of the dark, and the colony that formed around them never found its footing.`);
+    else if(ante<=3)lines.push(`Three nights. The colony started with ${draftNames} and ${allC.length+fallen.length} others who gathered around a fire that nobody remembers lighting. By the second night they had a system. By the third, they had a story.`);
+    else lines.push(`Colony #${(meta?.stats?.r||0)+1} burned for ${ante} nights. It began the way they all begin: ${draftNames} stepping into the firelight, and the dark pretending not to notice.`);
+
+    // ACT II: The Middle — what defined this run
+    const mid=[];
+    if(bestHand){
+      const bScore=bestHand.data.score.toLocaleString();
+      const bType=bestHand.data.type;
+      const bCats=bestHand.data.cats;
+      mid.push(`The hand they'll remember: ${bCats}, playing a ${bType} for ${bScore}. The kind of number that makes the dark flinch.`);
+    }
+    if(deaths.length>0&&bonds.length>0){
+      const dName=deaths[0].data.victim?.split(" ")[0]||"one";
+      const bPair=bonds[0];
+      mid.push(`${dName} fell in the den. That same night, ${bPair?.data?.c1?.split(" ")[0]||"two cats"} and ${bPair?.data?.c2?.split(" ")[0]||"another"} bonded. The colony learned that grief and love run through the same dark.`);
+    }else if(deaths.length>0){
+      const dNames=deaths.map(d=>d.data.victim?.split(" ")[0]||"one").join(", ");
+      mid.push(`The den took ${deaths.length===1?dNames:`${dNames}. ${deaths.length} names scratched off the wall`}. The colony got quieter after that. Not weaker. Quieter. There's a difference.`);
+    }else if(bonds.length>0){
+      if(bonds.length===1)mid.push(`${bonds[0].data.c1?.split(" ")[0]} and ${bonds[0].data.c2?.split(" ")[0]} bonded. Nobody announced it. They just started sleeping closer to the fire, and everyone understood.`);
+      else mid.push(`${bonds.length} pairs bonded over the course of ${ante} nights. The colony stopped being a collection of survivors and became something that had a pulse.`);
+    }
+    if(grudges.length>0&&reconciles.length>0)mid.push(`There were fights. ${grudges.length} grudges that cut the den in two. But ${reconciles.length} of them healed. Forgiveness, it turns out, is its own kind of scoring.`);
+    else if(grudges.length>=2)mid.push(`${grudges.length} grudges. None forgiven. The colony survived the dark, but some nights it wasn't clear if the real enemy was outside.`);
+    if(breeds.length>0)mid.push(`${breeds.length} kitten${breeds.length>1?"s were":" was"} born in the dark. New life, impossibly small, in a world that had stopped believing in new things.`);
+    if(totalScore>100000)mid.push(`Total output: ${totalScore.toLocaleString()}. The kind of combined score that makes you wonder if the dark was ever really a threat, or just an audience.`);
+    lines.push(mid.slice(0,2).join(" "));
+
+    // ACT III: The Ending
+    if(won&&fallen.length===0)lines.push(`All of them. Every single one walked out of night ${ante} and into a dawn that had no right to exist. ${mvpName} carried the colony on their back, scoring ${mvpCat?.stats?.bs?.toLocaleString()||"more than anyone"} in a single hand. Their names belong to the Hearth now. The fire burns because of what they did.`);
+    else if(won)lines.push(`${fallen.length} didn't make it. ${fallen.map(f=>f.name.split(" ")[0]).join(", ")}. The rest walked into the dawn carrying names that weren't their own. ${mvpName} scored the highest, but the real score was the number of names they refused to forget.`);
+    else lines.push(`Night ${ante}. The numbers fell short and the dark moved in. ${fallen.length>0?fallen.map(f=>f.name.split(" ")[0]).join(", ")+" went first. ":""}The colony didn't scream. They'd already said everything worth saying. Somewhere in the ashes, a number is scratched into the floor. ${totalScore.toLocaleString()}. That's what they were worth. Remember it.`);
     return lines;
   }
 
@@ -3042,6 +3212,7 @@ function NinthLife(){
   function startGame(st){
     clearRunSave();
     _cid=0;_nis=Math.floor(Math.random()*CAT_NAMES.length);_un.clear();
+    setBelovedNames(meta); // ★ Load beloved names from hearth + player renames
     const mb=getMB();const cats=[];
     const draftCount=3+(mb.extraDraft||0);
     const strayCount=18-draftCount;
@@ -3067,7 +3238,7 @@ function NinthLife(){
       usedCombos.add(key);
       cats.push(cat);
     }
-    if(st){const tr=TRAITS.find(t=>t.name===st.trait.name)||st.trait;cats[0]=gC({breed:st.breed,power:Math.min(15,st.power+(mb.heirloom||0)),trait:tr,name:st.name});}
+    // Hearth companion is now handled via hearthFlash → draftPicked (not starter)
     // v18 Heat 5: start with a Hexed cat
     if(getHeatFx(meta?.heat).hexStart){const hexTr=TRAITS.find(t=>t.name==="Cursed");cats[1]=gC({trait:hexTr,name:"Cursed One"});}
     // v13: Draft system - pick 3 cats, then start with 15+3=18
@@ -3189,19 +3360,12 @@ function NinthLife(){
     }
     if(meta&&meta.cats.length>0&&meta.stats.r>0){
       setHearthFlash(meta.cats);setPh("hearthFlash");
-      setTimeout(()=>{setHearthFlash(null);setPh("draft");
-        // Progressive unlock toasts — show what's new this run
-        if(meta.stats.r===1){
-          setTimeout(()=>toast("🆕","Recruit unlocked! Pay 🐟 to draw extra cats.","#4ade80",4000),800);
-          setTimeout(()=>toast("🆕","Interest unlocked! Save 5+ 🐟 for bonus each round.","#4ade80",4000),2000);
-          setTimeout(()=>toast("🆕","Scrolls unlocked! Level up hand types in the shop.","#4ade80",4000),3200);
-        }
-      },2000);
     }else{setPh("draft");}
   }
 
   function resumeRun(sr){
     _cid=sr._cid||100;_nis=sr._nis||sr._ni||0;_un.clear();
+    setBelovedNames(meta); // ★ Load beloved names
     const sanitizeCat=c=>{
       if(!c)return c;
       if(!c.trait)c.trait=PLAIN;
@@ -3419,10 +3583,10 @@ function NinthLife(){
         cats.forEach(c=>assignEpithet(c,{bossNight:true,ante}));
         const decisive=cats.sort((a,b)=>b.power-a.power)[0];
         if(decisive&&handsAfter>=0)assignEpithet(decisive,{decisive:true});
-        // Apply epithets to deck + fire toasts
+        // Collect epithet flags for deferred toasts (fire after reward pick)
         [...cats].forEach(c=>{if(c.epithet){
-          if(c._newEpithet){delete c._newEpithet;toast("🏷️",`${c.name.split(" ")[0]} earned: "${c.epithet}"`,BREEDS[c.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
-          [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===c.id?{...x,epithet:c.epithet}:x));});
+          if(c._newEpithet){delete c._newEpithet;c._bossEpithet=true;}
+          [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===c.id?{...x,epithet:c.epithet,epithetKey:c.epithetKey,_bossEpithet:c._bossEpithet}:x));});
         }});
       }
       if(handsAfter<=0){setClutch(true);Audio.clutchWin();}
@@ -3446,8 +3610,8 @@ function NinthLife(){
             [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===victim.id?{...x,scarred:true}:x));});
             toast("🩹",`${victim.name.split(" ")[0]} was scarred by ${boss?.name||"the boss"}!`,"#ef4444");
             victim.scarred=true;assignEpithet(victim);
-            if(victim._newEpithet){delete victim._newEpithet;toast("🏷️",`${victim.name.split(" ")[0]} earned: "${victim.epithet}"`,BREEDS[victim.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
-            [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===victim.id?{...x,epithet:victim.epithet}:x));});
+            if(victim._newEpithet){delete victim._newEpithet;toast("🏷️",epithetToastMsg(victim),BREEDS[victim.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
+            [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===victim.id?{...x,epithet:victim.epithet,epithetKey:victim.epithetKey}:x));});
           }else{
             [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===victim.id?{...x,injured:true,injuryTimer:2,power:Math.max(1,x.power)}:x));});
             toast("💀",`${victim.name.split(" ")[0]} was injured by ${boss?.name||"the boss"}!`,"#ef4444");
@@ -3759,12 +3923,13 @@ function NinthLife(){
     else{
       try{Audio.defeat();}catch(e){}
       const defeatLines=[
-        "Not loud enough. The dark moved on.",
-        "Below the threshold. The silence swallowed them whole.",
-        "They needed more time. They always need more time.",
-        "The last hand fell short. The dark didn't even notice.",
-        "Not enough. The number doesn't care about the story behind it.",
-        "They fell below the threshold. And the dark forgot they were there.",
+        "The numbers fell short. The dark didn't wait for an explanation.",
+        "Below the threshold. The silence didn't come fast. It came slow. That's worse.",
+        "The last hand wasn't enough. Somewhere, the eighth colony nodded. They know.",
+        "The score hit the floor and the dark walked in like it owned the place. It does.",
+        "Not enough. The number doesn't care how hard you tried. It never does.",
+        "They fell below the line. And the world went on like they were never there.",
+        "Close doesn't count. The first colony learned that. Now you have too.",
       ];
       const tgtVal=(()=>{try{return eTgt();}catch(e){return 0;}})();
       setDefeatData({score:fScore,target:tgtVal,line:pk(defeatLines),blind:bName});
@@ -3772,9 +3937,13 @@ function NinthLife(){
     }
     // ★ Fire-and-forget async meta save — phase is already set
     if(meta){(async()=>{try{
-      const newHeat=won?Math.min(5,(meta.heat||0)+1):0;
-      const deathless=won&&fallen.length===0;
       const curHeat=meta.heat||0;
+      const maxHeatReached=Math.max(meta.stats.mh||0,curHeat);
+      const newMaxHeat=won?Math.min(5,maxHeatReached+1):maxHeatReached;
+      // Heat stays where player set it. On win, max available increases by 1.
+      // On loss, heat stays (player chose this difficulty). No reset.
+      const newHeat=won?Math.min(newMaxHeat,curHeat+1):curHeat;
+      const deathless=won&&fallen.length===0;
       const relics=[...(meta.relics||[])];
       if(won&&curHeat>=1&&!relics.includes(curHeat)){
         relics.push(curHeat);
@@ -3791,8 +3960,17 @@ function NinthLife(){
       }
       const heatWins=(meta.stats.heatWins||0)+(won&&curHeat>=1?1:0);
       const hearthTotal=(meta.stats.hearthTotal||0); // incremented on cat save, not here
+      // ★ Collect player-renamed names — these live on across runs
+      const existingBeloved=new Set(meta.stats.belovedNames||[]);
+      [...allC,...fallen].forEach(c=>{
+        const firstName=c.name.split(" ")[0];
+        // If the name isn't in any of the default pools, the player renamed it
+        const isDefault=CAT_NAMES.includes(firstName)||Object.values(SEASON_NAMES).some(p=>p.includes(firstName))||Object.values(TRAIT_NAMES).some(p=>p.includes(firstName));
+        if(!isDefault)existingBeloved.add(firstName);
+      });
+      const belovedNames=[...existingBeloved].slice(0,50); // cap at 50 to stay reasonable
       const u={...meta,heat:newHeat,ninthDawnCleared,relics,
-        stats:{...meta.stats,r:meta.stats.r+1,w:meta.stats.w+(won?1:0),ba:Math.max(meta.stats.ba,ante),hs:Math.max(meta.stats.hs,fScore),mf:Math.max(meta.stats.mf,rMaxF),mh:Math.max(meta.stats.mh||0,curHeat),bossRecord,heatWins,ninthDawnCleared,hearthTotal}};
+        stats:{...meta.stats,r:meta.stats.r+1,w:meta.stats.w+(won?1:0),ba:Math.max(meta.stats.ba,ante),hs:Math.max(meta.stats.hs,fScore),mf:Math.max(meta.stats.mf,rMaxF),mh:newMaxHeat,bossRecord,heatWins,ninthDawnCleared,hearthTotal,belovedNames}};
       const newAchv=[...(u.achv||[])];
       ACHIEVEMENTS.forEach(a=>{if(!newAchv.includes(a.id)&&a.check(u.stats,deathless,newAchv))newAchv.push(a.id);});
       u.achv=newAchv;
@@ -4182,7 +4360,7 @@ function NinthLife(){
       if(r.type==="teach"){addStory(r.child.id,`Learned ${r.trait.name} from ${r.parent.name.split(" ")[0]}`);}
     });
     results.forEach(r=>{
-      const applyEp=(cat,ctx={})=>{assignEpithet(cat,ctx);if(cat._newEpithet){delete cat._newEpithet;toast("🏷️",`${cat.name.split(" ")[0]} earned: "${cat.epithet}"`,BREEDS[cat.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}[setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(c=>c.id===cat.id?{...c,epithet:cat.epithet,story:cat.story}:c));});};
+      const applyEp=(cat,ctx={})=>{assignEpithet(cat,ctx);if(cat._newEpithet){delete cat._newEpithet;toast("🏷️",epithetToastMsg(cat),BREEDS[cat.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}[setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(c=>c.id===cat.id?{...c,epithet:cat.epithet,epithetKey:cat.epithetKey,story:cat.story}:c));});};
       if(r.type==="fight"&&r.loser.scarred)applyEp(r.loser);
       if(r.type==="bond"){applyEp(r.c1);applyEp(r.c2);}
       if(r.type==="reconcile"||r.type==="reconcile_bond"){r.c1._grudgeResolved=true;r.c2._grudgeResolved=true;applyEp(r.c1);applyEp(r.c2);}
@@ -5070,14 +5248,44 @@ function NinthLife(){
   // TITLE
   // ═══════════════════════════════════════════════════════
   if(ph==="hearthFlash"&&hearthFlash){
+    const hearthCats=hearthFlash;
+    const companions=hearthCats.map(c=>{
+      const breed=c.breed||"Autumn";const tr=c.trait||PLAIN;
+      return{...gC({breed,trait:tr,sex:c.sex||"M"}),name:c.name||"Ghost",power:c.power||3,scarred:!!c.scarred,epithet:c.epithet||null,epithetKey:c.epithetKey||null,_hearthChild:true,stats:{tp:0,bs:0}};
+    }).slice(0,6);
     return(<div style={W}><div style={BG}/><style>{CSS}</style>
-      <div onClick={()=>{setHearthFlash(null);setPh("draft");}} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",zIndex:1,gap:16,padding:20,cursor:"pointer"}}>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",zIndex:1,gap:16,padding:20}}>
         <div style={{fontSize:48,animation:"float 3s ease-in-out infinite",filter:"drop-shadow(0 0 20px #fbbf2444)"}}>🔥</div>
         <div style={{fontSize:12,color:"#fbbf2466",letterSpacing:6,fontFamily:"system-ui",animation:"fadeIn 1s ease-out"}}>THE HEARTH REMEMBERS</div>
         <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"center",maxWidth:360,animation:"fadeIn 1.5s ease-out"}}>
-          {hearthFlash.map((c,i)=>(<span key={i} style={{fontSize:10,color:BREEDS[c.breed]?.color||"#fbbf24",fontFamily:"system-ui",opacity:.5,animation:`fadeIn ${.5+i*.15}s ease-out both`}}>{c.name?.split(" ")[0]||"?"}</span>))}
+          {hearthCats.map((c,i)=>(<span key={i} style={{fontSize:10,color:BREEDS[c.breed]?.color||"#fbbf24",fontFamily:"system-ui",opacity:.5,animation:`fadeIn ${.5+i*.15}s ease-out both`}}>{c.name?.split(" ")[0]||"?"}</span>))}
         </div>
-        <div style={{fontSize:11,color:"#ffffff66",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:300,lineHeight:1.6,animation:"fadeIn 2s ease-out"}}>They watch from the warm side. They can't follow. But they remember.</div>
+        <div style={{fontSize:13,color:"#fbbf24cc",fontFamily:"system-ui",textAlign:"center",maxWidth:360,lineHeight:1.7,animation:"fadeIn 2s ease-out"}}>The Hearth remembers. One legend can walk back into the dark — as strong as the day they were saved. They cannot be saved again. Their time in the Hearth is earned. This time, they fight so that others may take their place.</div>
+        <div style={{display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center",animation:"fadeIn 2.5s ease-out"}}>
+          {companions.map((c,i)=>(<div key={i} onClick={()=>{
+            // Companion counts as first draft pick — 2 waves remain
+            setDraftPicked([c]);
+            setHearthFlash(null);setPh("draft");
+            toast(BREEDS[c.breed].icon,`${c.name.split(" ")[0]} returns as a guide. P${c.power}. They fight so new legends can rise.`,BREEDS[c.breed].color,4000);
+            if(meta.stats.r===1){
+              setTimeout(()=>toast("🆕","Recruit unlocked! Pay 🐟 to draw extra cats.","#4ade80",4000),1200);
+              setTimeout(()=>toast("🆕","Interest unlocked! Save 5+ 🐟 for bonus each round.","#4ade80",4000),2400);
+              setTimeout(()=>toast("🆕","Scrolls unlocked! Level up hand types in the shop.","#4ade80",4000),3600);
+            }
+          }} style={{cursor:"pointer",textAlign:"center",maxWidth:90,animation:`float ${2.5+i*.3}s ease-in-out ${i*.2}s infinite`}}>
+            <CC cat={c} sm/>
+            <div style={{fontSize:11,fontFamily:"system-ui",color:BREEDS[c.breed].color,marginTop:3,fontWeight:700}}>{c.name.split(" ")[0]}{c.epithet?" "+c.epithet:""}</div>
+            <div style={{fontSize:10,color:"#ffffff88",fontFamily:"system-ui"}}>{(c.trait||PLAIN).icon} {(c.trait||PLAIN).name}</div>
+            <div style={{fontSize:10,color:"#ffffff55",fontFamily:"system-ui"}}>P{c.power}{c.scarred?" ⚔":""}</div>
+          </div>))}
+        </div>
+        <button onClick={()=>{setHearthFlash(null);setPh("draft");
+          if(meta.stats.r===1){
+            setTimeout(()=>toast("🆕","Recruit unlocked! Pay 🐟 to draw extra cats.","#4ade80",4000),800);
+            setTimeout(()=>toast("🆕","Interest unlocked! Save 5+ 🐟 for bonus each round.","#4ade80",4000),2000);
+            setTimeout(()=>toast("🆕","Scrolls unlocked! Level up hand types in the shop.","#4ade80",4000),3200);
+          }
+        }} style={{...BTN("#1a1a2e","#888"),padding:"6px 16px",fontSize:10,border:"1px solid #ffffff12",marginTop:4}}>Skip. go alone</button>
       </div>
     </div>);
   }
@@ -5214,7 +5422,12 @@ function NinthLife(){
           <div style={{fontSize:20,color:"#ef4444",fontWeight:700,letterSpacing:3,fontFamily:"'Cinzel',serif"}}>{boss.name}</div>
           <div style={{width:80,height:1,background:"linear-gradient(90deg,transparent,#ef444433,transparent)",margin:"4px 0"}}/>
           <div style={{fontSize:11,color:"#ef444466",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",lineHeight:1.5}}>{boss.lore}</div>
-          {boss.tauntFn&&(()=>{const bCtx={fallen:fallen.length,scarred:allC.filter(c=>c.scarred).length,bonded:allC.filter(c=>c.bondedTo).length,colony:allC.length,gold,grudges:0};
+          {boss.tauntFn&&(()=>{
+            const scarredCats=allC.filter(c=>c.scarred);const bondedCats=allC.filter(c=>c.bondedTo);const grudgedCats=allC.filter(c=>(c.grudgedWith||[]).length>0);
+            const strongest=[...allC].sort((a,b)=>b.power-a.power)[0];const weakest=[...allC].sort((a,b)=>a.power-b.power)[0];
+            const bCtx={fallen:fallen.length,fallenName:fallen.length>0?fallen[fallen.length-1].name.split(" ")[0]:"",scarred:scarredCats.length,bonded:bondedCats.length,colony:allC.length,gold,grudges:grudgedCats.length/2,
+              scarredName:scarredCats[0]?.name.split(" ")[0]||"",bondedName:bondedCats[0]?.name.split(" ")[0]||"",bondedMateName:bondedCats[0]?.bondedTo?allC.find(c=>c.id===bondedCats[0].bondedTo)?.name.split(" ")[0]||"":"",
+              grudgedName:grudgedCats[0]?.name.split(" ")[0]||"",strongestName:strongest?.name.split(" ")[0]||"",weakestName:weakest?.name.split(" ")[0]||""};
             const taunt=boss.tauntFn(bCtx);
             return taunt?<div style={{fontSize:12,color:"#ef4444bb",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",lineHeight:1.6,marginTop:4}}>"{taunt}"</div>:null;
           })()}
@@ -5230,12 +5443,19 @@ function NinthLife(){
         {/* Colony whisper */}
         {nightCard.blind===0&&nightCard.ante>1&&(()=>{
           const wFn=WHISPER_NIGHT[Math.min(nightCard.ante-1,WHISPER_NIGHT.length-1)];
-          if(!wFn)return null;
           const wCtx={fallen:fallen.length,colony:allC.length};
-          const wLine=typeof wFn==="function"?wFn(wCtx):wFn;
+          const wLine=wFn?(typeof wFn==="function"?wFn(wCtx):wFn):null;
           const wSeed=(nightCard.ante*13+gold)%10;
-          if(wSeed>3)return null;
-          return <div style={{fontSize:11,color:"#fbbf2433",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:300,lineHeight:1.5,animation:"fadeIn 2s ease-out .5s both",marginTop:8}}>{wLine}</div>;
+          const showWhisper=wLine&&wSeed<=3;
+
+          // Narrator recap — connects the story, escalates revelation
+          const nCtx={fallen:fallen.length,bonds:allC.filter(c=>c.bondedTo).length/2,grudges:allC.reduce((s,c)=>s+(c.grudgedWith||[]).length,0)/2,breeds:runLog.filter(e=>e.type==="breed").length,colony:allC.length,eventHistory:eventHistory,scarred:allC.filter(c=>c.scarred).length,allCats:allC};
+          const narLine=getNarratorRecap(nightCard.ante,nCtx);
+
+          return <>
+            {showWhisper&&<div style={{fontSize:11,color:"#fbbf2433",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:300,lineHeight:1.5,animation:"fadeIn 2s ease-out .5s both",marginTop:8}}>{wLine}</div>}
+            {narLine&&<div style={{fontSize:11,color:"#c084fc55",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:320,lineHeight:1.6,animation:"fadeIn 2.5s ease-out 1s both",marginTop:showWhisper?4:8,padding:"6px 12px",borderRadius:8,background:"#c084fc06",border:"1px solid #c084fc11"}}>{narLine}</div>}
+          </>;
         })()}
 
         {isNinthDawn&&<div style={{fontSize:11,color:"#fbbf2466",letterSpacing:5,fontFamily:"system-ui",animation:"fadeIn 1.8s ease-out",marginTop:8}}>THE NINTH DAWN</div>}
@@ -5327,14 +5547,14 @@ function NinthLife(){
             })}
           </div>
           <div style={{fontSize:12,color:"#888",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",lineHeight:1.6,maxWidth:340,marginTop:8,animation:"fadeIn .8s ease-out .5s both"}}>
-            Three you chose. Fifteen strays who were already here.<br/>
-            <span style={{color:"#77777799"}}>Sixteen souls against the dark.</span>
+            Three you chose. Fifteen who were already here, waiting for someone worth following.<br/>
+            <span style={{color:"#77777799"}}>Eighteen against the dark. It only takes one night to find out if that's enough.</span>
           </div>
         </>
         /* ★ RETURNING PLAYERS. full composition breakdown */
         :<>
           <div style={{fontSize:10,color:"#77777799",letterSpacing:6,fontFamily:"system-ui",animation:"epicReveal 1.2s ease-out forwards"}}>SURVIVE {MX} NIGHTS</div>
-          {meta&&meta.stats.r>0&&<div style={{fontSize:10,color:"#777777bb",fontFamily:"system-ui",letterSpacing:3}}>{(()=>{const n=(meta.stats.r||0)+1;const w=meta.stats.w||0;if(n<=2)return`Colony #${n}. You know more than the first one did.`;if(n<=5)return`Colony #${n}. The dark keeps counting too.`;if(w>=3)return`Colony #${n}. The Hearth is big enough to cast a shadow now.`;return`Colony #${n}. ${n} names. ${n} chances.`;})()}</div>}
+          {meta&&meta.stats.r>0&&<div style={{fontSize:10,color:"#777777bb",fontFamily:"system-ui",letterSpacing:3}}>{(()=>{const n=(meta.stats.r||0)+1;const w=meta.stats.w||0;if(n===2)return`Colony #${n}. New names around the same fire.`;if(n<=4)return`Colony #${n}. The fire still burns. So do you.`;if(n<=7&&w===0)return`Colony #${n}. The fire doesn't ask how many times you've tried. It just burns.`;if(n<=7&&w>=1)return`Colony #${n}. The Hearth remembers what you built. Build it again.`;if(w>=5)return`Colony #${n}. The dark knows your name by now. Good.`;return`Colony #${n}. New colony. Same question. Different answer.`;})()}</div>}
           <div style={{fontSize:11,color:"#888",letterSpacing:4,fontFamily:"system-ui",animation:"fadeIn .6s ease-out .2s both"}}>THE COLONY</div>
           <div style={{fontSize:15,color:"#d97706bb",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",lineHeight:1.6,maxWidth:360,animation:"fadeIn .8s ease-out .15s both"}}>
             {colonyThesis}
@@ -5408,7 +5628,7 @@ function NinthLife(){
     const safeTab=availTabs.includes(tab)?tab:"play";
     return(<div style={W}><div style={BG}/><Dust/><style>{CSS}</style>
       <div style={{position:"fixed",top:10,right:10,zIndex:200,display:"flex",gap:6,alignItems:"center"}}>
-        <span style={{fontSize:10,color:"#ffffff55",fontFamily:"system-ui",letterSpacing:1}}>v0.61</span>
+        <span style={{fontSize:10,color:"#ffffff55",fontFamily:"system-ui",letterSpacing:1}}>v0.65</span>
         {meta&&meta.stats.r>=1&&<button onClick={async()=>{const sums=[];for(let i=1;i<=SLOT_COUNT;i++)sums.push(await getSlotSummary(i));setSlotSummaries(sums);setShowSlots(!showSlots);}} style={{background:"none",border:"1px solid #ffffff15",borderRadius:6,fontSize:10,cursor:"pointer",opacity:.5,padding:"3px 8px",color:"#888",fontFamily:"system-ui"}} title="Save Slots">💾 {activeSlot}</button>}
         <button onClick={toggleMute} style={{background:"none",border:"none",fontSize:16,cursor:"pointer",opacity:.4,padding:4}} title={muted?"Unmute":"Mute"}>{muted?"🔇":"🔊"}</button>
       </div>
@@ -5450,6 +5670,12 @@ function NinthLife(){
               animation:`breathe ${1.8+i*.3}s ease-in-out ${i*.3}s infinite`,
               opacity:.3}}/>))}
         </div>
+        {/* Founder names — visible after first Hearth save */}
+        {meta&&meta.cats.length>=1&&meta.cats.length<=4&&meta.stats.w<=2&&<div style={{fontSize:10,color:"#fbbf2455",fontFamily:"system-ui",fontStyle:"italic",letterSpacing:2,animation:"fadeIn 3s ease-out"}}>
+          {meta.cats.length===1?`${meta.cats[0].name.split(" ")[0]} watches from the warm side.`
+          :meta.cats.length===2?`${meta.cats[0].name.split(" ")[0]} and ${meta.cats[1].name.split(" ")[0]}. The Founders.`
+          :`The Hearth burns. ${meta.cats.slice(0,3).map(c=>c.name.split(" ")[0]).join(", ")} watch.`}
+        </div>}
         <h1 style={{fontSize:"clamp(32px,7vw,52px)",fontWeight:900,letterSpacing:6,lineHeight:1.1,background:(meta?.achv||[]).includes("completionist")?"linear-gradient(135deg,#c084fc,#fef08a,#4ade80,#67e8f9)":"linear-gradient(135deg,#b85c2c,#fbbf24,#fef08a)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",margin:0}}>NINTH LIFE{meta?.ninthDawnCleared?" 🌅":""}</h1>
         <div style={{fontSize:10,color:"#888888bb",letterSpacing:3,fontFamily:"system-ui",lineHeight:1.6,animation:"fadeIn 2.5s ease-out"}}>Cats are cards. Seasons are suits. Survive the dark.</div>
         {(()=>{const ch=getChapterTitle(meta);return ch?<div style={{fontSize:10,color:"#c084fc66",letterSpacing:4,fontFamily:"'Cinzel',serif",animation:"fadeIn 3s ease-out"}}>Chapter {ch.num} · {ch.name}</div>:null;})()}
@@ -5476,8 +5702,16 @@ function NinthLife(){
             {sd>0&&showUpgrades&&<span style={{fontSize:10,color:"#c084fc66",fontFamily:"system-ui",cursor:"pointer"}} onClick={()=>setTab("✦ upgrades")}>spend on upgrades ▸</span>}
             {meta.cats.length>0&&<div style={{fontSize:10,color:"#c084fcbb",fontFamily:"system-ui"}}>🏠 +{calcTotalHearthDust(meta.cats,getMB().dustBonus||0,getHeatFx(meta?.heat).dustMult||1).total}/run</div>}
           </div>
-          {showHeat&&(meta.heat||0)>0&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-            <div style={{display:"flex",gap:2,alignItems:"center"}}>{Array.from({length:meta.heat}).map((_,i)=>(<span key={i} style={{fontSize:10,filter:"drop-shadow(0 0 3px #ef4444)"}}>🔥</span>))}<span style={{fontSize:10,color:"#ef4444",fontFamily:"system-ui"}}>Heat {meta.heat}</span><span style={{fontSize:10,color:"#4ade80",fontFamily:"system-ui"}}>+{(meta.heat)*25}% hearth</span></div>
+          {showHeat&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+            <div style={{display:"flex",gap:2,alignItems:"center"}}><span style={{fontSize:10,color:"#ef4444",fontFamily:"system-ui"}}>Heat {meta.heat}</span>{meta.heat>0&&<span style={{fontSize:10,color:"#4ade80",fontFamily:"system-ui"}}>+{(meta.heat)*25}% hearth</span>}</div>
+            <div style={{display:"flex",gap:3,alignItems:"center"}}>
+              {Array.from({length:(meta.stats.mh||meta.heat||1)+1}).map((_,h)=>{const isActive=h===meta.heat;return(
+                <button key={h} onClick={async()=>{if(h!==meta.heat){const u={...meta,heat:h};setMeta(u);await saveS(u);toast("🔥",h===0?"Heat disabled. Standard difficulty.": `Heat set to ${h}. +${h*25}% hearth dust.`,"#ef4444");}}}
+                  style={{width:24,height:24,borderRadius:6,cursor:"pointer",fontSize:10,fontWeight:isActive?900:400,border:isActive?"2px solid #ef4444":"1px solid #ffffff15",
+                    background:isActive?`linear-gradient(135deg,#ef444422,#ef444408)`:"#ffffff06",
+                    color:isActive?"#ef4444":h===0?"#666":"#ef444488",fontFamily:"system-ui"}}>{h}</button>);})}
+            </div>
+            <div style={{fontSize:10,color:"#ef444466",fontFamily:"system-ui"}}>{meta.heat===0?"Standard difficulty.":"Tap a number to change."}</div>
           </div>}
         </div>}
 
@@ -5487,13 +5721,8 @@ function NinthLife(){
         </div>}
 
         {safeTab==="play"&&<>
-          {hc&&<div style={{width:"100%"}}>
-            <div style={{fontSize:10,color:"#888",letterSpacing:2,marginBottom:5}}>WHO WALKS WITH YOU INTO THE DARK?</div>
-            <div style={{fontSize:10,color:"#555",fontFamily:"system-ui",marginBottom:4}}>Tap a Hearth cat to choose a companion. They start in your colony.</div>
-            <div style={{display:"flex",gap:5,overflowX:"auto",justifyContent:"center",flexWrap:"wrap"}}>
-              {meta.cats.slice(-8).map((c,i)=>{const tr=TRAITS.find(t=>t.name===c.trait.name)||c.trait;const cat={...c,id:`ct${i}`,trait:tr};const isSel=starter&&starter._i===i;
-                return(<div key={i} style={{cursor:"pointer"}} onClick={()=>setStarter(isSel?null:{...c,trait:tr,_i:i})}><CC cat={cat} sm sel={isSel}/></div>);})}
-            </div>
+          {false&&hc&&<div style={{width:"100%"}}>
+            {/* DEPRECATED: Hearth companion selection moved to hearthFlash screen */}
           </div>}
           {savedRun&&<button onClick={()=>{Audio.init();resumeRun(savedRun);}} style={{...BTN("linear-gradient(135deg,#4ade80,#22c55e)","#0a0a1a"),padding:"14px 48px",fontSize:18,letterSpacing:3,textTransform:"uppercase",boxShadow:"0 0 30px #4ade8044",animation:"float 3s ease-in-out infinite",marginBottom:2}}>Continue Colony <span style={{fontSize:11,opacity:.7}}>Night {savedRun.ante}</span></button>}
           <button onClick={()=>{try{Audio.init();if(!meta?.stats?.r){setGuide({step:0,msg:""});startGame(starter);setPh("coldOpen");}else{startGame(starter);}}catch(e){console.error("Start error:",e);}}} style={{...BTN(savedRun?"#1a1a2e":"linear-gradient(135deg,#fbbf24,#f59e0b)",savedRun?"#fbbf24":"#0a0a1a"),padding:savedRun?"10px 32px":"14px 48px",fontSize:savedRun?13:18,letterSpacing:savedRun?2:3,textTransform:"uppercase",boxShadow:savedRun?"none":"0 0 30px #fbbf2444",border:savedRun?"1px solid #fbbf2444":"none"}}>{savedRun?"New Colony":"Enter the Night"}</button>
@@ -5778,8 +6007,8 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
             const victim=pk(eligible);
             [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===victim.id?{...x,scarred:true}:x));});
             victim.scarred=true;assignEpithet(victim);
-            if(victim._newEpithet){delete victim._newEpithet;toast("🏷️",`${victim.name.split(" ")[0]} earned: "${victim.epithet}"`,BREEDS[victim.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
-            [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===victim.id?{...x,epithet:victim.epithet}:x));});
+            if(victim._newEpithet){delete victim._newEpithet;toast("🏷️",epithetToastMsg(victim),BREEDS[victim.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
+            [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===victim.id?{...x,epithet:victim.epithet,epithetKey:victim.epithetKey}:x));});
             toast("🪞",`${victim.name.split(" ")[0]} was scarred before the fight began.`,"#ef4444",2000);
           }
         }
@@ -5943,16 +6172,21 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
       <div style={{fontSize:14,color:blind>=2?"#4ade80":"#fbbf24",letterSpacing:3}}>{blind>=2?(clutch?"Survived. Barely.":"Survived."):"The threshold breaks."}</div>
       {clearLine&&<div style={{fontSize:13,color:"#ffffffbb",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:320,lineHeight:1.6,animation:"fadeIn 1.2s ease-out",textShadow:"0 0 15px #ffffff11"}}>{clearLine}</div>}
       {blind>=2&&boss&&(()=>{
-        const dCtx={fallen:fallen.length,fallenName:fallen.length>0?fallen[fallen.length-1].name.split(" ")[0]:"",scarred:allC.filter(c=>c.scarred).length,bonded:allC.filter(c=>c.bondedTo).length,colony:allC.length,clutch:clutch,grudges:allC.reduce((s,c)=>(c.grudgedWith||[]).length+s,0)/2,deathless:fallen.length===0};
+        const scarredCats2=allC.filter(c=>c.scarred);const bondedCats2=allC.filter(c=>c.bondedTo);const strongest2=[...allC].sort((a,b)=>b.power-a.power)[0];
+        const dCtx={fallen:fallen.length,fallenName:fallen.length>0?fallen[fallen.length-1].name.split(" ")[0]:"",scarred:scarredCats2.length,bonded:bondedCats2.length,colony:allC.length,clutch:clutch,grudges:allC.reduce((s,c)=>(c.grudgedWith||[]).length+s,0)/2,deathless:fallen.length===0,
+          strongestName:strongest2?.name.split(" ")[0]||"",bondedName:bondedCats2[0]?.name.split(" ")[0]||""};
         const dLine=boss.defeatFn?boss.defeatFn(dCtx):null;
-        return(<div style={{textAlign:"center"}}>
-          <div style={{fontSize:13,color:"#4ade80bb",fontStyle:"italic",fontFamily:"system-ui",marginTop:4,lineHeight:1.5}}>"{boss.defeat}"</div>
-          {dLine&&<div style={{fontSize:11,color:"#4ade80bb",fontStyle:"italic",fontFamily:"system-ui",marginTop:2}}>"{dLine}"</div>}
+        return(<div style={{textAlign:"center",padding:"10px 16px",borderRadius:10,background:"#4ade8008",border:"1px solid #4ade8022",maxWidth:360,animation:"fadeIn 1.5s ease-out"}}>
+          <div style={{fontSize:14,color:"#4ade80",fontWeight:700,fontFamily:"'Cinzel',serif",letterSpacing:2,marginBottom:4}}>{boss.name} falls.</div>
+          <div style={{fontSize:14,color:"#4ade80cc",fontStyle:"italic",fontFamily:"system-ui",lineHeight:1.6}}>"{boss.defeat}"</div>
+          {dLine&&dLine!==boss.defeat&&<div style={{fontSize:12,color:"#4ade80aa",fontStyle:"italic",fontFamily:"system-ui",marginTop:4,lineHeight:1.5}}>"{dLine}"</div>}
         </div>);
       })()}
       {blind===1&&<div style={{fontSize:13,color:"#ef4444",fontWeight:700,letterSpacing:3,fontFamily:"system-ui",animation:"fpp 1s ease infinite"}}>Something approaches...</div>}
       {ante>=4&&blind<2&&(clutch||o.fs<o.tgt*1.3)&&boss&&(()=>{
-        const bCtx={fallen:fallen.length,fallenName:fallen.length>0?fallen[fallen.length-1].name.split(" ")[0]:"",scarred:allC.filter(c=>c.scarred).length,bonded:allC.filter(c=>c.bondedTo).length,colony:allC.length,clutch,grudges:allC.reduce((s,c)=>(c.grudgedWith||[]).length+s,0)/2,deathless:fallen.length===0,gold};
+        const sc3=allC.filter(c=>c.scarred);const bc3=allC.filter(c=>c.bondedTo);const st3=[...allC].sort((a,b)=>b.power-a.power)[0];
+        const bCtx={fallen:fallen.length,fallenName:fallen.length>0?fallen[fallen.length-1].name.split(" ")[0]:"",scarred:sc3.length,bonded:bc3.length,colony:allC.length,clutch,grudges:allC.reduce((s,c)=>(c.grudgedWith||[]).length+s,0)/2,deathless:fallen.length===0,gold,
+          scarredName:sc3[0]?.name.split(" ")[0]||"",bondedName:bc3[0]?.name.split(" ")[0]||"",strongestName:st3?.name.split(" ")[0]||"",weakestName:[...allC].sort((a,b)=>a.power-b.power)[0]?.name.split(" ")[0]||""};
         const earlyTaunt=boss.tauntFn?boss.tauntFn(bCtx):null;
         return earlyTaunt?(<div style={{textAlign:"center",animation:"fadeIn 1.5s ease-out",padding:"6px 14px",borderRadius:8,background:"#ef444408",border:"1px solid #ef444418",maxWidth:340}}>
           <span style={{fontSize:14}}>{boss.icon}</span>
@@ -6026,6 +6260,17 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
           if(rw.type==="gamble"){if(Math.random()<0.55)setGold(g=>g+10);else setGold(g=>Math.floor(g/2));}
           if(rw.type==="blood_price"){const best=[...all].sort((a,b)=>b.power-a.power)[0];if(best){[setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>{if(x.id===best.id)return{...x,scarred:true};return{...x,power:Math.min(15,x.power+2)};}));});};}
           logEvent("reward",{name:rw.name,desc:rw.desc});setBossRewardChoices([]);setOData(null);genShop();setPh("shop");
+          // Fire boss defeat + epithet toasts on shop screen (after reward picked)
+          if(boss){
+            const dCtx3={fallen:fallen.length,fallenName:fallen.length>0?fallen[fallen.length-1].name.split(" ")[0]:"",clutch,deathless:fallen.length===0,strongestName:[...allC].sort((a,b)=>b.power-a.power)[0]?.name.split(" ")[0]||""};
+            const dLine3=boss.defeatFn?boss.defeatFn(dCtx3):boss.defeat;
+            setTimeout(()=>toast(boss.icon,`${boss.name}: "${dLine3||boss.defeat}"`,BREEDS[allC[0]?.breed]?.color||"#4ade80",4000),300);
+            // Epithet toasts
+            const epCats=[...hand,...draw,...disc].filter(c=>c.epithet&&c._bossEpithet);
+            epCats.forEach((c,i)=>{
+              setTimeout(()=>{toast("🏷️",epithetToastMsg(c),BREEDS[c.breed]?.color||"#fbbf24",3000);Audio.epithetEarned();},900+i*600);
+            });
+          }
         }
         return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,marginTop:4}}>
           <div style={{fontSize:10,color:"#4ade80bb",letterSpacing:2,fontFamily:"system-ui"}}>CHOOSE YOUR REWARD</div>
@@ -6143,7 +6388,8 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
 
   // GAME OVER / VICTORY
   if(ph==="gameOver"||ph==="victory"){const won=ph==="victory";
-    const cands=[...allC].sort((a,b)=>(b.stats?.bs||0)-(a.stats?.bs||0));const mvp=cands[0];
+    const hearthNames=new Set((meta?.cats||[]).map(c=>c.name));
+    const cands=[...allC].filter(c=>!c._hearthChild&&!hearthNames.has(c.name)).sort((a,b)=>(b.stats?.bs||0)-(a.stats?.bs||0));const mvp=cands[0]||allC.sort((a,b)=>(b.stats?.bs||0)-(a.stats?.bs||0))[0];
     const totalScored=runLog.filter(e=>e.type==="hand").reduce((s,e)=>s+(e.data?.score||0),0);
     const handsPlayed=runLog.filter(e=>e.type==="hand").length;
     const bestHand=runLog.filter(e=>e.type==="hand").reduce((best,e)=>Math.max(best,e.data?.score||0),0);
@@ -6166,55 +6412,92 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
     return(<div style={W}><div style={BG}/><style>{CSS}</style>
       <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",zIndex:1,gap:12,padding:20,maxWidth:550}}>
 
-        {/* ═══ STEP 0: THEY MADE IT / THE DARK WON + stats ═══ */}
+        {/* ═══ STEP 0: THEY MADE IT / THE DARK WON ═══ */}
         {vStep===0&&<>
         <div style={{fontSize:48,animation:"comboBurst .8s ease-out"}}>{won?(isNinthDawn?"🌅":"👑"):"💀"}</div>
         <h2 style={{fontSize:won&&isNinthDawn?42:28,letterSpacing:won&&isNinthDawn?12:6,margin:0,color:won?undefined:"#ef4444",background:won?"linear-gradient(135deg,#f59e0b,#fef08a)":undefined,WebkitBackgroundClip:won?"text":undefined,WebkitTextFillColor:won?"transparent":undefined,animation:"comboBurst .6s ease-out",fontFamily:"'Cinzel',serif"}}>{won?(isNinthDawn?"DAWN":"THEY MADE IT"):"THE DARK WON"}</h2>
-        {(()=>{const breath=won
-          ?(fallen.length===0?`${MX} night${MX>1?"s":""}. All of them.`
-           :ante>=MX?`${MX} nights. ${allC.length} still breathing.`
-           :`${ante} night${ante>1?"s":""}. Enough to earn a name.`)
-          :(ante>=MX?`Night ${ante}. So close to dawn.`
-           :ante>=3?`Night ${ante}. They learned the dark's shape. The dark learned theirs.`
-           :`Night ${ante}. It ends where it began.`);
-        return <div style={{fontSize:11,color:won?"#fbbf2466":"#ef444466",fontStyle:"italic",fontFamily:"system-ui",letterSpacing:2,animation:"fadeIn 1.5s ease-out",marginTop:4}}>{breath}</div>;})()}
-        {!isNinthDawn&&<div style={{fontSize:12,color:won?"#fbbf2444":"#ef444433",fontStyle:"italic",fontFamily:"'Cinzel',serif",letterSpacing:2,animation:"fadeIn 2s ease-out .5s both"}}>{won?"Nine colonies. One survived.":"Eight colonies fell. Now nine."}</div>}
+
+        {/* Win — milestone-aware subtitle */}
+        {won&&!isNinthDawn&&(()=>{
+          const isFirst3=isFirstRun&&meta&&meta.stats.w===0;
+          const isFirst5=!isFirstRun&&meta&&meta.stats.w===0;
+          const breath=isFirst3
+            ?`Three nights. The dark gave you three and you took all of them. ${allC.length} cats. Every name accounted for.`
+            :isFirst5
+              ?`Five nights. All five. The system ran every test it had. ${fallen.length===0?"Not a single name lost.":allC.length+" still breathing."} The dark has never seen this before.`
+            :fallen.length===0?`${MX} night${MX>1?"s":""}. Every single one of them. Not a name lost.`
+            :`${MX} nights. ${allC.length} still breathing. ${fallen.length} carried in their memory.`;
+          return <div style={{fontSize:11,color:"#fbbf2466",fontStyle:"italic",fontFamily:"system-ui",letterSpacing:2,animation:"fadeIn 1.5s ease-out",marginTop:4,textAlign:"center",maxWidth:340}}>{breath}</div>;
+        })()}
+
+        {/* Win — first-win emotional beat */}
+        {won&&!isNinthDawn&&meta&&meta.stats.w<=1&&(()=>{
+          const isFirst3=isFirstRun;
+          const hookText=isFirst3
+            ?"The fire burns. For the first time since the eighth colony fell, someone kept it burning. Three nights. That's how long the dark takes to decide if a colony is real. You're real. Now two names go into the Hearth. Not as survivors. As founders."
+            :"Five nights. Every test the dark has run on eight colonies, and you walked through all of it. The eighth colony fell one hand short of this moment. You didn't. The Hearth burns with names the system tried to erase.";
+          return <div style={{fontSize:13,color:"#fbbf24cc",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:360,lineHeight:1.7,animation:"fadeIn 2s ease-out .5s both",padding:"10px 16px",borderRadius:10,background:"#fbbf2406",border:"1px solid #fbbf2418"}}>{hookText}</div>;
+        })()}
+
+        {/* Win — veteran flavor */}
+        {won&&!isNinthDawn&&meta&&meta.stats.w>1&&<div style={{fontSize:12,color:"#fbbf2444",fontStyle:"italic",fontFamily:"'Cinzel',serif",letterSpacing:2,animation:"fadeIn 2s ease-out .5s both"}}>The fire burns brighter. Colony #{(meta.stats.r||0)+1}.</div>}
+
+        {/* Ninth Dawn special */}
         {won&&isNinthDawn&&<div style={{fontSize:14,color:"#fbbf24aa",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:360,lineHeight:1.7,animation:"fadeIn 2s ease-out"}}>Nine colonies. One survived. Not because it was the strongest. Because someone remembered all the rest.</div>}
-        {won&&statItems.length>0&&<div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center",maxWidth:400,marginTop:4}}>
+
+        {/* Defeat */}
+        {!won&&(()=>{
+          const breath=ante>=MX?`Night ${ante}. So close to dawn. The eighth colony knows what "close" feels like.`
+            :ante>=3?`Night ${ante}. ${allC.length} still standing when the dark moved in. They deserved more time.`
+            :`Night ${ante}. It ends here. But the fire doesn't go out. It never goes out.`;
+          return <div style={{fontSize:11,color:"#ef444466",fontStyle:"italic",fontFamily:"system-ui",letterSpacing:2,animation:"fadeIn 1.5s ease-out",marginTop:4}}>{breath}</div>;
+        })()}
+
+        {/* Stats */}
+        {won&&statItems.length>0&&<div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center",maxWidth:400,marginTop:8}}>
           {statItems.map((st,i)=>(<div key={i} style={{textAlign:"center",padding:"6px 12px",borderRadius:8,background:`${st.color}08`,border:`1px solid ${st.color}22`,animation:`scorePop .4s ease-out ${0.8+i*0.3}s both`,minWidth:80}}>
             <div style={{fontSize:10,color:`${st.color}88`,letterSpacing:2,fontFamily:"system-ui"}}>{st.label}</div>
             <div style={{fontSize:16,fontWeight:900,color:st.color,fontFamily:"system-ui"}}>{st.val}</div>
           </div>))}
         </div>}
+
+        {/* Ninth Dawn star field */}
         {won&&isNinthDawn&&meta&&meta.cats.length>0&&<div style={{display:"flex",gap:2,flexWrap:"wrap",justifyContent:"center",maxWidth:400,animation:"fadeIn 3s ease-out 1s both"}}>
           {meta.cats.map((c,i)=>(<span key={i} style={{width:4,height:4,borderRadius:"50%",background:BREEDS[c.breed]?.color||"#fbbf24",boxShadow:`0 0 4px ${BREEDS[c.breed]?.color||"#fbbf24"}`,animation:`fadeIn ${0.5+i*0.1}s ease-out ${1+i*0.05}s both`}} title={c.name}/>))}
         </div>}
+
+        {/* Fallen memorial */}
         {fallen.length>0&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,marginTop:4}}>
           <div style={{fontSize:10,color:"#ef4444bb",letterSpacing:3}}>THEY WERE HERE</div>
           <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"center"}}>
             {fallen.map((f,i)=>(<div key={i} style={{textAlign:"center"}}>
-              <span style={{fontSize:11,color:BREEDS[f.breed]?.color||"#888",fontFamily:"'Cinzel',serif",fontWeight:700}}>{f.name.split(" ")[0]}</span>
+              <span style={{fontSize:11,color:BREEDS[f.breed]?.color||"#888",fontFamily:"'Cinzel',serif",fontWeight:700}}>{f.name.split(" ")[0]}{f.epithet?" "+f.epithet:""}</span>
               {f.memorial&&<div style={{fontSize:10,color:"#ffffff66",fontStyle:"italic",fontFamily:"system-ui",lineHeight:1.3,maxWidth:260}}>{f.memorial}</div>}
             </div>))}
           </div>
         </div>}
+
+        {/* Defeat — survivors list */}
         {!won&&allC.length>0&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,marginTop:4}}>
           <div style={{fontSize:10,color:"#ffffff44",letterSpacing:3}}>{allC.length} STILL STANDING</div>
           <div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center",maxWidth:340}}>
             {allC.map((c,i)=>(<span key={i} style={{fontSize:10,color:BREEDS[c.breed]?.color||"#888",fontFamily:"system-ui",opacity:.4}}>{c.name.split(" ")[0]}{c.scarred?"*":""}</span>))}
           </div>
         </div>}
-        <div style={{fontSize:14,color:won?"#fbbf24bb":"#ef4444bb",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:320,lineHeight:1.6,marginTop:4}}>{won?(
-          fallen.length===0?`Every single one. All ${MX} nights. Ask me their names. I remember every one.`
-          :fallen.length>=3?`${fallen.length} didn't make it: ${fallen.map(f=>f.name.split(" ")[0]).join(", ")}. The others carry them now.`
-          :rMaxF>=8?"They burned so bright the dark flinched. It had never seen anything like them."
-          :clutch?"It came down to the last number. The numbers said it was over. The numbers were wrong."
-          :"Not all of them. Not whole. But enough to carry the names of those who didn't."
-        ):(
-          fallen.length>=3?`${fallen.length} names lost. Say them anyway: ${fallen.map(f=>f.name.split(" ")[0]).join(", ")}.`
-          :rMaxF>=6?"They fought like fire. But fire needs fuel, and the fuel ran out."
-          :"They were here. That mattered. Even if no one remembers."
-        )}</div>
+
+        {/* Closing quote — context-aware */}
+        {won&&meta&&meta.stats.w>1&&<div style={{fontSize:14,color:"#fbbf24bb",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:320,lineHeight:1.6,marginTop:4}}>{
+          fallen.length===0?`Every single one. The dark couldn't take ${mvp?mvp.name.split(" ")[0]+" or ":""}any of them.`
+          :fallen.length>=3?`${fallen.map(f=>f.name.split(" ")[0]).join(", ")}. The survivors carry those names now.`
+          :clutch?"One number. The difference between a colony and a memory."
+          :"Not all of them. But the ones who made it carry the ones who didn't."
+        }</div>}
+        {!won&&<div style={{fontSize:14,color:"#ef4444bb",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:320,lineHeight:1.6,marginTop:4}}>{
+          fallen.length>=3?`${fallen.map(f=>f.name.split(" ")[0]).join(", ")}. Say them. The dark won't.`
+          :rMaxF>=6?`${mvp?mvp.name.split(" ")[0]+" fought like something that":"They fought like they"} refused to go quietly.`
+          :"They were here. They mattered. The dark can take the colony but it can't take that."
+        }</div>}
+
         <div style={{display:"flex",gap:12,fontFamily:"system-ui",fontSize:10,color:"#666"}}>{meta&&meta.cats.length>0&&<span style={{color:"#c084fc"}}>🏠 +{calcHearthDust(meta.cats).reduce((s,h)=>s+h.dust,0)}✦/run</span>}<span>Peak: <span style={{color:NERVE[rMaxF].color}}>{NERVE[rMaxF].name}</span></span>
           {(meta?.heat||0)>0&&<span style={{color:"#ef4444"}}>Heat {meta.heat}🔥</span>}
         </div>
@@ -6242,19 +6525,34 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         </div>}
         {meta&&meta.stats.w===1&&<>
           <div style={{position:"fixed",top:0,left:0,right:0,height:"100vh",pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
-            {Array.from({length:20}).map((_,i)=><div key={i} style={{position:"absolute",top:-10,left:`${5+i*4.5}%`,width:4,height:4,borderRadius:"50%",
-              background:["#fbbf24","#c084fc","#4ade80","#67e8f9","#fef08a"][i%5],
-              boxShadow:`0 0 6px ${["#fbbf24","#c084fc","#4ade80","#67e8f9","#fef08a"][i%5]}88`,
-              animation:`starFall ${2+i*0.3}s ease-in ${0.5+i*0.15}s both`}}/>)}
+            {Array.from({length:24}).map((_,i)=><div key={i} style={{position:"absolute",top:-10,left:`${4+i*4}%`,width:5,height:5,borderRadius:"50%",
+              background:["#fbbf24","#f59e0b","#fef08a","#c084fc"][i%4],
+              boxShadow:`0 0 8px ${["#fbbf24","#f59e0b","#fef08a","#c084fc"][i%4]}88`,
+              animation:`starFall ${1.8+i*0.25}s ease-in ${0.3+i*0.12}s both`}}/>)}
           </div>
-          <div style={{padding:"12px 20px",borderRadius:12,background:"linear-gradient(135deg,#4ade8008,#fbbf2408)",border:"1px solid #4ade8033",animation:"comboBurst .8s ease-out",textAlign:"center",maxWidth:340}}>
-            <div style={{fontSize:14,color:"#4ade80",fontWeight:900,letterSpacing:4,marginBottom:6,animation:"tierReveal 1s ease-out"}}>🌅 YOU UNLOCKED THE FULL GAME</div>
-            <div style={{fontSize:12,color:"#4ade80cc",fontFamily:"system-ui",lineHeight:1.6,marginBottom:8}}>Your next colony faces <b>5 nights</b> of darkness. New events. New bosses. New systems. Everything you survived in 3 nights was the prelude.</div>
-            <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",fontSize:10,fontFamily:"system-ui"}}>
-              <span style={{color:"#fbbf24",padding:"3px 8px",borderRadius:5,background:"#fbbf2411"}}>✦ Upgrades</span>
-              <span style={{color:"#c084fc",padding:"3px 8px",borderRadius:5,background:"#c084fc11"}}>🏠 The Hearth</span>
-              <span style={{color:"#ef4444",padding:"3px 8px",borderRadius:5,background:"#ef444411"}}>🔥 Heat</span>
-            </div>
+          <div style={{fontSize:48,animation:"float 3s ease-in-out infinite",filter:"drop-shadow(0 0 30px #fbbf2444)",marginBottom:4}}>🔥</div>
+          <div style={{fontSize:18,fontWeight:900,letterSpacing:8,fontFamily:"'Cinzel',serif",background:"linear-gradient(135deg,#f59e0b,#fef08a)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",animation:"comboBurst .8s ease-out"}}>THE FOUNDING</div>
+          <div style={{padding:"16px 24px",borderRadius:14,background:"linear-gradient(145deg,#fbbf2408,#c084fc06)",border:"1.5px solid #fbbf2433",textAlign:"center",maxWidth:380,animation:"fadeIn 1.5s ease-out .5s both",boxShadow:"0 0 40px #fbbf2418"}}>
+            <div style={{fontSize:13,color:"#fbbf24cc",fontFamily:"system-ui",lineHeight:1.8,marginBottom:10}}>A colony survived three nights. For the first time since the eighth colony fell, someone kept a fire burning through the dark. Two names go into the Hearth. Not as memories. As <b style={{color:"#fef08a"}}>founders</b>. Everything that comes after carries their blood.</div>
+            <div style={{fontSize:11,color:"#c084fcbb",fontFamily:"system-ui",fontStyle:"italic",lineHeight:1.6}}>The dark gave you three nights to see if you were worth five. You were.</div>
+          </div>
+          <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",fontSize:10,fontFamily:"system-ui",animation:"fadeIn 2s ease-out 1s both"}}>
+            <span style={{color:"#fbbf24",padding:"4px 10px",borderRadius:6,background:"#fbbf2411",border:"1px solid #fbbf2422"}}>5 Nights Unlocked</span>
+            <span style={{color:"#c084fc",padding:"4px 10px",borderRadius:6,background:"#c084fc11",border:"1px solid #c084fc22"}}>🏠 The Hearth</span>
+            <span style={{color:"#4ade80",padding:"4px 10px",borderRadius:6,background:"#4ade8011",border:"1px solid #4ade8022"}}>✦ Upgrades</span>
+          </div>
+        </>}
+        {meta&&meta.stats.w===2&&!isFirstRun&&MX>=5&&<>
+          <div style={{position:"fixed",top:0,left:0,right:0,height:"100vh",pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
+            {Array.from({length:30}).map((_,i)=><div key={i} style={{position:"absolute",top:-10,left:`${3+i*3.2}%`,width:5,height:5,borderRadius:"50%",
+              background:["#fbbf24","#f59e0b","#fef08a"][i%3],
+              boxShadow:`0 0 8px ${["#fbbf24","#f59e0b","#fef08a"][i%3]}aa`,
+              animation:`starFall ${1.5+i*0.2}s ease-in ${0.3+i*0.1}s both`}}/>)}
+          </div>
+          <div style={{padding:"16px 24px",borderRadius:14,background:"linear-gradient(145deg,#fbbf2410,#f59e0b08)",border:"2px solid #fbbf2444",animation:"comboBurst .8s ease-out",textAlign:"center",maxWidth:380,boxShadow:"0 0 40px #fbbf2422"}}>
+            <div style={{fontSize:18,fontWeight:900,letterSpacing:6,marginBottom:8,fontFamily:"'Cinzel',serif",background:"linear-gradient(135deg,#f59e0b,#fef08a)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>THE DARK LOST</div>
+            <div style={{fontSize:13,color:"#fbbf24cc",fontFamily:"system-ui",lineHeight:1.7,marginBottom:10}}>Five nights. Every test. Every boss. Every pattern the dark has run on eight colonies. And you walked through all of it. The Hearth burns with {meta.cats.length} name{meta.cats.length!==1?"s":""}. The system doesn't know what to do with that.</div>
+            <div style={{fontSize:11,color:"#fbbf2488",fontFamily:"system-ui",fontStyle:"italic"}}>Heat is unlocked. The dark adapts. So can you.</div>
           </div>
         </>}
         <button onClick={()=>setVictoryStep(3)} style={{...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)","#0a0a1a"),padding:"10px 36px",fontSize:14,marginTop:8}}>Continue</button>
@@ -6267,13 +6565,16 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
           const availCands=needSex?cands.filter(c=>c.sex===needSex):cands;
           const pickedIds=picked.map(p=>p.id||p.name);
           const noMate=needSex&&availCands.filter(c=>!pickedIds.includes(c.id)&&!pickedIds.includes(c.name)).length===0;
+          const isFirstHearthSave=!meta||meta.cats.length===0;
           return(<div style={{width:"100%",textAlign:"center"}}>
+          {isFirstHearthSave&&picked.length===0&&<div style={{fontSize:11,color:"#c084fcbb",fontFamily:"system-ui",fontStyle:"italic",lineHeight:1.6,marginBottom:10,maxWidth:360,margin:"0 auto 10px",padding:"10px 14px",borderRadius:10,background:"#c084fc06",border:"1px solid #c084fc15"}}>The Hearth has been dark since the eighth colony fell. Two names will relight it. Not as memories. As founders. Their blood flows through every colony that comes after.</div>}
           <div style={{fontSize:12,color:"#fbbf24",letterSpacing:3,marginBottom:4,fontFamily:"'Cinzel',serif"}}>
-            {picked.length===0?"CHOOSE THE FIRST SOUL":"CHOOSE THEIR MATE"}
+            {picked.length===0?(isFirstHearthSave?"THE FOUNDERS":"CHOOSE THE FIRST SOUL"):"CHOOSE THEIR MATE"}
           </div>
           <div style={{fontSize:10,color:"#c084fcbb",fontFamily:"system-ui",marginBottom:6}}>
-            {picked.length===0?"A male and female carry the story to the Hearth. Their descendants begin the next colony."
-            :<><span style={{color:"#fbbf24",fontWeight:700}}>{getFullName(picked[0])}</span>{` (${picked[0].sex==="M"?"♂":"♀"}) will be remembered. Now pick a ${needSex==="M"?"male":"female"} companion.`}</>}
+            {picked.length===0?(isFirstHearthSave?"Choose carefully. This is the beginning of everything."
+            :"A male and female carry the story to the Hearth. Their descendants begin the next colony.")
+            :<><span style={{color:"#fbbf24",fontWeight:700}}>{getFullName(picked[0])}</span>{` (${picked[0].sex==="M"?"♂":"♀"}) ${isFirstHearthSave?"is the first Founder":"will be remembered"}. Now choose ${isFirstHearthSave?"the second Founder":needSex==="M"?"a male companion":"a female companion"}.`}</>}
           </div>
           {noMate&&<div style={{fontSize:11,color:"#fb923c",fontFamily:"system-ui",marginBottom:8}}>No {needSex==="M"?"males":"females"} survived. {picked[0].name.split(" ")[0]} goes alone.
             <button onClick={async()=>{
@@ -6489,8 +6790,8 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
                 }));});
                 results.push({text:`${a.name.split(" ")[0]} and ${b.name.split(" ")[0]} made peace by the fire.`,color:"#c084fc",icon:"🕊️"});
                 a._grudgeResolved=true;b._grudgeResolved=true;assignEpithet(a);assignEpithet(b);
-                if(a._newEpithet){delete a._newEpithet;toast("🏷️",`${a.name.split(" ")[0]} earned: "${a.epithet}"`,BREEDS[a.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
-                if(b._newEpithet){delete b._newEpithet;toast("🏷️",`${b.name.split(" ")[0]} earned: "${b.epithet}"`,BREEDS[b.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
+                if(a._newEpithet){delete a._newEpithet;toast("🏷️",epithetToastMsg(a),BREEDS[a.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
+                if(b._newEpithet){delete b._newEpithet;toast("🏷️",epithetToastMsg(b),BREEDS[b.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
                 [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===a.id?{...x,epithet:a.epithet}:x.id===b.id?{...x,epithet:b.epithet}:x));});
                 Audio.denBond();
               }else if(canBond&&!isGrudged&&Math.random()<bondChance){
@@ -6499,8 +6800,8 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
                 }));});
                 results.push({text:`${a.name.split(" ")[0]} and ${b.name.split(" ")[0]} bonded under the stars. 💕`,color:"#f472b6",icon:"💕"});
                 a.bondedTo=b.id;b.bondedTo=a.id;assignEpithet(a);assignEpithet(b);
-                if(a._newEpithet){delete a._newEpithet;toast("🏷️",`${a.name.split(" ")[0]} earned: "${a.epithet}"`,BREEDS[a.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
-                if(b._newEpithet){delete b._newEpithet;toast("🏷️",`${b.name.split(" ")[0]} earned: "${b.epithet}"`,BREEDS[b.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
+                if(a._newEpithet){delete a._newEpithet;toast("🏷️",epithetToastMsg(a),BREEDS[a.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
+                if(b._newEpithet){delete b._newEpithet;toast("🏷️",epithetToastMsg(b),BREEDS[b.breed]?.color||"#fbbf24",2500);Audio.epithetEarned();}
                 [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===a.id?{...x,epithet:a.epithet,bondedTo:b.id}:x.id===b.id?{...x,epithet:b.epithet,bondedTo:a.id}:x));});
                 Audio.denBond();
               }else{
@@ -7635,10 +7936,18 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
             </div>:null;})()}
             {/* Relationships & status */}
             <div style={{display:"flex",flexDirection:"column",gap:4,marginTop:8}}>
-              {traitTip.bondedTo&&<div style={{fontSize:11,color:"#f472b6",textAlign:"center",fontFamily:"system-ui"}}>💕 Bonded. ×1.5 mult, ×1.25 for second pair</div>}
+              {traitTip.epithet&&(()=>{
+                const epDef=traitTip.epithetKey?Object.values(EPITHETS).find(e=>e.key===traitTip.epithetKey):null;
+                return <div style={{fontSize:11,color:"#fbbf24",textAlign:"center",fontFamily:"system-ui",lineHeight:1.4}}>
+                  🏷️ <b>"{traitTip.epithet}"</b>{epDef?.desc?<span style={{color:"#fbbf24aa"}}> — {epDef.desc}</span>:""}
+                </div>;
+              })()}
+              {traitTip.bondedTo&&<div style={{fontSize:11,color:"#f472b6",textAlign:"center",fontFamily:"system-ui"}}>💕 Bonded. ×1.5 mult{traitTip.epithetKey==="bonded"?" (×1.75 with epithet)":""}, ×1.25 for second pair</div>}
               {(traitTip.grudgedWith||[]).length>0&&<div style={{fontSize:11,color:"#fb923c",textAlign:"center",fontFamily:"system-ui"}}>⚡ {(traitTip.grudgedWith||[]).length} Grudge{(traitTip.grudgedWith||[]).length>1?"s":""}. 75% tension / 25% prove per pair</div>}
+              {traitTip.epithetKey==="grudgeResolved"&&<div style={{fontSize:11,color:"#4ade80",textAlign:"center",fontFamily:"system-ui"}}>🕊️ Immune to future grudges</div>}
               {traitTip.scarred&&!traitTip.injured&&<div style={{fontSize:11,color:"#fbbf24",textAlign:"center",fontFamily:"system-ui"}}>⚔ Battle-Hardened. ×1.25 mult</div>}
               {traitTip.injured&&<div style={{fontSize:11,color:"#ef4444",textAlign:"center",fontFamily:"system-ui"}}>🩹 Injured. Half power, less mult (heals in {traitTip.injuryTimer||1})</div>}
+              {traitTip._hearthChild&&<div style={{fontSize:11,color:"#fbbf24aa",textAlign:"center",fontFamily:"system-ui"}}>🔥 Hearth Legend. Cannot be saved back.</div>}
             </div>
             {/* Story timeline */}
             {(traitTip.story||[]).length>0&&<div style={{marginTop:10,padding:"8px 12px",borderRadius:8,background:"#ffffff04",border:"1px solid #ffffff08"}}>
@@ -7924,7 +8233,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         </details>
       </div>
       {showAbandon&&<div style={{position:"fixed",top:8,left:8,zIndex:200,display:"flex",gap:4,alignItems:"center"}}>
-        <span style={{fontSize:10,color:"#ffffff55",fontFamily:"system-ui",marginRight:2}}>v0.61</span>
+        <span style={{fontSize:10,color:"#ffffff55",fontFamily:"system-ui",marginRight:2}}>v0.65</span>
         {abandonConfirm?<>
           <button onClick={()=>{setAbandonConfirm(false);setPh("title");setTab("play");}} style={{background:"#ef444433",border:"1px solid #ef4444",borderRadius:6,fontSize:10,cursor:"pointer",padding:"4px 10px",color:"#ef4444",fontFamily:"system-ui",animation:"fadeIn .2s ease-out"}}>Abandon Run</button>
           <button onClick={()=>setAbandonConfirm(false)} style={{background:"none",border:"1px solid #ffffff22",borderRadius:6,fontSize:10,cursor:"pointer",padding:"4px 8px",color:"#888",fontFamily:"system-ui"}}>✕</button>
