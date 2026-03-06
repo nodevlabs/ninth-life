@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Ninth Life</title>
   <meta name="description" content="A colony deckbuilder. Cats are cards. Seasons are suits. Survive the dark.">
-  <meta name="theme-color" content="#0a0a1a">
+  <meta name="theme-color" content="#0a0a14">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0a0a1a; overflow-x: hidden; }
+    body { background: #0a0a14; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+    #root { min-height: 100vh; min-height: 100dvh; }
+    /* Loading screen — replaced when React mounts into #root */
     #loading {
       position: fixed; inset: 0; z-index: 9999;
-      background: #0a0a1a;
+      background: #0a0a14;
       display: flex; flex-direction: column;
       align-items: center; justify-content: flex-start;
       transition: opacity 0.8s ease-out;
@@ -60,6 +63,7 @@
   </style>
 </head>
 <body>
+  <!-- Loading screen — sits on top, fades when game renders -->
   <div id="loading">
     <img src="loading.jpg" alt="">
     <div class="overlay">
@@ -69,19 +73,20 @@
     </div>
   </div>
 
+  <!-- React mount point — game.jsx mounts here and replaces inner content -->
   <div id="root"></div>
 
-  <!-- KEEP YOUR EXISTING SCRIPT TAGS BELOW -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- React 18 -->
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <!-- Tone.js (audio engine) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-  <script type="text/babel" data-type="module">
-    import NinthLife from "./game.jsx";
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<NinthLife />);
-  </script>
+  <!-- Babel (so the browser can read JSX) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <!-- Your game (includes mount) -->
+  <script type="text/babel" src="game.jsx"></script>
 
+  <!-- Fade out loading screen once game has rendered -->
   <script>
     (function() {
       function hide() {
