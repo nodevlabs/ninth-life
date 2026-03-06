@@ -172,23 +172,21 @@ function getGrudges(cats){
 const PLAIN={name:"Plain",icon:"",desc:"No special ability yet",tier:"plain"};
 const TRAIT_DETAIL={
   Plain:"No special ability yet. This cat can earn a trait through den events, breeding, or the shop.",
-  Stubborn:"Won't back down. Adds 3 mult, or 6 mult if your last hand fell short. Discarding gives +1 Nerve.",
-
-  Wild:"A cat between seasons. Counts as every season at once, making it easy to form matching hands. Fits into any combo.",
-  Stray:"The outsider who brings everyone together. Gains 3 mult per unique season in the hand. All 4 seasons: +12 mult. Discarding draws +1 card.",
-  Loyal:"Stronger with familiar faces. Adds 2 mult, or 4 mult when played alongside the same cats as your last hand. Discarding inspires +1 mult to all cats currently in hand.",
-  Devoted:"Loyal to their bonded mate. Adds 4 mult when their mate is in the same hand. Discarding this cat gives their mate extra power.",
-  Scrapper:"Tough and battle-tested. Adds 3 mult, or 5 mult if scarred. Discarding this cat boosts your Nerve.",
-  Cursed:"A dark presence. Normally subtracts 3 mult. But if this cat is the only one of their season in the hand, adds 8 mult instead. Discarding purges the curse and gives +1 Nerve.",
-  Scavenger:"A practical survivor. Gains 1 mult per ration you're holding (max +5). Discarding earns +2 rations.",
-
-  Guardian:"Protector of the wounded. Gains 2 mult for each injured or scarred ally in the hand. Discarding this cat heals one injured cat.",
-  Echo:"Scores twice. The second time at half power. One of the strongest traits in the game.",
-  Chimera:"A cat that belongs to all four seasons at once. If 3 or more cats are played together, the entire hand is multiplied by 1.5.",
-  Alpha:"The leader of the pack. If this cat has the highest power in the hand, the entire hand is multiplied by 1.3.",
-  Nocturnal:"Feeds on desperation. Gains 2 mult for each level of Nerve your colony has. At maximum Nerve, that's 18 extra mult. Discarding gives +2 Nerve.",
-  Eternal:"A living myth. Multiplies the hand by 3 and scores twice at full power. The rarest trait in the game.",
-  Phoenix:"Burns brightest near death. Multiplies by 2.5, or by 4 if scarred. If this cat dies, it revives once and becomes Eternal.",
+  Wild:"A cat between seasons. Counts as every season at once, so they fit into any hand you're building. The ultimate glue cat.",
+  Stubborn:"Won't back down. Adds 3 mult when played, but if your last hand failed to clear, they dig in harder for 6 mult instead. Discard to gain +1 Nerve.",
+  Stray:"The outsider who brings everyone together. Gains 3 mult per unique season among the cats you play. Play all four seasons together and that's +12 mult. Discard to draw an extra card.",
+  Loyal:"Bonds with routine. Adds 2 mult normally, but play the exact same cats as your last play and they contribute 4 mult instead. Discard to inspire +1 mult across your whole hand.",
+  Devoted:"Heart belongs to their mate. Adds 4 mult when their bonded partner is played in the same hand. Discard to give their mate +1 Power. Strongest when you play the pair together.",
+  Scavenger:"A practical survivor. Adds 1 mult for every ration you're carrying, up to +5. The richer you are, the harder they fight. Discard to earn +2 rations.",
+  Scrapper:"Tough and battle-hardened. Adds 3 mult, or 5 mult if they carry a scar. Pain makes them stronger. Discard to gain +1 Nerve.",
+  Cursed:"A dark presence. Normally costs you 3 mult. But play them as the only cat of their season and the curse inverts for +8 mult. Isolate them for power. Discard to gain +1 Nerve.",
+  Guardian:"Protector of the wounded. Gains 2 mult for every injured or scarred cat you play alongside them. The more your colony bleeds, the harder they fight. Discard to heal one injured cat.",
+  Chimera:"Belongs to all four seasons at once. When played with 3 or more cats, multiplies your entire hand by 1.5. A rare shape-shifter.",
+  Alpha:"The leader of the pack. If this cat has the highest power among the cats you play, multiplies everything by 1.3. Keep them strong and they carry the colony.",
+  Echo:"Scores twice. The second time at half power. One of the strongest traits in the game. Every bonus this cat earns happens twice.",
+  Nocturnal:"Feeds on desperation. Gains 2 mult for every level of Nerve your colony has built up. At max Nerve, that's +36 mult from one cat. Discard to gain +2 Nerve.",
+  Eternal:"A living legend. Multiplies the entire hand by 3 and scores twice at full power. The rarest and most powerful trait. Changes everything.",
+  Phoenix:"Burns brightest near death. Multiplies by 2.5, or by 4 if scarred. If this cat falls in the den, they rise once as Eternal. Death is not the end.",
 };
 const DRAFT_VOICE={
   // Trait-based (priority)
@@ -231,21 +229,21 @@ const TRAITS=[
   {name:"Wild",icon:"🌀",desc:"Counts as any season",tier:"common"},
   
   
-  {name:"Devoted",icon:"🫀",desc:"+4 mult if mate in hand. Discard: mate +1 Power",tier:"common"},
+  {name:"Devoted",icon:"🫀",desc:"+4 mult when played with mate. Discard: mate +1 Power",tier:"common"},
   {name:"Stubborn",icon:"🪨",desc:"+3 mult. Lost last hand: +6 mult. Discard: +1 Nerve",tier:"common"},
-  {name:"Stray",icon:"🐈",desc:"+3 mult per unique season in hand. Discard: +1 draw",tier:"common"},
-  {name:"Loyal",icon:"🫂",desc:"+2 mult. Same cats as last hand: +4. Discard: +1 mult all",tier:"common"},
+  {name:"Stray",icon:"🐈",desc:"+3 mult per unique season played. Discard: +1 draw",tier:"common"},
+  {name:"Loyal",icon:"🫂",desc:"+2 mult. Repeat same cats: +4. Discard: +1 mult all",tier:"common"},
   {name:"Scavenger",icon:"🌾",desc:"+1 mult per ration held (max +5). Discard: +2 rations",tier:"common"},
   // --- RARE (B tier): solid contributors with conditions ---
   {name:"Scrapper",icon:"🥊",desc:"+3 mult, +5 if scarred. Discard: +1 Nerve",tier:"rare"},
-  {name:"Cursed",icon:"💀",desc:"−3 mult. Only season in hand: +8. Discard: +1 Nerve",tier:"rare_neg"},
+  {name:"Cursed",icon:"💀",desc:"−3 mult. Alone in their season: +8. Discard: +1 Nerve",tier:"rare_neg"},
   
   
-  {name:"Guardian",icon:"🛡️",desc:"+2 mult per hurt ally. Discard: heal 1 injured",tier:"rare"},
+  {name:"Guardian",icon:"🛡️",desc:"+2 mult per injured or scarred cat played. Discard: heal 1",tier:"rare"},
   // --- LEGENDARY (A tier): build-defining ---
   {name:"Echo",icon:"🔁",desc:"Scores twice, half power on second",tier:"legendary"},
-  {name:"Chimera",icon:"🧬",desc:"Counts as all seasons. 3+ cats: ×1.5",tier:"rare"},
-  {name:"Alpha",icon:"🐺",desc:"×1.3 if highest power in hand",tier:"rare"},
+  {name:"Chimera",icon:"🧬",desc:"Counts as all seasons. Play 3+ cats: ×1.5",tier:"rare"},
+  {name:"Alpha",icon:"🐺",desc:"×1.3 if highest power among played cats",tier:"rare"},
   {name:"Nocturnal",icon:"🌙",desc:"+2 mult per Nerve level. Discard: +2 Nerve",tier:"legendary"},
   // --- MYTHIC (S tier): run-defining ---
   {name:"Eternal",icon:"✨",desc:"×3 mult, scores twice at full power",tier:"mythic"},
@@ -341,7 +339,7 @@ const HT=[
   {name:"Kin",base:{c:40,m:4},ex:"2 same season",echo:"together"},
   {name:"Two Kin",base:{c:80,m:4},ex:"2 of one season + 2 of another",echo:"balanced"},
   {name:"Clowder",base:{c:110,m:6},ex:"3 of the same season",echo:"pack"},
-  {name:"Kindred",base:{c:110,m:6},ex:"3+ sharing a trait",hidden:true,echo:"chosen family"},
+  {name:"Kindred",base:{c:110,m:6},ex:"3+ cats with the same trait",hidden:true,echo:"chosen family"},
   {name:"Full Den",base:{c:130,m:6},ex:"3 of one season + 2 of another",echo:"home"},
   {name:"Colony",base:{c:180,m:9},ex:"4 of the same season",echo:"unified"},
   {name:"Litter",base:{c:260,m:14},ex:"5 of the same season",echo:"one blood"},
@@ -401,7 +399,7 @@ const FAMS=[
   {id:"f21",name:"Pack Howl",icon:"🐺",desc:"Clowder ×1.3, Colony ×1.5",eff:()=>({}),htBonus:{Clowder:{xMult:1.3},Colony:{xMult:1.5}}},
   {id:"f22",name:"Harmony",icon:"🎵",desc:"Two Kin ×1.7, Full Den ×1.6",eff:()=>({}),htBonus:{"Two Kin":{xMult:1.7},"Full Den":{xMult:1.6}}},
   {id:"f23",name:"Lone Wolf",icon:"🌑",desc:"Stray ×2.5",eff:()=>({}),htBonus:{Stray:{xMult:2.5}}},
-  {id:"f24",name:"Bench Coach",icon:"🪑",desc:"+2M per benched cat",eff:(c,ctx)=>({mult:(ctx?.benchSize||0)*2})},
+  {id:"f24",name:"Bench Coach",icon:"🪑",desc:"+2M per unplayed cat",eff:(c,ctx)=>({mult:(ctx?.benchSize||0)*2})},
   {id:"f25",name:"Soul Bond",icon:"💜",desc:"Kindred ×1.6",eff:()=>({}),htBonus:{Kindred:{xMult:1.6}}},
 ];
 
@@ -455,7 +453,7 @@ const UPGRADES=[
   {id:"u_c",name:"Bloodline",icon:"📿",desc:"Companion +2 power, drafted cats +1 power",cost:100,b:{heirloom:2,draftPower:1},max:1,tier:3},
   {id:"u_scr",name:"Scar Memory",icon:"🩹",desc:"Scarred cats gain +2 mult (stacks with trait)",cost:100,b:{scarMult:2},max:1,tier:3},
   {id:"u_grd",name:"Grudge Tempering",icon:"⚡",desc:"Grudge penalty reduced: −2 mult → −1 mult",cost:110,b:{grudgeWisdom:1},max:1,tier:3},
-  {id:"u_bench",name:"Deep Bench",icon:"🪑",desc:"Benched cats give +50% passive bonus",cost:90,b:{doubleBench:1},max:1,tier:3},
+  {id:"u_bench",name:"Deep Bench",icon:"🪑",desc:"Unplayed cats give +50% passive bonus",cost:90,b:{doubleBench:1},max:1,tier:3},
   {id:"u_combo",name:"Power Resonance",icon:"💥",desc:"Power combos give +50% bonus",cost:110,b:{comboBoost:0.5},max:1,tier:3},
   // --- TIER 4: ENDGAME (unlocks after 6 purchases) ---
   {id:"u_o",name:"What The Stars Owe",icon:"🔍",desc:"+50% Stardust from the Hearth",cost:120,b:{dustBonus:.5},max:1,tier:4},
@@ -1965,11 +1963,11 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
     const bm=Math.round(combo.bonus.m*resMult);
     chips+=bc;mult+=bm;
     bd.push({label:`⚡ ${combo.name}${resonance?" ✦":""}`,chips:bc,mult:bm,type:"combo",catIdxs:comboIdxs});
-    if(resonance)bd.push({label:"✦ Resonance — same season amplifies",chips:0,mult:0,type:"resonance"});
+    if(resonance)bd.push({label:"✦ Resonance — season match bonus",chips:0,mult:0,type:"resonance"});
   }
   const btFxAll=ctx.bossTraitFx||[];
   if(btFxAll.length>0){btFxAll.forEach(bt=>{
-    if(bt.fx.frozen)bd.push({label:`🧊 Frozen: first 2 cats halved`,chips:0,mult:0,type:"boss_trait"});
+    if(bt.fx.frozen)bd.push({label:`🧊 Frozen: first 2 cats score at half power`,chips:0,mult:0,type:"boss_trait"});
     if(bt.fx.enragedMult)bd.push({label:`🔥 Enraged: all cats +${bt.fx.enragedMult}M`,chips:0,mult:0,type:"boss_trait"});
   });}
 
@@ -2130,8 +2128,8 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
       else if(catHas(c,"Nocturnal")){bm+=Math.floor(fLvl/2)*benchMultiplier;}
       else{bc+=c.power*benchMultiplier;} // Default: power as chips (doubled with Deep Bench)
     });
-    if(bc>0){chips+=bc;bd.push({label:`🪑 Bench +${bc}C`,chips:bc,mult:0,type:"bench"});}
-    if(bm>0){mult+=bm;bd.push({label:`🪑 Bench +${bm}M`,chips:0,mult:bm,type:"bench"});}
+    if(bc>0){chips+=bc;bd.push({label:`🪑 Unplayed +${bc}C`,chips:bc,mult:0,type:"bench"});}
+    if(bm>0){mult+=bm;bd.push({label:`🪑 Unplayed +${bm}M`,chips:0,mult:bm,type:"bench"});}
   }
 
   // ★ WARD HAND-TYPE BONUSES — some wards boost specific hand types
@@ -3613,7 +3611,7 @@ function NinthLife(){
       }
       else if(catHas(cat,"Stubborn")){nerveDelta++;toast("🪨","Stubborn discarded: +1 Nerve","#9ca3af");}
       else if(catHas(cat,"Stray")){extraDraw.push(draw.length>0?draw[0]:gC({trait:PLAIN}));toast("🐈","Stray wandered: +1 draw","#67e8f9");}
-      else if(catHas(cat,"Loyal")){toast("🫂","Loyal inspires: +1M to all in hand","#f472b6");}
+      else if(catHas(cat,"Loyal")){toast("🫂","Loyal inspires: +1M to all drawn cats","#f472b6");}
       else if(catHas(cat,"Scavenger")){goldDelta+=2;toast("🌾","Scavenger discarded: +2🐟","#4ade80");}
     });
     // Apply power-ups and heals to all piles
@@ -5903,7 +5901,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         </>);
       })()}
       <div style={{display:"flex",flexDirection:"column",gap:5,background:"#ffffff06",borderRadius:12,padding:"14px 22px",border:"1px solid #ffffff0a",minWidth:260}}>
-        <div onClick={()=>toast("📊","Performance scales rations earned. Survived=2🐟, Comfortable=3, Crushing=4, Dominating=5-6, Legendary=6. Boss blinds add +2🐟.","#fbbf24")} style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11,cursor:"help"}}><span style={{color:"#888"}}>Performance</span><span style={{color:pctClear>=300?"#c084fc":pctClear>=200?"#fbbf24":pctClear>=150?"#4ade80":"#888",fontWeight:700}}>{pctClear>=300?"Legendary":pctClear>=200?"Dominating":pctClear>=150?"Crushing":pctClear>=120?"Comfortable":"Survived"} ({pctClear}%)</span></div>
+        <div onClick={()=>toast("📊","The higher you score above the target, the more rations you earn. Survived: 2🐟, Comfortable: 3🐟, Crushing: 4🐟, Dominating: 5-6🐟, Legendary: 6🐟. Boss rounds give +2🐟 extra.","#fbbf24")} style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11,cursor:"help"}}><span style={{color:"#888"}}>Performance</span><span style={{color:pctClear>=300?"#c084fc":pctClear>=200?"#fbbf24":pctClear>=150?"#4ade80":"#888",fontWeight:700}}>{pctClear>=300?"Legendary":pctClear>=200?"Dominating":pctClear>=150?"Crushing":pctClear>=120?"Comfortable":"Survived"} ({pctClear}%)</span></div>
         {o.uh>0&&<div style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#888"}}>{o.uh} Unused Hand{o.uh>1?"s":""}</span><span style={{color:"#3b82f6"}}>saved</span></div>}
         <div style={{borderTop:"1px solid #ffffff0a",paddingTop:4,display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#888"}}>Rations Earned</span><span style={{color:"#fbbf24",fontWeight:700}}>+{o.gR} 🐟</span></div>
         {o.interest>0&&<div style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#4ade80"}}>Stores (interest)</span><span style={{color:"#4ade80",fontWeight:700}}>+{o.interest} 🐟</span></div>}
@@ -7690,7 +7688,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         const bonds=selCatsP.filter(c=>c.bondedTo&&selCatsP.find(x=>x.id===c.bondedTo));
         const grudges=selCatsP.filter(c=>(c.grudgedWith||[]).some(gid=>selCatsP.find(x=>x.id===gid)));
         return(<div onClick={()=>{
-          const htDescs={Stray:"1 cat alone",Kin:"2 same season",["Two Kin"]:"2+2 seasons",Clowder:"3 same season",Colony:"4 same season",Litter:"5 same season",["Full Den"]:"3 of one + 2 of another",Kindred:"3+ sharing a trait"};
+          const htDescs={Stray:"1 cat played alone",Kin:"2 cats, same season",["Two Kin"]:"2 of one season + 2 of another",Clowder:"3 cats, same season",Colony:"4 cats, same season",Litter:"5 cats, same season",["Full Den"]:"3 of one season + 2 of another",Kindred:"3+ cats with the same trait"};
           toast("🃏",`${evald.name}: ${htDescs[evald.name]||""}${runCount>=1?`. Base ${baseC}C × ${baseM}M = ${baseC*baseM}.`:""}`,"#fbbf24");
         }} style={{textAlign:"center",padding:"2px 0",zIndex:1,animation:"fadeIn .15s ease-out",cursor:"help"}}>
           <span style={{fontSize:13,fontWeight:700,color:"#fbbf24",fontFamily:"'Cinzel',serif",letterSpacing:2}}>{evald.name}{htLv>1?` Lv${htLv}`:""}</span>
