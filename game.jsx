@@ -3589,8 +3589,10 @@ function NinthLife(){
     },800);
   }
 
+  const MAX_DISCARD=3;
   function discardH(){
     if(!sel.size||dLeft<=0||cfx.noDisc)return;
+    if(sel.size>MAX_DISCARD){toast("♻️",`Max ${MAX_DISCARD} cards per discard`,"#ef4444");return;}
     if(actionLock.current)return;actionLock.current=true;requestAnimationFrame(()=>{actionLock.current=false;});
     const d=[...sel].map(i=>hand[i]).filter(Boolean);const rem=hand.filter((_,i)=>!sel.has(i));
     let extraDraw=[];let healIds=[];let powerUps={};let nerveDelta=0;let goldDelta=0;let handDelta=0;let discDelta=0;
@@ -7716,8 +7718,8 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
           })():null}
         </div>
         <div style={{textAlign:"center"}}>
-          <button onClick={discardH} disabled={!sel.size||dLeft<=0||ph!=="playing"||cfx.noDisc} style={{...BTN(sel.size&&dLeft>0&&ph==="playing"&&!cfx.noDisc?"#1a1a2e":"#111",sel.size&&dLeft>0&&ph==="playing"&&!cfx.noDisc?"#ef4444":"#444",sel.size>0&&dLeft>0&&ph==="playing"&&!cfx.noDisc),border:`1px solid ${sel.size&&dLeft>0&&!cfx.noDisc?"#ef444444":"#222"}`,minWidth:mob?56:60,padding:mob?"10px 10px":"8px 14px"}}>Discard{cfx.noDisc?" 🚫":""}</button>
-          <div onClick={()=>toast("♻️","Discard: swap selected cats for new draws. Free! Use to fish for season matches.","#ef4444")} style={{fontSize:10,color:cfx.noDisc?"#ef4444bb":dLeft<=0?"#ef4444":"#888",marginTop:2,fontFamily:"system-ui",cursor:"help"}}>{cfx.noDisc?"Disabled":`${dLeft} left`}</div>
+          <button onClick={discardH} disabled={!sel.size||sel.size>MAX_DISCARD||dLeft<=0||ph!=="playing"||cfx.noDisc} style={{...BTN(sel.size&&sel.size<=MAX_DISCARD&&dLeft>0&&ph==="playing"&&!cfx.noDisc?"#1a1a2e":"#111",sel.size&&sel.size<=MAX_DISCARD&&dLeft>0&&ph==="playing"&&!cfx.noDisc?"#ef4444":"#444",sel.size>0&&sel.size<=MAX_DISCARD&&dLeft>0&&ph==="playing"&&!cfx.noDisc),border:`1px solid ${sel.size&&sel.size<=MAX_DISCARD&&dLeft>0&&!cfx.noDisc?"#ef444444":"#222"}`,minWidth:mob?56:60,padding:mob?"10px 10px":"8px 14px"}}>Discard{cfx.noDisc?" 🚫":""}</button>
+          <div onClick={()=>toast("♻️",`Discard: swap up to ${MAX_DISCARD} selected cats for new draws. Free!`,"#ef4444")} style={{fontSize:10,color:cfx.noDisc?"#ef4444bb":sel.size>MAX_DISCARD?"#ef4444":dLeft<=0?"#ef4444":"#888",marginTop:2,fontFamily:"system-ui",cursor:"help"}}>{cfx.noDisc?"Disabled":sel.size>MAX_DISCARD?`Max ${MAX_DISCARD}`:`${dLeft} left`}</div>
           {sel.size>0&&dLeft>0&&!cfx.noDisc&&ph==="playing"&&(()=>{
             const selCats2=[...sel].map(i=>hand[i]).filter(Boolean);
             const hints=[];
