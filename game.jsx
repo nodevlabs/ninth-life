@@ -448,12 +448,12 @@ const FAMS=[
 ];
 
 const CURSES=[
-  {id:"c_shrink",name:"Cramped Cage",icon:"📦",desc:"Hand size -2",tier:1,fx:{hsMod:-2}},
+  {id:"c_shrink",name:"Cramped Cage",icon:"📦",desc:"Hand size -1",tier:1,fx:{hsMod:-1}},
   {id:"c_silence",name:"Muzzled",icon:"🤐",desc:"Wards silenced",tier:1,fx:{silence:true}},
   {id:"c_fog",name:"Fog of War",icon:"🌫️",desc:"Cards face-down",tier:1,fx:{fog:true}},
   {id:"c_exile",name:"Exile",icon:"🚫",desc:"One season exiled",tier:2,fx:{exile:true}},
   {id:"c_fragile",name:"Glass Claws",icon:"💔",desc:"No discards",tier:2,fx:{noDisc:true}},
-  {id:"c_famine",name:"Famine",icon:"🦴",desc:"No foraging, lose stores",tier:2,fx:{famine:true}},
+  {id:"c_famine",name:"Famine",icon:"🦴",desc:"No rations earned this night",tier:2,fx:{famine:true}},
   {id:"c_double",name:"Double Down",icon:"🎲",desc:"Threshold ×1.3",tier:3,fx:{tgtMult:1.3}},
 ];
 
@@ -2240,7 +2240,13 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
 
   // ★ v47: Focus removed (sim-verified: mathematically non-competitive)
 
-  return{chips:Math.max(0,chips),mult:Math.max(1,mult),total:Math.max(0,chips)*Math.max(1,mult),bd,bG,ht:type.name,combo:combo?.name||null,hasGrudgeProve};
+  // ★ v55: Reorder bd — negatives first (after hand+combo), then positives. Score only goes up after dip.
+  const negTypes=new Set(["grudge_tension","curse","boss_trait"]);
+  const bdHand=bd.filter(s=>s.type==="hand"||s.type==="combo");
+  const bdNeg=bd.filter(s=>negTypes.has(s.type)||(s.mult<0&&s.type!=="hand"&&s.type!=="combo"));
+  const bdPos=bd.filter(s=>!negTypes.has(s.type)&&!(s.mult<0&&s.type!=="hand"&&s.type!=="combo")&&s.type!=="hand"&&s.type!=="combo");
+  const bdSorted=[...bdHand,...bdNeg,...bdPos];
+  return{chips:Math.max(0,chips),mult:Math.max(1,mult),total:Math.max(0,chips)*Math.max(1,mult),bd:bdSorted,bG,ht:type.name,combo:combo?.name||null,hasGrudgeProve};
 }
 
 // ★ PROGRESSIVE UNLOCKS - features gate on meta-progress
@@ -2605,16 +2611,18 @@ function CC({cat:_cat,sel,onClick,sm,cw:_cw,dis,hl,fog,chemHint,denMode,onTraitC
       </div>
 
       {/* Status badges (top-left) — all neon color, vertical stack */}
-      {(cat.injured||cat.scarred||cat.bondedTo||(cat.grudgedWith||[]).length>0)&&
+      {(cat.injured||cat.scarred||cat.bondedTo||(cat.grudgedWith||[]).length>0||cat.parentIds?.length>0)&&
       <div style={{position:"absolute",top:sm?2:3,left:sm?2:3,zIndex:5,display:"flex",flexDirection:"column",gap:1}}>
-        {cat.injured&&<div style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
-          padding:"1px 3px",fontSize:sm?7:9,color:neon,lineHeight:1}}>{"\u271A"}</div>}
-        {!cat.injured&&cat.scarred&&<div style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
-          padding:"1px 3px",fontSize:sm?7:9,color:neon,lineHeight:1}}>{"\u2694"}</div>}
-        {cat.bondedTo&&<div style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
-          padding:"1px 3px",fontSize:sm?7:9,color:neon,lineHeight:1}}>{"\u2661"}</div>}
-        {(cat.grudgedWith||[]).length>0&&<div style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
-          padding:"1px 3px",fontSize:sm?7:9,color:neon,lineHeight:1}}>{"\u26A1"}</div>}
+        {cat.injured&&<div title="Injured: half power, −2 mult. Heals in 1-2 rounds." style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
+          padding:"1px 3px",fontSize:sm?7:9,color:"#ef4444",lineHeight:1}}>{"\u271A"}</div>}
+        {!cat.injured&&cat.scarred&&<div title="Scarred: permanent ×1.25 mult bonus on this cat." style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
+          padding:"1px 3px",fontSize:sm?7:9,color:"#fb923c",lineHeight:1}}>{"\u2694"}</div>}
+        {cat.bondedTo&&<div title="Bonded: ×1.5 mult when played with their partner." style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
+          padding:"1px 3px",fontSize:sm?7:9,color:"#f472b6",lineHeight:1}}>{"\u2661"}</div>}
+        {(cat.grudgedWith||[]).length>0&&<div title="Grudge: −2 mult when played with their rival." style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
+          padding:"1px 3px",fontSize:sm?7:9,color:"#fb923c",lineHeight:1}}>{"\u26A1"}</div>}
+        {cat.parentIds&&cat.parentIds.length>0&&<div title={`Born in the den${cat.stats?.par?" — parents: "+cat.stats.par:""}`} style={{background:"#0d1117ee",border:"1px solid "+nd,borderRadius:3,
+          padding:"1px 3px",fontSize:sm?7:9,color:"#c084fc",lineHeight:1}}>👪</div>}
       </div>}
 
       {/* Rank badge (below power) */}
@@ -2652,7 +2660,7 @@ function CC({cat:_cat,sel,onClick,sm,cw:_cw,dis,hl,fog,chemHint,denMode,onTraitC
             fontWeight:700,color:neon,letterSpacing:xs?0:(sm?(fn.length>6?0:1):(fn.length>7?1:3)),
             textShadow:"0 0 6px "+ng,
             textTransform:"uppercase",fontFamily:"'Cinzel',serif",
-            whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.2}}>{fn}<span style={{fontSize:xs?5:(sm?7:9),fontWeight:400,opacity:.6,marginLeft:2,color:cat.sex==="M"?"#60a5fa":"#f472b6"}}>{cat.sex==="M"?"♂":"♀"}</span></div>
+            whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.2}}>{fn}<span style={{fontSize:xs?7:(sm?9:11),fontWeight:700,marginLeft:2,color:cat.sex==="M"?"#60a5fa":"#f472b6"}}>{cat.sex==="M"?"♂":"♀"}</span></div>
         </div>
       </div>
 
@@ -2747,7 +2755,7 @@ function NinthLife(){
   const[sStep,setSStep]=useState(-1);
   const[runChips,setRunChips]=useState(0);const[runMult,setRunMult]=useState(0);
   const[scoreShake,setScoreShake]=useState(0);const[clutch,setClutch]=useState(false);const[scoringFlash,setScoringFlash]=useState(null);const[multPop,setMultPop]=useState(null); // ★ Big multiplier pop-up
-  const[handBests,setHandBests]=useState({});const[newBest,setNewBest]=useState(null);const[handDiscovery,setHandDiscovery]=useState([]);const[scoringDone,setScoringDone]=useState(false);const[traitTip,setTraitTip]=useState(null);const[deckView,setDeckView]=useState(false);const[handSort,setHandSort]=useState("season"); // "season"|"power"
+  const[handBests,setHandBests]=useState({});const[newBest,setNewBest]=useState(null);const[handDiscovery,setHandDiscovery]=useState([]);const[scoringDone,setScoringDone]=useState(false);const[traitTip,setTraitTip]=useState(null);const[deckView,setDeckView]=useState(false);const[handSort,setHandSort]=useState("season");const[showLog,setShowLog]=useState(false);
   const[boss,setBoss]=useState(null);
   const stRef=useRef(null);
   const scoreEndRef=useRef(null); // ★ v38: Pre-computed end state for skip
@@ -2826,7 +2834,7 @@ function NinthLife(){
   const pendingRenames=useRef({}); // ★ v54: {catId: newFullName} applied in nextBlind
   // ★ v33: Toast notification system — fleeting feedback for purchases, traits, outcomes
   const[toasts,setToasts]=useState([]);const toastRef=useRef(0);
-  function toast(icon,text,color="#fbbf24",dur=1500){const id=++toastRef.current;setToasts(t=>[...t,{id,icon,text,color,big:dur>2000}]);setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),dur);}
+  function toast(icon,text,color="#fbbf24",dur=2500){const id=++toastRef.current;setToasts(t=>[...t,{id,icon,text,color,big:dur>2500}]);setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),dur);}
   // ★ v50: Nerve transition toasts — the narrator reacts to Nerve level changes
   const prevNerveRef=useRef(ferv);
   useEffect(()=>{
@@ -2972,15 +2980,16 @@ function NinthLife(){
   const autoRef=useRef(null);
   const[introStep,setIntroStep]=useState(0); // ★ v49: Multi-page intro step
   function startAutoPlay(){
-    // Find best breed — select ALL matching (up to 5)
+    // Find best breed — select ALL matching (up to 5) by ID
     if(!hand||hand.length===0)return;
-    const bc={};hand.forEach((c,i)=>{bc[c.breed]=(bc[c.breed]||0)+1;});
+    const bc={};hand.forEach(c=>{bc[c.breed]=(bc[c.breed]||0)+1;});
     const best=Object.entries(bc).sort((a,b)=>b[1]-a[1]).find(([,v])=>v>=2);
-    const idxs=[];
-    if(best)hand.forEach((c,i)=>{if(c.breed===best[0]&&idxs.length<5)idxs.push(i);});
-    else{idxs.push(0);if(hand.length>1)idxs.push(1);}
-    if(idxs.length===0)return;
-    // ★ Start with UI tour (step -3 to -1), then auto-play (step 0+)
+    const ids=[];
+    if(best)hand.forEach(c=>{if(c.breed===best[0]&&ids.length<5)ids.push(c.id);});
+    else{ids.push(hand[0].id);if(hand.length>1)ids.push(hand[1].id);}
+    if(ids.length===0)return;
+    // Convert IDs to current indices
+    const idxs=ids.map(id=>hand.findIndex(c=>c.id===id)).filter(i=>i>=0);
     setAutoPlay({step:-3,idxs});
   }
 
@@ -3617,8 +3626,8 @@ function NinthLife(){
     // ★ v38: Pre-compute score-at-each-step for jump detection
     // ★ v46: stepScores removed — S-curve timing uses step type, not % jumps
     function getStepDelay(s,total){
-      // ★ DOPAMINE: Redesigned timing for collapsed cascade (fewer steps = more weight per step)
-      const slowMult=isFirstCascade?1.4:meta&&meta.stats.r>=3?0.7:1;
+      // ★ v55: Slowed down scoring per playtester feedback
+      const slowMult=isFirstCascade?1.8:meta&&meta.stats.r<=1?1.4:meta&&meta.stats.r>=5?0.8:1;
       const tempo=Math.max(0.5, Math.min(1.4, 7/total)); // slightly slower per-step since fewer steps
       const step=result.bd[s];
       const isLast=s===total-1;
@@ -3652,11 +3661,11 @@ function NinthLife(){
       // Last step: the reveal
       if(isLast) return Math.round(Math.max(550, 750*tempo)*slowMult);
 
-      // First step (hand type): establish — matching cats glow, hold for impact
-      if(s===0) return Math.round(800*tempo*slowMult);
+      // First step (hand type): dramatic reveal — hold long for impact
+      if(s===0) return Math.round(1100*tempo*slowMult);
 
-      // Combo step: specific cats glow — hold to see which ones
-      if(isCombo) return Math.round(Math.max(650, 800*tempo)*slowMult);
+      // Combo step: second dramatic reveal — nearly as long as hand type
+      if(isCombo) return Math.round(Math.max(900, 1000*tempo)*slowMult);
 
       // ★ DOPAMINE: Big cat (loaded with traits/scars) gets more weight
       if(isBigCat) return Math.round(Math.max(400, 550*tempo)*slowMult);
@@ -3696,9 +3705,14 @@ function NinthLife(){
             setScoringFlash(s.xMult>=1.5?"#fef08a":"#fbbf24");setTimeout(()=>setScoringFlash(null),150);
             setMultPop({val:s.xMult,label:s.label,mode:"xmult"});setTimeout(()=>setMultPop(null),1200);
           }
-          else if(s.type==="hand"){Audio.comboHit();setScoringFlash("#fbbf24");setTimeout(()=>setScoringFlash(null),120);}
-          else if(s.type==="combo"){Audio.comboHit();setScoreShake(1);setTimeout(()=>setScoreShake(0),200);setScoringFlash("#fbbf24");setTimeout(()=>setScoringFlash(null),120);}
-          else if(s.type==="grudge_tension")Audio.grudgeTense();
+          else if(s.type==="hand"){
+            const htIdx=HT.findIndex(h=>s.label.startsWith(h.name));
+            const shk=htIdx>=6?4:htIdx>=4?3:htIdx>=2?2:1;
+            Audio.comboHit();setScoringFlash(htIdx>=4?"#fef08a":"#fbbf24");setScoreShake(shk);setTimeout(()=>{setScoreShake(0);setScoringFlash(null);},200+shk*50);
+          }
+          else if(s.type==="combo"){Audio.comboHit();setScoreShake(3);setScoringFlash("#c084fc");setTimeout(()=>{setScoreShake(0);setScoringFlash(null);},300);}
+          else if(s.type==="grudge_tension"){Audio.grudgeTense();setScoringFlash("#ef4444");setTimeout(()=>setScoringFlash(null),200);setScoreShake(2);setTimeout(()=>setScoreShake(0),300);}
+          else if(s.type==="curse"||s.mult<0){setScoringFlash("#ef4444");setTimeout(()=>setScoringFlash(null),200);}
           else if(s.type==="bond"||s.type==="lineage")Audio.bondChime();
           else if(s.isBigCat)Audio.bigCatHit(progress);
           else if(s.mult>0)Audio.multHit(s.mult,progress);
@@ -3723,13 +3737,13 @@ function NinthLife(){
         if(tier&&tier.label)Audio.tierReveal(Math.min(5,Math.floor(end.total/5000)));
       }
     }
-    // ★ v52: 600ms breathing room — sStep starts at -1 (reveal), then fires step 0
+    // ★ v55: Two-phase reveal — empty screen breathes (800ms), then hand type SLAMS
     stRef.current=setTimeout(()=>{
-      // ★ v39: Hand type reveal sound
+      // Phase 1: Hand type sound + reveal
       {const _hti=HT.findIndex(h=>h.name===result.ht);Audio.handType(Math.min(3,Math.floor((_hti>=0?_hti:4)/2)));}
       setSStep(0);setRunChips(scoreEndRef.current.stepTotals[0].chips);setRunMult(scoreEndRef.current.stepTotals[0].mult);
       stRef.current=setTimeout(animStep,getStepDelay(0,tot));
-    },600);
+    },800);
   }
 
   function discardH(){
@@ -3919,7 +3933,7 @@ function NinthLife(){
     const allC=[...hand,...draw,...disc];
     const hasKids=allC.some(c=>c.parentIds?.includes(cat.id));
     const hasParents=cat.parentIds?.some(pid=>allC.some(c=>c.id===pid));
-    const ser={breed:cat.breed,power:cat.power,sex:cat.sex||"M",
+    const ser={id:cat.id,breed:cat.breed,power:cat.power,sex:cat.sex||"M",
       trait:{name:(cat.trait||PLAIN).name,icon:(cat.trait||PLAIN).icon,desc:(cat.trait||PLAIN).desc,tier:(cat.trait||PLAIN).tier},
       name:cat.name,parentBreeds:cat.parentBreeds,parentIds:cat.parentIds||null,
       bonded:!!cat.bondedTo,scarred:!!cat.scarred,
@@ -4090,12 +4104,13 @@ function NinthLife(){
     if(allC.length<=MIN_DECK||sellsLeft<=0)return;
     const pg=getPartingGifts(cat);
     if(pg.goldVal<0&&gold<Math.abs(pg.goldVal))return;
-    // Apply gold
+    // ★ v55: Releasing costs 1 nerve (makes it a real tradeoff)
+    setFerv(f=>Math.max(0,f-1));
     setGold(g=>g+pg.goldVal);
     setSellsLeft(s=>s-1);
-    // Remove from all piles
+    logEvent("sell",{name:cat.name.split(" ")[0],gold:pg.goldVal});
     setHand(h=>h.filter(c=>c.id!==cat.id));setDraw(d=>d.filter(c=>c.id!==cat.id));setDisc(di=>di.filter(c=>c.id!==cat.id));
-    // ★ v35: Scarred release gives +1 Nerve
+    // ★ v35: Scarred release gives +1 Nerve (net zero with cost)
     if(cat.scarred)setFerv(f=>Math.min(NERVE_MAX,f+1));
     // ★ v35: Bonded partner gains +2P + story entry
     if(cat.bondedTo){
@@ -4243,9 +4258,12 @@ function NinthLife(){
       }
       if(r.type==="breed")logEvent("breed",{parents:r.c1.name.split(" ")[0]+" & "+r.c2.name.split(" ")[0],baby:r.baby.name,breed:r.baby.breed});
       if(r.type==="fight")logEvent("fight",{loser:r.loser.name.split(" ")[0],dmg:r.dmg});
-      if(r.type==="death"){logEvent("death",{victim:r.victim.name});setFallen(f=>{
+      if(r.type==="death"){logEvent("death",{victim:r.victim.name});
+        Audio.denDeath();
+        toast("💀",`${r.victim.name.split(" ")[0]} is gone.`,"#ef4444",3500);
+        setFallen(f=>{
         const isFirstEver=f.length===0&&(meta?.stats?.r||0)<=1;
-        if(isFirstEver)toast("🕯️","You will lose cats. This is the first. Remember their name.","#ef4444");
+        if(isFirstEver)toast("🕯️","You will lose cats. This is the first. Remember their name.","#ef4444",4000);
         return[...f,{name:r.victim.name,breed:r.victim.breed,night:ante,memorial:getDeathMemorial(r.victim,ante)}];
       });}
       if(r.type==="mentor")logEvent("mentor",{elder:r.elder.name.split(" ")[0],young:r.young.name.split(" ")[0]});
@@ -4278,7 +4296,7 @@ function NinthLife(){
         return{icon:isMyth?"🌟":isLeg?"✨":"🐣",text:`${r.baby.name.split(" ")[0]} born${(bTier!=="common"&&bTier!=="plain")?" — "+r.baby.trait.icon+r.baby.trait.name:""}`,color:isMyth?"#c084fc":isLeg?"#f97316":"#4ade80"};
       }
       if(r.type==="fight")return{icon:"🩹",text:`${r.loser.name.split(" ")[0]} scarred`,color:"#ef4444"};
-      if(r.type==="death")return{icon:"💀",text:`${r.victim.name.split(" ")[0]} lost`,color:"#ef4444"};
+      if(r.type==="death")return{icon:"💀",text:`${r.victim.name.split(" ")[0]} is gone. The colony is smaller now.`,color:"#ef4444"};
       if(r.type==="phoenix")return{icon:"🔥",text:`${r.risen.name.split(" ")[0]} rose`,color:"#fbbf24"};
       if(r.type==="mentor")return{icon:"📖",text:`${r.elder.name.split(" ")[0]} taught ${r.young.name.split(" ")[0]}`,color:"#c084fc"};
       if(r.type==="found")return{icon:"🐟",text:`${r.cat.name.split(" ")[0]} found rations`,color:"#fbbf24"};
@@ -4975,6 +4993,7 @@ function NinthLife(){
     @keyframes newBestPop{0%{opacity:0;transform:scale(0) rotate(-10deg)}50%{opacity:1;transform:scale(1.3) rotate(3deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
     @keyframes cardFire{0%{transform:scale(1);filter:brightness(1)}30%{transform:scale(1.12);filter:brightness(1.4)}100%{transform:scale(1);filter:brightness(1)}}
     @keyframes comboBurst{0%{opacity:0;transform:scale(0.3)}40%{opacity:1;transform:scale(1.4)}60%{transform:scale(0.9)}100%{transform:scale(1)}}
+    @keyframes scorePopFade{0%{opacity:0;transform:translateY(8px) scale(0.8)}100%{opacity:1;transform:translateY(0) scale(1)}}
     @keyframes multFlash{0%{opacity:0;transform:scale(0) rotate(-15deg)}50%{opacity:1;transform:scale(1.5) rotate(5deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
     @keyframes bigShake{0%,100%{transform:translate(0,0)}10%{transform:translate(-4px,-2px)}20%{transform:translate(3px,1px)}30%{transform:translate(-3px,-1px)}40%{transform:translate(2px,2px)}50%{transform:translate(-2px,-1px)}60%{transform:translate(1px,1px)}80%{transform:translate(1px,-1px)}}
     @keyframes starFall{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(60vh) scale(0.3)}}
@@ -6139,10 +6158,20 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
           <div style={{fontSize:10,color:"#ef444433",fontFamily:"system-ui",marginTop:2}}>{boss.name} watches.</div>
         </div>):null;
       })()}
-      <div style={{fontSize:36,fontWeight:900,color:"#fbbf24",textShadow:"0 0 30px #fbbf2444"}}>{o.fs.toLocaleString()}</div>
-      <div style={{fontSize:13,color:"#666",fontFamily:"system-ui"}}>Threshold: {o.tgt.toLocaleString()}</div>
+      {(()=>{
+        // ★ v55: Score and threshold scale visually with performance
+        const scoreSize=pctClear>=300?52:pctClear>=200?44:pctClear>=150?40:36;
+        const tgtSize=pctClear>=300?16:pctClear>=200?14:13;
+        const scoreColor=pctClear>=300?"#c084fc":pctClear>=200?"#fef08a":pctClear>=150?"#4ade80":"#fbbf24";
+        const glowSize=pctClear>=300?60:pctClear>=200?40:30;
+        const shakeAnim=pctClear>=300?"bigShake .6s ease-out":pctClear>=200?"comboBurst .5s ease-out":"";
+        return(<>
+          <div style={{fontSize:scoreSize,fontWeight:900,color:scoreColor,textShadow:`0 0 ${glowSize}px ${scoreColor}44`,animation:shakeAnim||"fadeIn .6s ease-out",letterSpacing:pctClear>=200?3:1}}>{o.fs.toLocaleString()}</div>
+          <div style={{fontSize:tgtSize,color:pctClear>=200?"#888":"#666",fontFamily:"system-ui"}}>Threshold: {o.tgt.toLocaleString()}</div>
+        </>);
+      })()}
       <div style={{display:"flex",flexDirection:"column",gap:5,background:"#ffffff06",borderRadius:12,padding:"14px 22px",border:"1px solid #ffffff0a",minWidth:260}}>
-        <div style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#888"}}>Performance</span><span style={{color:pctClear>=300?"#c084fc":pctClear>=200?"#fbbf24":pctClear>=150?"#4ade80":"#888",fontWeight:700}}>{pctClear>=300?"Legendary":pctClear>=200?"Dominating":pctClear>=150?"Crushing":pctClear>=120?"Comfortable":"Survived"} ({pctClear}%)</span></div>
+        <div onClick={()=>toast("📊","Performance scales rations earned. Survived=2🐟, Comfortable=3, Crushing=4, Dominating=5-6, Legendary=6. Boss blinds add +2🐟.","#fbbf24")} style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11,cursor:"help"}}><span style={{color:"#888"}}>Performance</span><span style={{color:pctClear>=300?"#c084fc":pctClear>=200?"#fbbf24":pctClear>=150?"#4ade80":"#888",fontWeight:700}}>{pctClear>=300?"Legendary":pctClear>=200?"Dominating":pctClear>=150?"Crushing":pctClear>=120?"Comfortable":"Survived"} ({pctClear}%)</span></div>
         {o.uh>0&&<div style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#888"}}>{o.uh} Unused Hand{o.uh>1?"s":""}</span><span style={{color:"#3b82f6"}}>saved</span></div>}
         <div style={{borderTop:"1px solid #ffffff0a",paddingTop:4,display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#888"}}>Rations Earned</span><span style={{color:"#fbbf24",fontWeight:700}}>+{o.gR} 🐟</span></div>
         {o.interest>0&&<div style={{display:"flex",justifyContent:"space-between",fontFamily:"system-ui",fontSize:11}}><span style={{color:"#4ade80"}}>Stores (interest)</span><span style={{color:"#4ade80",fontWeight:700}}>+{o.interest} 🐟</span></div>}
@@ -6420,8 +6449,8 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         {hearthPair!==null&&cands.length>0&&(()=>{
           const picked=hearthPair;const needSex=picked.length===0?null:picked[0].sex==="M"?"F":"M";
           const availCands=needSex?cands.filter(c=>c.sex===needSex):cands;
-          const pickedIds=picked.map(p=>p.name);
-          const noMate=needSex&&availCands.filter(c=>!pickedIds.includes(c.name)).length===0;
+          const pickedIds=picked.map(p=>p.id||p.name);
+          const noMate=needSex&&availCands.filter(c=>!pickedIds.includes(c.id)&&!pickedIds.includes(c.name)).length===0;
           return(<div style={{width:"100%",textAlign:"center"}}>
           <div style={{fontSize:12,color:"#fbbf24",letterSpacing:3,marginBottom:4,fontFamily:"'Cinzel',serif"}}>
             {picked.length===0?"CHOOSE THE FIRST SOUL":"CHOOSE THEIR MATE"}
@@ -6438,7 +6467,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
             }} style={{...BTN("#333","#fb923c"),padding:"4px 12px",fontSize:10,marginLeft:8}}>Save alone</button>
           </div>}
           <div style={{display:"flex",gap:5,flexWrap:"wrap",justifyContent:"center",maxHeight:300,overflowY:"auto"}}>
-            {availCands.filter(c=>!pickedIds.includes(c.name)).slice(0,12).map(c=>{const b=BREEDS[c.breed];
+            {availCands.filter(c=>!pickedIds.includes(c.id)&&!pickedIds.includes(c.name)).slice(0,12).map(c=>{const b=BREEDS[c.breed];
               const hVal=calcHearthDust([{...c,fromAnte:ante}])[0].dust;
               return(
               <div key={c.id} onClick={()=>saveCatM(c)} style={{cursor:"pointer",textAlign:"center",padding:5,borderRadius:8,border:"1px solid #ffffff0a",background:"#ffffff04",width:96}}>
@@ -6543,18 +6572,26 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
           {/* WILDS section */}
           <div style={{flex:2,padding:"8px 10px",borderRadius:10,background:"#fb923c06",border:"1px solid #fb923c22",minHeight:mob?100:120}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-              <div style={{fontSize:10,color:"#fb923c",letterSpacing:2,fontWeight:700}}>🌲 WILDS ({denCats.length})</div>
-              {/* Risk indicator */}
-              {(()=>{
+              <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                <div style={{fontSize:10,color:"#fb923c",letterSpacing:2,fontWeight:700}}>🌲 WILDS ({denCats.length})</div>
+                {(()=>{
                 const risk=denCats.length<=4?"Calm":denCats.length<=8?"Active":denCats.length<=12?"Volatile":"Dangerous";
                 const riskColor=denCats.length<=4?"#4ade80":denCats.length<=8?"#fbbf24":denCats.length<=12?"#fb923c":"#ef4444";
-                return <span style={{fontSize:10,color:riskColor,fontWeight:700,fontFamily:"system-ui"}}>{risk}</span>;
+                return <span style={{fontSize:9,color:riskColor,fontWeight:600,fontFamily:"system-ui"}}>{risk}</span>;
               })()}
+              </div>
+              <button onClick={()=>setSeen(s=>({...s,denSort:s.denSort==="power"?"season":"power"}))} style={{background:"#ffffff08",border:"1px solid #ffffff15",borderRadius:5,padding:"3px 10px",fontSize:10,color:"#aaa",fontFamily:"system-ui",cursor:"pointer",fontWeight:600}}>{(seen.denSort||"season")==="season"?"🍂 Season":"⚡ Power"}</button>
             </div>
             <div style={{display:"flex",gap:3,flexWrap:"wrap",justifyContent:"center"}}>
-              {denCats.map(c=><div key={c.id} onClick={den.length<MAX_ISOLATE?()=>toggleDen(c):undefined} style={{cursor:den.length<MAX_ISOLATE?"pointer":"default",opacity:den.length>=MAX_ISOLATE?.6:1,position:"relative"}}>
+              {(()=>{
+                const sOrder={Autumn:0,Winter:1,Spring:2,Summer:3};
+                const sorted=(seen.denSort||"season")==="season"
+                  ?[...denCats].sort((a,b)=>(sOrder[a.breed]||0)-(sOrder[b.breed]||0)||b.power-a.power)
+                  :[...denCats].sort((a,b)=>b.power-a.power);
+                return sorted.map(c=><div key={c.id} onClick={den.length<MAX_ISOLATE?()=>toggleDen(c):undefined} style={{cursor:den.length<MAX_ISOLATE?"pointer":"default",opacity:den.length>=MAX_ISOLATE?.6:1,position:"relative"}}>
                 <CC cat={c} sm cw={denCardW} denMode onTraitClick={ct=>setTraitTip(ct)}/>
-              </div>)}
+              </div>);
+              })()}
             </div>
             {injured.length>0&&<div style={{marginTop:6}}>
               <div style={{fontSize:9,color:"#fb923c88",letterSpacing:1,fontFamily:"system-ui",marginBottom:3}}>🩹 RESTING ({injured.length})</div>
@@ -6577,7 +6614,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
             if(isGrudged){campHint="30% chance to reconcile";campHintColor="#c084fc";}
             else if(canBond&&bothDevoted){campHint="Devoted pair — guaranteed bond 💕";campHintColor="#f472b6";}
             else if(canBond){campHint="40% chance to bond";campHintColor="#f472b6";}
-            else{campHint="Both gain +1 Power";campHintColor="#fbbf24";}
+            else{campHint="70% +1P, or rations, or quiet night";campHintColor="#fbbf24";}
           }
           return <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,marginTop:4}}>
           {campMode&&campHint&&<div style={{fontSize:10,color:campHintColor,fontFamily:"system-ui",letterSpacing:1,animation:"fadeIn .3s ease-out"}}>{campHint}</div>}
@@ -6587,9 +6624,9 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
             // Heal all injured: -1 timer
             [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.injured?{...x,injuryTimer:Math.max(0,(x.injuryTimer||2)-1),injured:(x.injuryTimer||2)<=1?false:x.injured}:x));});
             results.push({text:"Injuries tended. The colony rests.",color:"#4ade80",icon:"🩹"});
-            // +2 Nerve
-            setFerv(f=>Math.min(NERVE_MAX,f+2));Audio.nerveUp();setFFlash("up");setTimeout(()=>setFFlash(null),400);
-            results.push({text:"+2 Nerve. Rest builds resolve.",color:"#d97706",icon:"🔥"});
+            // +1 Nerve (nerfed from +2)
+            setFerv(f=>Math.min(NERVE_MAX,f+1));Audio.nerveUp();setFFlash("up");setTimeout(()=>setFFlash(null),400);
+            results.push({text:"+1 Nerve. Rest builds resolve.",color:"#d97706",icon:"🔥"});
             // Watch pair resolution
             if(den.length>=2){
               const[a,b]=den;
@@ -6619,8 +6656,35 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
                 [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>x.id===a.id?{...x,epithet:a.epithet,bondedTo:b.id}:x.id===b.id?{...x,epithet:b.epithet,bondedTo:a.id}:x));});
                 Audio.denBond();
               }else{
-                [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>(x.id===a.id||x.id===b.id)?{...x,power:Math.min(15,x.power+1)}:x));});
-                results.push({text:`${a.name.split(" ")[0]} and ${b.name.split(" ")[0]} kept watch together. Both grew stronger. (+1P)`,color:"#fbbf24",icon:"⚔"});
+                // ★ v55: Weaker camp events — 70% power, 30% minor benefits
+                const aCamped=a._camped,bCamped=b._camped;
+                if(aCamped&&bCamped){
+                  results.push({text:`${a.name.split(" ")[0]} and ${b.name.split(" ")[0]} shared the fire. They've grown all they can this way.`,color:"#888",icon:"🌙"});
+                }else{
+                  const roll=Math.random();
+                  if(roll<0.70){
+                    // +1P to uncamped cats
+                    [setHand,setDraw,setDisc].forEach(s=>{s(arr=>arr.map(x=>{
+                      if((x.id===a.id&&!aCamped)||(x.id===b.id&&!bCamped))return{...x,power:Math.min(15,x.power+1),_camped:true};
+                      return x;
+                    }));});
+                    const who=[!aCamped?a.name.split(" ")[0]:null,!bCamped?b.name.split(" ")[0]:null].filter(Boolean).join(" and ");
+                    results.push({text:`${who} grew stronger on the watch. (+1P)`,color:"#fbbf24",icon:"⚔"});
+                  }else if(roll<0.85){
+                    // Found rations
+                    const found=1+Math.floor(Math.random()*3);
+                    setGold(g=>g+found);
+                    results.push({text:`${a.name.split(" ")[0]} found ${found}🐟 stashed near the fire.`,color:"#fbbf24",icon:"🐟"});
+                  }else{
+                    // Quiet night — flavor only
+                    const quiet=pk([
+                      `${a.name.split(" ")[0]} and ${b.name.split(" ")[0]} sat in silence. Sometimes that's enough.`,
+                      `The fire crackled. Neither spoke. Both understood.`,
+                      `${b.name.split(" ")[0]} fell asleep first. ${a.name.split(" ")[0]} kept watch alone.`,
+                    ]);
+                    results.push({text:quiet,color:"#888",icon:"🌙"});
+                  }
+                }
               }
             }else{results.push({text:"No watch pair chosen. The colony sleeps uneasy.",color:"#888",icon:"🌙"});}
             setDen([]);setCampMode(false);
@@ -6637,182 +6701,96 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
 
   // DEN RESULTS
   if(ph==="denResults"&&denRes){
-    const denDone=denRes.length===0||denStep>=denRes.length-1;
-    const skipDen=()=>{if(denDone)return;if(denStRef.current)clearTimeout(denStRef.current);setDenStep(denRes.length-1);};
     const mob=vw<500;
-    return(<div onClick={denDone?undefined:skipDen} style={{...W,cursor:denDone?"default":"pointer"}}><div style={BG}/><style>{CSS}</style>
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-start",minHeight:"100vh",zIndex:1,gap:12,padding:mob?"16px 12px":"20px",maxWidth:550,overflowY:"auto",paddingTop:mob?30:40}}>
+    // ★ v55: Den redesign — show summary immediately. Only births and deaths get full narrative.
+    const majorEvents=denRes.filter(r=>r.type==="breed"||r.type==="death"||r.type==="phoenix");
+    const n=c=>c.name.split(" ")[0];
+    const bMult=(typeof getMB==="function")?getMB():{};
+    const bondStr=bMult.bondBoost?"×1.75":"×1.5";
+    const groups={life:[],bonds:[],conflict:[],growth:[]};
+    denRes.forEach(r=>{
+      if(r.type==="breed")groups.life.push({icon:"🐣",text:`${n(r.baby)} born to ${n(r.c1)} & ${n(r.c2)}${r.twins?" (twins!)":""}`,tip:`P${r.baby.power} ${r.baby.breed} ${(r.baby.trait||PLAIN).icon}${(r.baby.trait||PLAIN).name}`,color:"#4ade80"});
+      if(r.type==="wanderer")groups.life.push({icon:"🐱",text:`${n(r.cat)} wandered in`,tip:`P${r.cat.power} ${r.cat.breed}`,color:"#67e8f9"});
+      if(r.type==="death")groups.conflict.push({icon:"💀",text:`${n(r.victim)} was lost`,tip:"gone from the colony",color:"#ef4444",bold:true});
+      if(r.type==="fight")groups.conflict.push({icon:"⚔",text:`${n(r.loser)} ${r.wasInjured?"injured":"scarred"} (−${r.dmg}P)`,tip:r.wasInjured?"heals in 2 rounds":"×1.25 mult",color:"#ef4444"});
+      if(r.type==="grudge")groups.conflict.push({icon:"⚡",text:`${n(r.c1)} & ${n(r.c2)} grudge`,tip:"−2M when together",color:"#fb923c"});
+      if(r.type==="bond")groups.bonds.push({icon:"💕",text:`${n(r.c1)} & ${n(r.c2)} bonded`,tip:`${bondStr} mult together`,color:"#f472b6"});
+      if(r.type==="reconcile_bond")groups.bonds.push({icon:"💕",text:`${n(r.c1)} & ${n(r.c2)} reconciled + bonded`,tip:`${bondStr} mult together`,color:"#f472b6"});
+      if(r.type==="reconcile")groups.bonds.push({icon:"🕊️",text:`${n(r.c1)} & ${n(r.c2)} made peace`,tip:"grudge cleared",color:"#67e8f9"});
+      if(r.type==="growth")groups.growth.push({icon:"⭐",text:`${n(r.cat)} +1P`,color:"#4ade80"});
+      if(r.type==="mentor")groups.growth.push({icon:"📖",text:`${n(r.elder)} mentored ${n(r.young)}`,tip:"+1P",color:"#c084fc"});
+      if(r.type==="training")groups.growth.push({icon:"⚔️",text:`${n(r.c1)} & ${n(r.c2)} sparred`,tip:"+1P each",color:"#60a5fa"});
+      if(r.type==="phoenix")groups.life.push({icon:"🔥",text:`${n(r.risen)} rose from ashes`,tip:"now Eternal",color:"#fbbf24",bold:true});
+      if(r.type==="teach")groups.growth.push({icon:"👪",text:`${n(r.parent)} taught ${n(r.child)} ${r.trait.icon}`,tip:r.trait.name,color:"#34d399",bold:true});
+      if(r.type==="found")groups.growth.push({icon:"🐟",text:`${n(r.cat)} found ${r.gold}🐟`,color:"#fbbf24"});
+      if(r.traitGained)groups.growth.push({icon:"✨",text:`${n(r.traitGained.cat)} gained ${r.traitGained.trait.icon} ${r.traitGained.trait.name}`,tip:r.traitGained.trait.desc,color:"#fbbf24",bold:true});
+    });
+    const sections=[
+      {key:"life",title:"🐣 New Life",items:groups.life,border:"#4ade8033"},
+      {key:"bonds",title:"💕 Bonds",items:groups.bonds,border:"#f472b633"},
+      {key:"conflict",title:"⚔ Conflict",items:groups.conflict,border:"#ef444433"},
+      {key:"growth",title:"⭐ Growth",items:groups.growth,border:"#60a5fa33"},
+    ].filter(s=>s.items.length>0);
+    return(<div style={W}><div style={BG}/><style>{CSS}</style>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-start",minHeight:"100vh",zIndex:1,gap:10,padding:mob?"16px 12px":"20px",maxWidth:550,overflowY:"auto",paddingTop:mob?30:40}}>
         <h2 style={{fontSize:mob?16:18,color:"#c084fc",letterSpacing:4,margin:0,fontFamily:"'Cinzel',serif"}}>WHAT HAPPENED IN THE DARK</h2>
         {denRes.length===0&&<div style={{color:"#666",fontSize:13,fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",lineHeight:1.6,maxWidth:340}}>{pk(DEN_QUIET)()}</div>}
-        {denRes.slice(0,denStep+1).map((r,i)=>{
-          const isActive=i===denStep;
-          const fs=mob?12:13; // ★ v52: Consistent font size, readable on mobile
-          return (
+
+        {/* ★ v55: Birth/Death narrative — only major events get full treatment */}
+        {majorEvents.map((r,i)=>(
           <div key={i} style={{width:"100%",padding:mob?"8px 10px":"10px 14px",borderRadius:10,
-            background:r.type==="breed"||r.type==="growth"||r.type==="wanderer"||r.type==="mentor"||r.type==="training"||r.type==="teach"?"linear-gradient(145deg,#1b2e1b,#0d0d1a)":r.type==="death"?"linear-gradient(145deg,#2e1111,#0d0d1a)":r.type==="phoenix"||r.type==="found"?"linear-gradient(145deg,#2e2211,#0d0d1a)":r.type==="bond"||r.type==="reconcile_bond"?"linear-gradient(145deg,#2e1b2e,#0d0d1a)":r.type==="grudge"?"linear-gradient(145deg,#2e2211,#0d0d1a)":r.type==="reconcile"?"linear-gradient(145deg,#1b2e3e,#0d0d1a)":"linear-gradient(145deg,#2e1b1b,#0d0d1a)",
-            border:`1px solid ${r.type==="breed"||r.type==="growth"||r.type==="wanderer"||r.type==="mentor"||r.type==="training"?"#4ade8044":r.type==="death"?"#ef4444bb":r.type==="phoenix"||r.type==="found"?"#fbbf2466":r.type==="bond"||r.type==="reconcile_bond"?"#f472b644":r.type==="grudge"?"#fb923c44":r.type==="reconcile"?"#67e8f944":"#ef444433"}`,
-            animation:isActive?"scorePop .4s ease-out":"none"
+            background:r.type==="breed"?"linear-gradient(145deg,#1b2e1b,#0d0d1a)":r.type==="death"?"linear-gradient(145deg,#2e1111,#0d0d1a)":"linear-gradient(145deg,#2e2211,#0d0d1a)",
+            border:`1px solid ${r.type==="breed"?"#4ade8044":r.type==="death"?"#ef4444bb":"#fbbf2466"}`,
+            animation:`scorePop .4s ease-out ${i*.2}s both`
           }}>
             {r.type==="breed"&&<div>
-              <div style={{fontStyle:"italic",color:"#4ade80bb",fontSize:12,lineHeight:1.5,fontFamily:"system-ui",marginBottom:6}}>{pk(DEN_BREED)(r.c1.name.split(" ")[0],r.c2.name.split(" ")[0],r.baby.name.split(" ")[0])}</div>
+              <div style={{fontStyle:"italic",color:"#4ade80bb",fontSize:12,lineHeight:1.5,fontFamily:"system-ui",marginBottom:6}}>{pk(DEN_BREED)(n(r.c1),n(r.c2),n(r.baby))}</div>
               <div style={{display:"flex",gap:6,alignItems:"center"}}>
                 <CC cat={r.c1} sm/><span style={{color:"#4ade80bb"}}>+</span><CC cat={r.c2} sm/><span style={{color:"#4ade80bb"}}>=</span><CC cat={r.baby} sm hl/>
                 {r.twins&&r.twin2&&<><span style={{color:"#fbbf24bb"}}>+</span><CC cat={r.twin2} sm hl/></>}
               </div>
               <div style={{fontSize:10,color:"#888",fontFamily:"system-ui",marginTop:3}}>
-                {BREEDS[r.baby.breed].icon} {r.baby.name} Power {r.baby.power} {(r.baby.trait||PLAIN).icon} {(r.baby.trait||PLAIN).name} {r.baby.sex==="M"?"♂":"♀"}
+                {BREEDS[r.baby.breed].icon} {r.baby.name} P{r.baby.power} {(r.baby.trait||PLAIN).icon} {(r.baby.trait||PLAIN).name} {r.baby.sex==="M"?"♂":"♀"}
                 {(r.baby.trait||PLAIN).tier!=="common"&&(r.baby.trait||PLAIN).name!=="Plain"&&<span style={{color:traitTierLabel(r.baby.trait).color,fontWeight:700}}> ★ {traitTierLabel(r.baby.trait).label.toUpperCase()}</span>}
-                {r.twins&&" + TWINS!"}
               </div>
-            </div>}
-            {r.type==="fight"&&<div>
-              <div style={{fontStyle:"italic",color:"#ef4444bb",fontSize:13,lineHeight:1.5,fontFamily:"system-ui",marginBottom:6}}>{pk(DEN_FIGHT)(r.c1.name.split(" ")[0],r.c2.name.split(" ")[0],r.loser.name.split(" ")[0])}</div>
-              <div style={{display:"flex",gap:6,alignItems:"center"}}><CC cat={r.c1} sm/><span style={{color:"#ef4444bb",fontSize:14}}>⚔️</span><CC cat={r.c2} sm/></div>
-              <div style={{fontSize:10,color:"#ef4444",fontFamily:"system-ui",marginTop:3}}>{r.wasInjured?"🩹🩹":"🩹"} {r.loser.name.split(" ")[0]} was {r.wasInjured?"INJURED":"scarred"} (-{r.dmg} Power)</div>
-              {r.traitGained&&<div style={{fontSize:10,color:"#fbbf24",fontFamily:"system-ui",marginTop:3,animation:"countUp .3s ease-out"}}>✨ {r.traitGained.cat.name.split(" ")[0]} gained {r.traitGained.trait.icon} {r.traitGained.trait.name}!</div>}
-              {/* ★ v52: Den echo — Hearth cat scarred in a past colony surfaces */}
-              {meta&&meta.cats.length>0&&(()=>{const scarred=meta.cats.filter(c=>c.scarred);if(!scarred.length||Math.random()>0.2)return null;const sc=pk(scarred);return <div style={{fontSize:10,color:"#c084fc33",fontStyle:"italic",fontFamily:"system-ui",marginTop:4}}>The den remembers. {sc.name?.split(" ")[0]} was scarred here, {meta.stats.r>1?"colonies":"a colony"} ago.</div>;})()}
-            </div>}
-            {r.type==="phoenix"&&<div>
-              <div style={{fontSize:11,color:"#fbbf24",fontWeight:700,marginBottom:4}}>🔥 {r.risen.name.split(" ")[0]} RISES FROM THE ASHES!</div>
-              <div style={{fontStyle:"italic",color:"#fbbf24bb",fontSize:11,marginBottom:4,fontFamily:"system-ui"}}>{pk(DEN_PHOENIX)(r.c1.name,r.c2.name,r.risen.name)}</div>
-              <div style={{fontSize:10,color:"#fbbf24",fontFamily:"system-ui"}}>Now Eternal at P1. The fire changes everything.</div>
-            </div>}
-            {r.type==="mentor"&&<div>
-              <div style={{fontStyle:"italic",color:"#c084fcbb",fontSize:13,lineHeight:1.5,fontFamily:"system-ui",marginBottom:4}}>{pk(DEN_MENTOR)(r.elder.name.split(" ")[0],r.young.name.split(" ")[0])}</div>
-              <div style={{display:"flex",gap:6,alignItems:"center"}}><CC cat={r.elder} sm/><span style={{color:"#c084fcbb",fontSize:12}}>📖</span><CC cat={r.young} sm hl/></div>
-              <div style={{fontSize:10,color:"#c084fc",fontFamily:"system-ui",marginTop:3}}>⭐ {r.young.name.split(" ")[0]} +1 Power (mentored)</div>
-              {r.traitGained&&<div style={{fontSize:10,color:"#fbbf24",fontFamily:"system-ui",marginTop:2,animation:"countUp .3s ease-out"}}>✨ {r.traitGained.cat.name.split(" ")[0]} gained {r.traitGained.trait.icon} {r.traitGained.trait.name}!</div>}
-            </div>}
-            {r.type==="found"&&<div>
-              <div style={{fontStyle:"italic",color:"#fbbf24bb",fontSize:13,lineHeight:1.5,fontFamily:"system-ui",marginBottom:4}}>{pk(DEN_FOUND)(r.cat.name.split(" ")[0])}</div>
-              <div style={{display:"flex",gap:6,alignItems:"center"}}><CC cat={r.cat} sm/></div>
-              <div style={{fontSize:10,color:"#fbbf24",fontFamily:"system-ui",marginTop:3}}>🐟 +{r.gold} Rations{r.gold>=4?". Jackpot!":""}</div>
-            </div>}
-            {r.type==="growth"&&<div>
-              <div style={{fontStyle:"italic",color:"#4ade80bb",fontSize:12,lineHeight:1.5,fontFamily:"system-ui",marginBottom:4}}>{pk(DEN_GROWTH)(r.cat.name.split(" ")[0])}</div>
-              <div style={{display:"flex",gap:6,alignItems:"center"}}><CC cat={r.cat} sm hl/></div>
-              <div style={{fontSize:10,color:"#4ade80",fontFamily:"system-ui",marginTop:3}}>⭐ {r.cat.name.split(" ")[0]} +1 Power</div>
-              {r.traitGained&&<div style={{fontSize:10,color:"#fbbf24",fontFamily:"system-ui",marginTop:2,animation:"countUp .3s ease-out"}}>✨ {r.traitGained.cat.name.split(" ")[0]} gained {r.traitGained.trait.icon} {r.traitGained.trait.name}!</div>}
-            </div>}
-            {r.type==="wanderer"&&<div>
-              <div style={{fontStyle:"italic",color:"#67e8f9bb",fontSize:13,lineHeight:1.5,fontFamily:"system-ui",marginBottom:4}}>{pk(DEN_WANDER)(r.cat.name.split(" ")[0])}</div>
-              <div style={{display:"flex",gap:6,alignItems:"center"}}><CC cat={r.cat} sm hl/></div>
-              <div style={{fontSize:10,color:"#67e8f9",fontFamily:"system-ui",marginTop:3}}>A wanderer joins. {r.cat.name} Power {r.cat.power} {(r.cat.trait||PLAIN).icon} {(r.cat.trait||PLAIN).name}</div>
-            </div>}
-            {r.type==="training"&&<div>
-              <div style={{fontStyle:"italic",color:"#60a5fabb",fontSize:11,lineHeight:1.5,fontFamily:"system-ui",marginBottom:4}}>{pk([
-                (a,b)=>`${a} and ${b} circled each other. Not fighting. Learning. Testing. By dawn, both were sharper.`,
-                (a,b)=>`It wasn't a fight. It was a conversation in claw and reflex. ${a} and ${b} understood each other better after.`,
-                (a,b)=>`${b} feinted left. ${a} read it. They went back and forth until the moon set. Both were better for it.`,
-              ])(r.c1.name.split(" ")[0],r.c2.name.split(" ")[0])}</div>
-              <div style={{display:"flex",gap:6,alignItems:"center"}}><CC cat={r.c1} sm hl/><span style={{color:"#60a5fabb",fontSize:14}}>⚔️</span><CC cat={r.c2} sm hl/></div>
-              <div style={{fontSize:10,color:"#60a5fa",fontFamily:"system-ui",marginTop:3}}>Both cats +1 Power from sparring</div>
-              {r.traitGained&&<div style={{fontSize:10,color:"#fbbf24",fontFamily:"system-ui",marginTop:2,animation:"countUp .3s ease-out"}}>✨ {r.traitGained.cat.name.split(" ")[0]} gained {r.traitGained.trait.icon} {r.traitGained.trait.name}!</div>}
-            </div>}
-            {r.type==="grudge"&&<div>
-              <div style={{fontStyle:"italic",color:"#f59203bb",fontSize:11,lineHeight:1.5,fontFamily:"system-ui",marginBottom:4}}>{pk([
-                (a,b)=>`${a} hissed when ${b} crossed the invisible line. There was a line now. That was new.`,
-                (a,b)=>`They'd been circling the same sleeping spot for three nights. Tonight, ${a} claimed it. ${b} remembered.`,
-                (a,b)=>`It wasn't hatred. It was something quieter. ${a} and ${b} would never forget this.`,
-              ])(r.c1.name.split(" ")[0],r.c2.name.split(" ")[0])}</div>
-              <div style={{display:"flex",gap:6,alignItems:"center"}}><CC cat={r.c1} sm/><span style={{color:"#f59203bb",fontSize:14}}>⚡</span><CC cat={r.c2} sm/></div>
-              <div style={{fontSize:10,color:"#fb923c",fontFamily:"system-ui",marginTop:3}}>⚡ Grudge formed between {r.c1.name.split(" ")[0]} and {r.c2.name.split(" ")[0]}</div>
-            </div>}
-            {(r.type==="reconcile"||r.type==="reconcile_bond")&&<div>
-              <div style={{fontStyle:"italic",color:r.type==="reconcile_bond"?"#f472b6bb":"#67e8f9bb",fontSize:11,lineHeight:1.5,fontFamily:"system-ui",marginBottom:4}}>{pk([
-                (a,b)=>`${a} groomed the scar on ${b}'s ear. After all this time, the war was over.`,
-                (a,b)=>`It started with a shared mouse. By morning, ${a} and ${b} slept side by side.`,
-                (a,b)=>`Neither ${a} nor ${b} remembered who started it. But both remembered when it ended.`,
-              ])(r.c1.name.split(" ")[0],r.c2.name.split(" ")[0])}</div>
-              <div style={{display:"flex",gap:6,alignItems:"center"}}><CC cat={r.c1} sm hl/><span style={{color:r.type==="reconcile_bond"?"#f472b6bb":"#67e8f9bb",fontSize:14}}>{r.type==="reconcile_bond"?"💕":"🕊️"}</span><CC cat={r.c2} sm hl/></div>
-              <div style={{fontSize:10,color:r.type==="reconcile_bond"?"#f472b6":"#67e8f9",fontFamily:"system-ui",marginTop:3}}>
-                {r.type==="reconcile_bond"?`Grudge healed. ${r.c1.name.split(" ")[0]} and ${r.c2.name.split(" ")[0]} are now bonded 💕`:`Grudge healed. The tension has passed.`}
-              </div>
-            </div>}
-            {r.type==="bond"&&<div>
-              <div style={{fontStyle:"italic",color:"#f472b6bb",fontSize:13,lineHeight:1.5,fontFamily:"system-ui",marginBottom:4}}>{pk(DEN_BOND)(r.c1.name.split(" ")[0],r.c2.name.split(" ")[0])}</div>
-              <div style={{display:"flex",gap:6,alignItems:"center"}}><CC cat={r.c1} sm hl/><span style={{color:"#f472b6bb",fontSize:14}}>💕</span><CC cat={r.c2} sm hl/></div>
-              <div style={{fontSize:10,color:"#f472b6",fontFamily:"system-ui",marginTop:3}}>💕 {r.c1.name.split(" ")[0]} and {r.c2.name.split(" ")[0]} bonded</div>
             </div>}
             {r.type==="death"&&<div>
-              <div style={{fontStyle:"italic",color:"#ef4444bb",fontSize:13,lineHeight:1.5,fontFamily:"system-ui",marginBottom:6}}>{pk(DEN_DEATH)(r.c1.name.split(" ")[0],r.c2.name.split(" ")[0],r.victim.name.split(" ")[0])}</div>
-              <div style={{display:"flex",gap:6,alignItems:"center"}}><CC cat={r.c1} sm/><span style={{color:"#ef4444bb",fontSize:14}}>💀</span><CC cat={r.c2} sm/></div>
-              <div style={{textAlign:"center",marginTop:8,padding:"8px 12px",borderRadius:8,background:"#ef444411",border:"1px solid #ef444422"}}>
-                <div style={{fontSize:12,color:"#ef4444",fontWeight:700}}>{r.victim.name}</div>
-                <div style={{fontSize:10,color:"#888",fontFamily:"system-ui",marginTop:2}}>Power {r.victim.power} {BREEDS[r.victim.breed].icon} {r.victim.breed} {r.victim.trait.icon} {r.victim.trait.name}</div>
-                <div style={{fontSize:12,color:"#ef4444bb",fontFamily:"system-ui",marginTop:2}}>{r.victim.stats?.tp>0?`Played ${r.victim.stats.tp} hands. Best: ${r.victim.stats.bs?.toLocaleString()}.`:"Never got to play."}</div>
+              <div style={{fontStyle:"italic",color:"#ef4444bb",fontSize:13,lineHeight:1.5,fontFamily:"system-ui",marginBottom:6}}>{pk(DEN_DEATH)(n(r.c1),n(r.c2),n(r.victim))}</div>
+              <div style={{textAlign:"center",padding:"8px 12px",borderRadius:8,background:"#ef444411",border:"1px solid #ef444422"}}>
+                <div style={{fontSize:14,color:"#ef4444",fontWeight:700}}>{r.victim.name}</div>
+                <div style={{fontSize:10,color:"#888",fontFamily:"system-ui",marginTop:2}}>P{r.victim.power} {BREEDS[r.victim.breed]?.icon} {r.victim.breed} {(r.victim.trait||PLAIN).icon} {(r.victim.trait||PLAIN).name}</div>
+                <div style={{fontSize:11,color:"#ef4444bb",fontFamily:"system-ui",marginTop:2}}>{r.victim.stats?.tp>0?`Played ${r.victim.stats.tp} hands. Best: ${r.victim.stats.bs?.toLocaleString()}.`:"Never got to play."}</div>
               </div>
             </div>}
+            {r.type==="phoenix"&&<div>
+              <div style={{fontSize:13,color:"#fbbf24",fontWeight:700,marginBottom:4}}>🔥 {n(r.risen)} RISES FROM THE ASHES!</div>
+              <div style={{fontStyle:"italic",color:"#fbbf24bb",fontSize:11,fontFamily:"system-ui"}}>{pk(DEN_PHOENIX)(r.c1.name,r.c2.name,r.risen.name)}</div>
+              <div style={{fontSize:10,color:"#fbbf24",fontFamily:"system-ui",marginTop:4}}>Now Eternal at P1. The fire changes everything.</div>
+            </div>}
           </div>
-        );})}{/* end denRes.map */}
-        {/* ★ v38: Skip hint during cascade */}
-        {!denDone&&denRes.length>1&&<div style={{fontSize:10,color:"#ffffff22",fontFamily:"system-ui",letterSpacing:2,animation:"fadeIn 1s ease-out"}}>TAP TO SKIP ⏭</div>}
-        {/* ★ v50: Den summary BELOW cascade — the totals reveal, like scoring */}
-        {denDone&&denRes.length>0&&(()=>{
-          const n=c=>c.name.split(" ")[0];
-          const bMult=(typeof getMB==="function")?getMB():{};
-          const bondStr=bMult.bondBoost?"×1.75":"×1.5";
-          const groups={life:[],bonds:[],conflict:[],growth:[]};
-          denRes.forEach(r=>{
-            if(r.type==="breed")groups.life.push({icon:"🐣",text:`${n(r.baby)} was born to ${n(r.c1)} & ${n(r.c2)}${r.twins?" (twins!)":""}`,tip:`P${r.baby.power} ${r.baby.breed} joins deck`,color:"#4ade80",src:r.source});
-            if(r.type==="wanderer")groups.life.push({icon:"🐱",text:`${n(r.cat)} wandered in`,tip:`P${r.cat.power} ${r.cat.breed} joins colony`,color:"#67e8f9",src:r.source});
-            if(r.type==="death")groups.conflict.push({icon:"💀",text:`${n(r.victim)} was lost`,tip:"removed from colony",color:"#ef4444",bold:true,src:r.source});
-            if(r.type==="fight")groups.conflict.push({icon:"⚔",text:`${n(r.loser)} was ${r.wasInjured?"injured":"scarred"} (−${r.dmg}P) fighting ${n(r.loser.id===r.c1.id?r.c2:r.c1)}`,tip:r.wasInjured?"half power for 2 rounds":"scarred: \u00d71.25 mult",color:"#ef4444",src:r.source});
-            if(r.type==="grudge")groups.conflict.push({icon:"⚡",text:`${n(r.c1)} & ${n(r.c2)} developed a grudge`,tip:"−2 mult when played together",color:"#fb923c",src:r.source});
-            if(r.type==="bond")groups.bonds.push({icon:"💕",text:`${n(r.c1)} & ${n(r.c2)} bonded`,tip:`${bondStr} mult when played together`,color:"#f472b6",src:r.source});
-            if(r.type==="reconcile_bond")groups.bonds.push({icon:"💕",text:`${n(r.c1)} & ${n(r.c2)} reconciled and bonded`,tip:`grudge cleared · ${bondStr} mult together`,color:"#f472b6",src:r.source});
-            if(r.type==="reconcile")groups.bonds.push({icon:"🕊️",text:`${n(r.c1)} & ${n(r.c2)} made peace`,tip:"grudge cleared — no more tension penalty",color:"#67e8f9",src:r.source});
-            if(r.type==="growth")groups.growth.push({icon:"⭐",text:`${n(r.cat)} grew stronger`,tip:"+1 Power",color:"#4ade80"});
-            if(r.type==="mentor")groups.growth.push({icon:"📖",text:`${n(r.elder)} mentored ${n(r.young)}`,tip:`${n(r.young)} +1 Power`,color:"#c084fc"});
-            if(r.type==="training")groups.growth.push({icon:"⚔️",text:`${n(r.c1)} & ${n(r.c2)} sparred`,tip:"both +1 Power",color:"#60a5fa"});
-            if(r.type==="phoenix")groups.life.push({icon:"🔥",text:`${n(r.risen)} rose from the ashes`,tip:"now Eternal: ×3 mult, scores twice",color:"#fbbf24",bold:true});
-            if(r.type==="teach")groups.growth.push({icon:"👪",text:`${n(r.parent)} taught ${n(r.child)} ${r.trait.icon} ${r.trait.name}`,tip:r.trait.desc,color:"#34d399",bold:true});
-            if(r.type==="found")groups.growth.push({icon:"🐟",text:`${n(r.cat)} found ${r.gold} rations`,color:"#fbbf24"});
-            if(r.traitGained)groups.growth.push({icon:"✨",text:`${n(r.traitGained.cat)} gained ${r.traitGained.trait.icon} ${r.traitGained.trait.name}`,tip:r.traitGained.trait.desc,color:"#fbbf24",bold:true});
-          });
-          const sections=[
-            {key:"life",title:"🐣 New Life",items:groups.life,border:"#4ade8033"},
-            {key:"bonds",title:"💕 Bonds",items:groups.bonds,border:"#f472b633"},
-            {key:"conflict",title:"⚔ Conflict",items:groups.conflict,border:"#ef444433"},
-            {key:"growth",title:"⭐ Growth",items:groups.growth,border:"#60a5fa33"},
-          ].filter(s=>s.items.length>0);
-          return(<div style={{display:"flex",flexDirection:"column",gap:6,maxWidth:420,marginTop:8}}>
-            <div style={{width:"100%",height:1,background:"linear-gradient(90deg,transparent,#c084fc44,transparent)",animation:"fadeIn .4s ease-out"}}/>
-            <div style={{fontSize:9,color:"#c084fc88",letterSpacing:4,textAlign:"center",fontFamily:"system-ui",fontWeight:700,animation:"fadeIn .5s ease-out .1s both"}}>THE DEN REPORT</div>
-            {sections.map((sec,si)=>(
-              <div key={sec.key} style={{padding:"6px 12px",borderRadius:8,background:"#ffffff04",borderLeft:`3px solid ${sec.border}`,display:"flex",flexDirection:"column",gap:2,animation:`scorePop .4s ease-out ${.2+si*.15}s both`}}>
-                <div style={{fontSize:10,color:"#888",fontWeight:700,letterSpacing:1,marginBottom:1}}>{sec.title}</div>
-                {sec.items.map((l,i)=><div key={i} style={{fontSize:vw<500?13:11,fontFamily:"system-ui",color:l.color,fontWeight:l.bold?800:600,lineHeight:1.4}}>{l.icon} {l.text}{l.tip&&<span style={{fontSize:vw<500?10:9,color:"#ffffff77",fontWeight:400,marginLeft:4}}>— {l.tip}</span>}</div>)}
-              </div>
-            ))}
-            {/* ★ v50: Colony whisper in den — mythology echo based on what happened */}
-            {(()=>{const wSeed=(ante*9+groups.life.length+groups.conflict.length)%10;if(wSeed>3)return null;
-              const wPool=groups.life.length>0?WHISPER_DEN.birth:groups.conflict.some(l=>l.icon==="💀")?WHISPER_DEN.death:groups.bonds.length>0?WHISPER_DEN.bond:groups.conflict.length>0?WHISPER_DEN.conflict:null;
-              if(!wPool)return null;
-              return <div style={{fontSize:10,color:"#c084fc44",fontStyle:"italic",fontFamily:"system-ui",textAlign:"center",maxWidth:300,lineHeight:1.4,animation:`fadeIn .8s ease-out ${.3+sections.length*.15}s both`}}>{wPool[(ante+groups.life.length)%wPool.length]}</div>;
-            })()}
-          </div>);
-        })()}
-            {/* ★ v54: Baby naming moved to dedicated naming screen after den */}
-        {denDone&&<button onClick={()=>{
-          // ★ v54: Queue babies for naming via the same naming screen used for drafts
+        ))}
+
+        {/* ★ v55: Summary report — everything else in compact grouped format */}
+        {sections.length>0&&<div style={{display:"flex",flexDirection:"column",gap:5,width:"100%",maxWidth:420,animation:`fadeIn .5s ease-out ${majorEvents.length*.2+.3}s both`}}>
+          <div style={{width:"100%",height:1,background:"linear-gradient(90deg,transparent,#c084fc44,transparent)"}}/>
+          <div style={{fontSize:9,color:"#c084fc88",letterSpacing:4,textAlign:"center",fontFamily:"system-ui",fontWeight:700}}>DEN REPORT</div>
+          {sections.map((sec,si)=>(
+            <div key={sec.key} style={{padding:"5px 12px",borderRadius:8,background:"#ffffff04",borderLeft:`3px solid ${sec.border}`,display:"flex",flexDirection:"column",gap:1}}>
+              <div style={{fontSize:9,color:"#888",fontWeight:700,letterSpacing:1}}>{sec.title}</div>
+              {sec.items.map((l,i)=><div key={i} style={{fontSize:11,fontFamily:"system-ui",color:l.color,fontWeight:l.bold?700:500,lineHeight:1.4}}>{l.icon} {l.text}{l.tip&&<span style={{fontSize:9,color:"#ffffff55",fontWeight:400,marginLeft:4}}>— {l.tip}</span>}</div>)}
+            </div>
+          ))}
+        </div>}
+
+        {/* Continue button */}
+        <button onClick={()=>{
           const babies=[];
-          denRes.filter(r=>r.type==="breed").forEach(r=>{
-            babies.push(r.baby);
-            if(r.twin2)babies.push(r.twin2);
-          });
+          denRes.filter(r=>r.type==="breed").forEach(r=>{babies.push(r.baby);if(r.twin2)babies.push(r.twin2);});
           setBabyNames({});setBabyNamingQueue([]);
           if(denStRef.current)clearTimeout(denStRef.current);setDenRes(null);setDenStep(-1);
-          if(babies.length>0){
-            // Queue babies for naming — reuse the draft naming screen
-            setBabyNamingQueue(babies);
-            setNamingCat(babies[0]);
-            setPh("naming");
-          }else{
-            nextBlind();
-          }
-        }} style={{...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)","#0a0a1a"),marginTop:8,padding:"10px 32px",fontSize:14}}>The Sun Comes Up</button>}
+          if(babies.length>0){setBabyNamingQueue(babies);setNamingCat(babies[0]);setPh("naming");}
+          else{nextBlind();}
+        }} style={{...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)","#0a0a1a"),marginTop:8,padding:"10px 32px",fontSize:14}}>The Sun Comes Up</button>
       </div>
     </div>);
   }
@@ -6864,7 +6842,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         {/* ★ v51: Tab bar — 3 tabs: Cats / Upgrades / Colony */}
         <div style={{display:"flex",gap:0,width:"100%",borderBottom:"1px solid #ffffff0a"}}>
           {[["cats","🐱 Cats"],["upgrades","⚡ Upgrades"],["colony","👥 Colony"]].map(([id,label])=>{
-            const isNudge=id==="upgrades"&&shopTab!=="upgrades"&&(sFams.some(f=>f._starter)||sScrolls.length>0)&&fams.length===0;
+            const isNudge=(id==="upgrades"&&shopTab!=="upgrades"&&((sFams.some(f=>f._starter)||sScrolls.length>0)&&fams.length===0))||(id==="upgrades"&&shopTab!=="upgrades"&&isFirstRun&&fams.length===0);
             return(<button key={id} onClick={()=>{setShopTab(id);if(id!=="colony")setSellMode(false);}} style={{flex:1,padding:vw<500?"12px 4px":"8px 4px",fontSize:12,fontFamily:"system-ui",fontWeight:shopTab===id?700:400,color:shopTab===id?"#fbbf24":isNudge?"#fbbf24":"#666",background:shopTab===id?"#fbbf2408":isNudge?"#fbbf2406":"transparent",border:"none",borderBottom:shopTab===id?"2px solid #fbbf24":isNudge?"2px solid #fbbf2466":"2px solid transparent",cursor:"pointer",transition:"all .2s",animation:isNudge?"breathe 2s ease-in-out infinite":"none"}}>{label}{isNudge?" ✦":""}</button>);
           })}
         </div>
@@ -6917,34 +6895,15 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
           {/* ★ First-time intro */}
           {!seen.shop2&&<div style={{padding:"10px 14px",borderRadius:8,background:"#fbbf2408",border:"1px solid #fbbf2422",marginBottom:10,animation:"fadeIn .6s ease-out"}}>
             <div style={{fontSize:11,color:"#fbbf24cc",fontFamily:"system-ui",lineHeight:1.6}}>
-              <b>📜 Scrolls</b> level up hand types. <b>🛡️ Wards</b> give passive bonuses every hand. Both shape your strategy.
+              <b>🛡️ Wards</b> give passive bonuses every hand. <b>📜 Scrolls</b> level up hand types. Both shape your strategy.
             </div>
             <div style={{marginTop:6,textAlign:"center"}}><button onClick={()=>setSeen(s=>({...s,shop2:true}))} style={{fontSize:10,background:"#fbbf24",border:"none",borderRadius:4,color:"#0a0a1a",cursor:"pointer",padding:"3px 12px",fontWeight:700}}>Got it</button></div>
           </div>}
 
-          {/* ═══ SCROLLS SECTION ═══ */}
-          {sScrolls.length>0&&<>
-          <div style={{fontSize:10,color:"#fbbf24bb",letterSpacing:2,marginBottom:6}}>📜 SCROLLS</div>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
-            {sScrolls.map((s,i)=>{const can=gold>=s.price;
-              return(<div key={s.name} onClick={()=>can&&buyScroll(i)} style={{flex:"1 1 140px",maxWidth:180,padding:"10px 12px",borderRadius:10,
-                background:can?"linear-gradient(145deg,#fbbf2406,#f59e0b04)":"#ffffff04",
-                border:`1px solid ${can?"#fbbf2433":"#ffffff0a"}`,
-                cursor:can?"pointer":"default",opacity:can?1:.4,transition:"all .2s"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <span style={{fontSize:13,fontWeight:700,color:"#fbbf24"}}>{s.name}</span>
-                  <span style={{fontSize:11,color:can?"#fbbf24":"#555",fontWeight:700}}>{s.price}🐟</span>
-                </div>
-                <div style={{fontSize:10,color:"#888",fontFamily:"system-ui",marginTop:3}}>
-                  Lv{s.lv} {"→"} Lv{s.nextLv}
-                  {s.nextBase&&<span style={{color:"#4ade80"}}> ({s.nextBase.c}C × {s.nextBase.m}M)</span>}
-                </div>
-              </div>);
-            })}
-          </div>
-          </>}
-
           {/* ═══ WARDS SECTION ═══ */}
+          {fams.length===0&&sFams.length>0&&<div style={{padding:"8px 14px",borderRadius:8,background:"#4ade8008",border:"1px solid #4ade8033",marginBottom:8,animation:"breathe 2s ease-in-out infinite"}}>
+            <div style={{fontSize:11,color:"#4ade80",fontFamily:"system-ui",fontWeight:700}}>💡 Buy a ward! Wards boost your score every hand, all run long.</div>
+          </div>}
           <div style={{fontSize:10,color:"#c084fcbb",letterSpacing:2,marginBottom:6}}>🛡️ WARDS FOR SALE</div>
           {sFams.length>0?<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
             {sFams.map((f,i)=>{const wp=famPrice(f);const can=gold>=wp&&fams.length<MF;
@@ -6970,13 +6929,35 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
           {fams.length>0&&<div style={{marginBottom:12}}>
             <div style={{fontSize:10,color:"#888",letterSpacing:2,marginBottom:4}}>EQUIPPED ({fams.length}/{MF})</div>
             <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-              {fams.map(f=><div key={f.id} style={{display:"flex",alignItems:"center",gap:4,padding:"4px 8px",borderRadius:6,background:"#ffffff06",border:"1px solid #ffffff0a"}}>
+              {fams.map(f=><div key={f.id} onClick={()=>toast(f.icon,`${f.name}: ${f.desc}`,"#fbbf24")} style={{display:"flex",alignItems:"center",gap:4,padding:"4px 8px",borderRadius:6,background:"#ffffff06",border:"1px solid #ffffff0a",cursor:"pointer"}}>
                 <span style={{fontSize:14}}>{f.icon}</span>
-                <span style={{fontSize:10,color:"#aaa",fontFamily:"system-ui"}}>{f.name}</span>
-                <button onClick={()=>sellFam(f)} style={{fontSize:8,color:"#ef4444aa",background:"none",border:"none",cursor:"pointer",padding:0,fontFamily:"system-ui"}}>✕</button>
+                <div style={{flex:1}}><span style={{fontSize:10,color:"#aaa",fontFamily:"system-ui"}}>{f.name}</span><div style={{fontSize:9,color:"#666",fontFamily:"system-ui"}}>{f.desc}</div></div>
+                <button onClick={e=>{e.stopPropagation();sellFam(f);}} style={{fontSize:8,color:"#ef4444aa",background:"none",border:"none",cursor:"pointer",padding:0,fontFamily:"system-ui"}}>✕</button>
               </div>)}
             </div>
           </div>}
+
+          {/* ═══ SCROLLS SECTION ═══ */}
+          {sScrolls.length>0&&<>
+          <div style={{fontSize:10,color:"#fbbf24bb",letterSpacing:2,marginBottom:6}}>📜 SCROLLS</div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
+            {sScrolls.map((s,i)=>{const can=gold>=s.price;
+              return(<div key={s.name} onClick={()=>can&&buyScroll(i)} style={{flex:"1 1 140px",maxWidth:180,padding:"10px 12px",borderRadius:10,
+                background:can?"linear-gradient(145deg,#fbbf2406,#f59e0b04)":"#ffffff04",
+                border:`1px solid ${can?"#fbbf2433":"#ffffff0a"}`,
+                cursor:can?"pointer":"default",opacity:can?1:.4,transition:"all .2s"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span style={{fontSize:13,fontWeight:700,color:"#fbbf24"}}>{s.name}</span>
+                  <span style={{fontSize:11,color:can?"#fbbf24":"#555",fontWeight:700}}>{s.price}🐟</span>
+                </div>
+                <div style={{fontSize:10,color:"#888",fontFamily:"system-ui",marginTop:3}}>
+                  Lv{s.lv} {"→"} Lv{s.nextLv}
+                  {s.nextBase&&<span style={{color:"#4ade80"}}> ({s.nextBase.c}C × {s.nextBase.m}M)</span>}
+                </div>
+              </div>);
+            })}
+          </div>
+          </>}
 
           {/* ═══ HAND LEVELS — compact ═══ */}
           <div style={{borderTop:"1px solid #ffffff0a",paddingTop:8,marginBottom:8}}>
@@ -7071,12 +7052,12 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         <div style={{maxWidth:700,width:"100%",display:"flex",justifyContent:"space-between",alignItems:"center",gap:8}}>
           <div style={{display:"flex",flexDirection:"column",gap:2}}>
             <div style={{display:"flex",gap:8,alignItems:"center"}}>
-              <span style={{color:"#fbbf24",fontSize:14,fontWeight:700}}>🐟{gold}</span>
-              {interestPreview>0&&<span style={{color:"#4ade80",fontSize:10,fontFamily:"system-ui"}}>+{interestPreview} stores{interestPreview>=5?" MAX":""}</span>}
-              <span style={{color:"#c084fc",fontSize:10}}>✦{meta?.dust||0}</span>
+              <span onClick={()=>toast("🐟",`Rations: ${gold}🐟. Spend in the Market on cats, wards, scrolls. Earn more by scoring higher. Save 5+ for interest.`,"#fbbf24")} style={{color:"#fbbf24",fontSize:14,fontWeight:700,cursor:"help"}}>🐟{gold}</span>
+              {interestPreview>0&&<span onClick={()=>toast("📈",`Interest: +${interestPreview}🐟 next round (floor of rations÷5, max 5). Save rations to earn more.`,"#4ade80")} style={{color:"#4ade80",fontSize:10,fontFamily:"system-ui",cursor:"help"}}>+{interestPreview} stores{interestPreview>=5?" MAX":""}</span>}
+              <span onClick={()=>toast("✦",`Stardust: ${meta?.dust||0}✦. Meta-currency from Hearth cats. Spend on permanent upgrades between runs.`,"#c084fc")} style={{color:"#c084fc",fontSize:10,cursor:"help"}}>✦{meta?.dust||0}</span>
             </div>
             <div style={{fontSize:10,fontFamily:"system-ui",color:"#888"}}>
-              {nt?<span>{nt.blind===2?<span style={{color:"#ef4444",fontWeight:700}}>{boss?.icon||"👁️"} {nt.blindName} approaches</span>:<span style={{color:"#fbbf24"}}>{nt.blindName} falls</span>} · Night {nt.ante} · <span style={{color:"#e8e6e3",fontWeight:700}}>{nt.target.toLocaleString()}</span> to survive</span>
+              {nt?<span onClick={()=>toast("🎯",`Target: ${nt.target.toLocaleString()}. Score this much total across all hands to clear ${nt.blindName}. Boss blinds injure cats on failed hands.`,"#fbbf24")} style={{cursor:"help"}}>{nt.blind===2?<span style={{color:"#ef4444",fontWeight:700}}>{boss?.icon||"👁️"} {nt.blindName} approaches</span>:<span style={{color:"#fbbf24"}}>{nt.blindName} falls</span>} · Night {nt.ante} · <span style={{color:"#e8e6e3",fontWeight:700}}>{nt.target.toLocaleString()}</span> to survive</span>
               :<span style={{color:"#4ade80",fontWeight:700}}>Dawn approaches...</span>}
             </div>
           </div>
@@ -7123,9 +7104,9 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         const isUiTour=step<0;
         // UI Tour highlight positions
         const tourSteps=[
-          {step:-3,title:"YOUR FIRST NIGHT",msg:"Let me show you how this works. Watch closely — I'll play the first hand for you.",highlight:null,pos:"center"},
-          {step:-2,title:"SCORE & TARGET",msg:"Score enough each round to survive. Fall below the threshold and the dark forgets you were here.",highlight:"score",pos:"top"},
-          {step:-1,title:"YOUR COLONY",msg:"These are your cats. Cards of the same season score better together. Watch what happens when I play matching cats.",highlight:"hand",pos:"bottom"},
+          {step:-3,title:"YOUR FIRST NIGHT",msg:"Welcome. I'll play the first hand to show you how scoring works. Just watch.",highlight:null,pos:"center"},
+          {step:-2,title:"SCORE & TARGET",msg:"This is your score target. Score enough total across your hands to survive each round.",highlight:"score",pos:"top"},
+          {step:-1,title:"YOUR COLONY",msg:"These are your cats. Same-season cats score better together. Watch — I'll pick the best match now.",highlight:"hand",pos:"bottom"},
         ];
         const tour=tourSteps.find(t=>t.step===step);
 
@@ -7153,6 +7134,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
             let ci=0;
             function selectNext(){
               if(ci>=autoPlay.idxs.length){
+                // All cats selected — pause, then play
                 setAutoPlay(a=>a?{...a,step:3}:null);
                 autoRef.current=setTimeout(()=>{
                   const cats=autoPlay.idxs.map(i=>hand[i]).filter(Boolean);
@@ -7189,9 +7171,9 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
                     scoreEndRef.current={chips:result.chips,mult:result.mult,total:result.total,ht:result.ht,combo:result.combo,aft,shk:getShakeIntensity(result.total),isFirstCascade:true,stepTotals};
                     let stp=-1;const tot=result.bd.length;
                     function getAutoStepDelay2(s){
-                      const tempo=Math.max(0.5,Math.min(1.4,7/tot));const slow=1.4;
+                      const tempo=Math.max(0.5,Math.min(1.4,7/tot));const slow=1.8; // ★ v55: slower for tutorial
                       const st=result.bd[s];const isLast=s===tot-1;const isPenult=s===tot-2;
-                      if(st&&(st.mult<0||st.type==="curse"||st.type==="grudge_tension"))return Math.round(150*tempo*slow);
+                      if(st&&(st.mult<0||st.type==="curse"||st.type==="grudge_tension"))return Math.round(200*tempo*slow);
                       if(st&&st.xMult&&st.xMult>=2)return Math.round(Math.max(900,1100*Math.max(0.7,tempo))*slow);
                       if(st&&st.xMult)return Math.round(Math.max(700,900*Math.max(0.7,tempo))*slow);
                       if(st&&st.type==="nerve")return Math.round(Math.max(650,850*Math.max(0.7,tempo))*slow);
@@ -7199,11 +7181,11 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
                       if(st&&st.type==="fam")return Math.round(Math.max(400,550*tempo)*slow);
                       if(isPenult)return Math.round(Math.max(370,520*tempo)*slow);
                       if(isLast)return Math.round(Math.max(470,670*tempo)*slow);
-                      if(s===0)return Math.round(550*tempo*slow);
+                      if(s===0)return Math.round(1200*tempo*slow); // hand type holds extra long
                       if(st?.isBigCat)return Math.round(Math.max(450,580*tempo)*slow);
-                      if(s===1)return Math.round(420*tempo*slow);
-                      if(s<=3)return Math.round(350*tempo*slow);
-                      return Math.round(Math.max(70,(200-s*5)*tempo)*slow);
+                      if(s===1)return Math.round(500*tempo*slow);
+                      if(s<=3)return Math.round(420*tempo*slow);
+                      return Math.round(Math.max(100,(250-s*5)*tempo)*slow);
                     }
                     function animStep2(){
                       stp++;
@@ -7216,8 +7198,8 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
                             setScoringFlash(s2.xMult>=1.5?"#fef08a":"#fbbf24");setTimeout(()=>setScoringFlash(null),150);
                             setMultPop({val:s2.xMult,label:s2.label,mode:"xmult"});setTimeout(()=>setMultPop(null),1200);
                           }
-                          else if(s2.type==="hand"){Audio.comboHit();}
-                          else if(s2.type==="combo"){Audio.comboHit();setScoreShake(1);setTimeout(()=>setScoreShake(0),200);}
+                          else if(s2.type==="hand"){Audio.comboHit();setScoringFlash("#fbbf24");setScoreShake(2);setTimeout(()=>{setScoreShake(0);setScoringFlash(null);},250);}
+                          else if(s2.type==="combo"){Audio.comboHit();setScoreShake(3);setScoringFlash("#c084fc");setTimeout(()=>{setScoreShake(0);setScoringFlash(null);},300);}
                           else if(s2.type==="grudge_tension")Audio.grudgeTense();
                           else if(s2.type==="grudge_prove")Audio.grudgeProve();
                           else if(s2.type==="bond"||s2.type==="lineage")Audio.bondChime();
@@ -7239,38 +7221,46 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
                         if(tier&&tier.label)Audio.tierReveal(Math.min(5,Math.floor(end.total/5000)));
                       }
                     }
-                    // ★ v52: 600ms reveal beat, then fire step 0
                     stRef.current=setTimeout(()=>{
                       {const _hti=HT.findIndex(h=>h.name===result.ht);Audio.handType(Math.min(3,Math.floor((_hti>=0?_hti:4)/2)));}
                       animStep2();
-                    },600);
+                    },800);
                   }
-                },2000);
+                },2500); // ★ v55: longer pause after selection before playing (was 2000)
                 return;
               }
-              setSel(prev=>{const ns=new Set(prev);ns.add(autoPlay.idxs[ci]);return ns;});
+              // ★ v55: Select one card at a time with sound + toast showing cat name
+              const idx=autoPlay.idxs[ci];
+              const cat=hand[idx];
+              setSel(prev=>{const ns=new Set(prev);ns.add(idx);return ns;});
               Audio.cardSelect();
+              if(cat)toast(BREEDS[cat.breed]?.icon||"🐱",`${cat.name.split(" ")[0]} selected (${cat.breed})`,BREEDS[cat.breed]?.color||"#fbbf24",1500);
               setAutoPlay(a=>a?{...a,step:ci===0?1:2}:null);
               ci++;
-              autoRef.current=setTimeout(selectNext,800);
+              autoRef.current=setTimeout(selectNext,1200); // ★ v55: slower selection (was 800)
             }
-            autoRef.current=setTimeout(selectNext,600);
-          },1200);
+            autoRef.current=setTimeout(selectNext,1000); // ★ v55: longer initial delay (was 600)
+          },1500); // ★ v55: longer wait before starting selection (was 1200)
         }
 
         // Auto-play banner (step 0+)
-        return(<div style={{position:"fixed",bottom:60,left:"50%",transform:"translateX(-50%)",zIndex:150,padding:"14px 24px",borderRadius:12,background:"#0a0a1aee",border:"1px solid #4ade8044",maxWidth:340,animation:"fadeIn .6s ease-out",textAlign:"center",fontFamily:"system-ui",boxShadow:"0 8px 32px #00000088"}}>
-          <div style={{fontSize:14,color:"#4ade80",fontWeight:700,marginBottom:4}}>{
+        return(<>
+          {/* ★ v55: Semi-transparent overlay to prevent accidental clicks */}
+          <div style={{position:"fixed",inset:0,zIndex:130,pointerEvents:"auto",background:"transparent"}} onClick={e=>e.stopPropagation()}/>
+          <div style={{position:"fixed",bottom:mob?70:60,left:"50%",transform:"translateX(-50%)",zIndex:150,padding:"16px 28px",borderRadius:14,background:"#0a0a1aee",border:"1.5px solid #4ade8044",maxWidth:360,animation:"fadeIn .6s ease-out",textAlign:"center",fontFamily:"system-ui",boxShadow:"0 8px 32px #00000088"}}>
+          <div style={{fontSize:9,color:"#4ade8066",letterSpacing:3,marginBottom:4}}>👀 WATCHING THE DEMO</div>
+          <div style={{fontSize:15,color:"#4ade80",fontWeight:700,marginBottom:6}}>{
             step===0?"Selecting same-season cats..."
-            :step<=2?"Selecting cats..."
+            :step<=2?`Selecting cats... (${Math.min(sel.size,autoPlay.idxs.length)}/${autoPlay.idxs.length})`
             :"Playing the hand..."
           }</div>
           <div style={{fontSize:11,color:"#4ade80aa",lineHeight:1.5}}>{
-            step<=2?"More cats of the same season = stronger hand."
-            :"Watch how each cat adds to the score..."
+            step<=2?"Same season = stronger hand. Watch which cards light up."
+            :"Now watch how chips × mult builds the score..."
           }</div>
+          <div style={{fontSize:10,color:"#ffffff33",marginTop:6,fontStyle:"italic"}}>Sit back — you'll play the next hand yourself.</div>
           <button onClick={()=>{if(autoRef.current)clearTimeout(autoRef.current);if(stRef.current)clearTimeout(stRef.current);setSel(new Set());setAutoPlay(null);setGuide({step:3,msg:""});}} style={{marginTop:8,fontSize:10,background:"none",border:"1px solid #4ade8033",borderRadius:4,color:"#4ade8066",cursor:"pointer",padding:"3px 10px"}}>Skip demo →</button>
-        </div>);
+        </div></>);
       })()}
       {guide&&!autoPlay&&ante===1&&blind===0&&ph==="playing"&&(()=>{
         // Compute guide context
@@ -7283,25 +7273,25 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         let msg="",sub="";
         if(guide.step===0){
           const bIcon=suggestBreed?BREEDS[suggestBreed[0]]?.icon:"";
-          msg=`${bIcon} Tap the glowing cats`;
-          sub="Cats of the same season score better together.";
+          msg=`${bIcon} Your turn! Select same-season cats`;
+          sub="Tap the highlighted cards, then hit Play.";
         }else if(guide.step===1){
           const ht=evalH?.(selCats);
-          msg=`✨ ${ht?.name||"Hand"}! Hit Play ▶`;
-          sub="Watch how each cat adds to the score.";
+          msg=`✨ ${ht?.name||"Hand"} ready! Hit Play ▶`;
+          sub="Watch how chips × mult builds your score.";
         }else if(guide.step===2){
-          msg="Each cat adds to the score.";
+          msg="Score builds from each cat's power + traits.";
           sub="Matching seasons multiply everything. That's the whole game.";
         }else if(guide.step===3){
           const need=Math.max(0,tgt-rScore);
           const postAuto=!autoPlay&&isFirstRun&&ante===1&&blind===0&&hLeft>=2;
-          msg=postAuto?"Your turn! 🎮":need>0?(hLeft===1?`⚠ FINAL HAND. Need ${need.toLocaleString()} to survive.`:`${hLeft} hand${hLeft!==1?"s":""} left. Need ${need.toLocaleString()} more.`):"Threshold cleared! 🎉";
-          sub=postAuto?`${hLeft} hands left. Tap cats that share a season, then hit Play.`:need>0?(hLeft<=2?"Make this count.":"Pick a different group, or discard to draw new ones."):"The bigger you score beyond the threshold, the more bonus rations and Nerve you earn.";
+          msg=postAuto?"Your turn! 🎮":need>0?(hLeft===1?"⚠ LAST HAND":"Need "+need.toLocaleString()+" more"):"Cleared! 🎉";
+          sub=postAuto?"Select same-season cats → Play":"";
         }
-        return(<div style={{position:"fixed",bottom:guide.step>=2?280:220,left:"50%",transform:"translateX(-50%)",zIndex:150,padding:"12px 20px",borderRadius:12,background:"#0a0a1aee",border:"1px solid #fbbf2444",maxWidth:340,animation:"fadeIn .6s ease-out",textAlign:"center",fontFamily:"system-ui",boxShadow:"0 8px 32px #00000088"}}>
-          <div style={{fontSize:14,color:"#fbbf24",fontWeight:700,marginBottom:3}}>{msg}</div>
-          <div style={{fontSize:11,color:"#fbbf24aa",lineHeight:1.5}}>{sub}</div>
-          <button onClick={()=>{if(guide.step>=3){setGuide(null);setSeen(s=>({...s,guided:true}));}else setGuide(g=>({...g,step:Math.min(3,g.step+1)}));}} style={{marginTop:6,fontSize:10,background:"none",border:"1px solid #fbbf2433",borderRadius:4,color:"#fbbf24bb",cursor:"pointer",padding:"3px 10px"}}>{guide.step>=3?"Got it!":"Skip"}</button>
+        return(<div style={{position:"fixed",bottom:guide.step>=2?280:220,left:"50%",transform:"translateX(-50%)",zIndex:150,padding:"10px 18px",borderRadius:10,background:"#0a0a1aee",border:"1px solid #fbbf2444",maxWidth:300,animation:"fadeIn .6s ease-out",textAlign:"center",fontFamily:"system-ui",boxShadow:"0 8px 32px #00000088"}}>
+          <div style={{fontSize:14,color:"#fbbf24",fontWeight:700}}>{msg}</div>
+          {sub&&<div style={{fontSize:11,color:"#fbbf24aa",marginTop:2}}>{sub}</div>}
+          <button onClick={()=>{setGuide(null);setSeen(s=>({...s,guided:true}));}} style={{marginTop:4,fontSize:9,background:"none",border:"none",color:"#ffffff22",cursor:"pointer",padding:"2px 8px"}}>dismiss</button>
         </div>);
       })()}
 
@@ -7609,17 +7599,30 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
               {s&&!done&&<div style={{marginTop:2,textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
                 {/* ★ v52: Hand type & combo get dramatic treatment with level */}
                 {(s.type==="hand"||s.type==="combo")?<>
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <div style={{
-                      fontSize:14,fontFamily:"'Cinzel',serif",letterSpacing:3,fontWeight:900,color:stepColor,
-                      animation:"comboBurst .5s ease-out",textShadow:`0 0 20px ${stepColor}55`,
-                    }}>{s.label.replace(/ Lv\d+$/,"")}</div>
-                    {(()=>{const lvMatch=s.label.match(/Lv(\d+)$/);return lvMatch?<span style={{fontSize:10,fontWeight:700,color:stepColor,background:`${stepColor}18`,padding:"1px 6px",borderRadius:6,fontFamily:"system-ui",letterSpacing:1,border:`1px solid ${stepColor}33`}}>LV{lvMatch[1]}</span>:null;})()}
-                  </div>
-                  {(s.chips||s.mult)?<div style={{fontSize:15,fontWeight:900,display:"flex",gap:8,marginTop:3,animation:"comboBurst .5s ease-out"}}>
-                    {s.chips>0&&<span style={{color:"#3b82f6"}}>+{s.chips}<span style={{fontSize:9,opacity:.6,letterSpacing:1,marginLeft:2}}>C</span></span>}
-                    {s.mult>0&&<span style={{color:"#ef4444"}}>+{s.mult}<span style={{fontSize:9,opacity:.6,letterSpacing:1,marginLeft:2}}>M</span></span>}
-                  </div>:null}
+                  {(()=>{
+                    // ★ v55: Rarer hands get bigger visual treatment
+                    const htIdx=s.type==="hand"?HT.findIndex(h=>s.label.startsWith(h.name)):-1;
+                    const rarity=s.type==="combo"?4:Math.max(0,htIdx); // combos = rare tier
+                    const nameSize=rarity>=6?30:rarity>=4?24:rarity>=2?20:16; // Litter=30, Colony=24, Clowder=20, Kin=16
+                    const numSize=rarity>=6?26:rarity>=4?22:rarity>=2?18:15;
+                    const glowSize=rarity>=4?40:rarity>=2?25:15;
+                    const shakeAnim=rarity>=6?"bigShake .5s ease-out":rarity>=4?"comboBurst .6s ease-out":"comboBurst .5s ease-out";
+                    const htColor=s.type==="combo"?"#c084fc":rarity>=6?"#fef08a":rarity>=4?"#fbbf24":"#fbbf24";
+                    return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,animation:shakeAnim}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <div style={{
+                          fontSize:nameSize,fontFamily:"'Cinzel',serif",letterSpacing:rarity>=4?6:4,fontWeight:900,
+                          color:htColor,
+                          textShadow:`0 0 ${glowSize}px ${htColor}66, 0 0 ${glowSize*2}px ${htColor}22`,
+                        }}>{s.type==="combo"?"⚡ ":rarity>=6?"🌟 ":rarity>=4?"🃏 ":""}{s.label.replace(/ Lv\d+$/,"")}</div>
+                        {(()=>{const lvMatch=s.label.match(/Lv(\d+)$/);return lvMatch?<span style={{fontSize:rarity>=4?14:12,fontWeight:700,color:htColor,background:`${htColor}18`,padding:"2px 8px",borderRadius:6,fontFamily:"system-ui",letterSpacing:1,border:`1px solid ${htColor}33`}}>LV{lvMatch[1]}</span>:null;})()}
+                      </div>
+                      {(s.chips||s.mult)?<div style={{fontSize:numSize,fontWeight:900,display:"flex",gap:12,animation:`scorePopFade .5s ease-out .1s both`}}>
+                        {s.chips>0&&<span style={{color:"#3b82f6"}}>+{s.chips}<span style={{fontSize:Math.max(10,numSize-8),opacity:.7,letterSpacing:1,marginLeft:2}}>CHIPS</span></span>}
+                        {s.mult>0&&<span style={{color:"#ef4444"}}>+{s.mult}<span style={{fontSize:Math.max(10,numSize-8),opacity:.7,letterSpacing:1,marginLeft:2}}>MULT</span></span>}
+                      </div>:null}
+                    </div>);
+                  })()}
                 </>:<>
                   <div style={{
                     fontSize:hasX?14:s.type==="nerve"?13:s.isBigCat?12:s.type==="bond"?11:10,
@@ -7963,7 +7966,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         });
         // ★ v47: Compute guide highlight indices for visual glow on suggested cats
         const _gHL=new Set();
-        if(guide&&guide.step===0&&ante===1&&blind===0){
+        if(guide&&!autoPlay&&guide.step===0&&ante===1&&blind===0){
           const bc={};hand.forEach((c,i)=>{bc[c.breed]=(bc[c.breed]||0)+1;});
           const best=Object.entries(bc).sort((a,b)=>b[1]-a[1]).find(([,v])=>v>=2);
           if(best)hand.forEach((c,i)=>{if(c.breed===best[0]&&_gHL.size<best[1])_gHL.add(i);});
@@ -7988,8 +7991,8 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
           const isGuideHL=hand._guideHL?.has(i)&&!sel.has(i);
           return(<div key={c.id} style={{position:"relative",flexShrink:0,animation:isGuideHL?"guidePulse 1.5s ease-in-out infinite":"none"}}>
             <CC cat={c} sel={sel.has(i)} onClick={()=>toggleS(i)} dis={ph!=="playing"||!!autoPlay} fog={cfx.fog&&!sel.has(i)} chemHint={!sel.has(i)?getHint(c):null} hl={isRelated||isGuideHL} onTraitClick={ct=>setTraitTip(ct)} sm={mob} cw={_cw||undefined}/>
-            {isRelated&&<div style={{position:"absolute",top:-8,left:"50%",transform:"translateX(-50%)",fontSize:10,fontWeight:700,fontFamily:"system-ui",background:"#0a0a1a",padding:"0 4px",borderRadius:3,whiteSpace:"nowrap",animation:"countUp .3s ease-out",zIndex:2,color:relType==="mate"?"#f472b6":"#4ade80"}}>{relType==="mate"?"💕 mate":"👪 kin"}</div>}
-            {isGuideHL&&<div style={{position:"absolute",top:-8,left:"50%",transform:"translateX(-50%)",fontSize:10,fontWeight:700,fontFamily:"system-ui",background:"#0a0a1a",padding:"0 4px",borderRadius:3,whiteSpace:"nowrap",animation:"fadeIn .5s ease-out",zIndex:2,color:"#fbbf24"}}>👆 tap</div>}
+            {isRelated&&<div style={{position:"absolute",top:-10,left:"50%",transform:"translateX(-50%)",fontSize:11,fontWeight:700,fontFamily:"system-ui",background:relType==="mate"?"#f472b622":"#4ade8022",padding:"1px 6px",borderRadius:4,border:`1px solid ${relType==="mate"?"#f472b644":"#4ade8044"}`,whiteSpace:"nowrap",animation:"countUp .3s ease-out",zIndex:10,color:relType==="mate"?"#f472b6":"#4ade80"}}>{relType==="mate"?"💕 mate":"👪 kin"}</div>}
+            {isGuideHL&&<div style={{position:"absolute",top:-10,left:"50%",transform:"translateX(-50%)",fontSize:11,fontWeight:700,fontFamily:"system-ui",background:"#fbbf2422",padding:"1px 6px",borderRadius:4,border:"1px solid #fbbf2444",whiteSpace:"nowrap",animation:"guidePulse 1.5s ease-in-out infinite",zIndex:10,color:"#fbbf24"}}>👆 select</div>}
           </div>);
         });})()}
       </div>
@@ -8005,7 +8008,10 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         const baseM=scaled?.m||evald.base?.m||0;
         const bonds=selCatsP.filter(c=>c.bondedTo&&selCatsP.find(x=>x.id===c.bondedTo));
         const grudges=selCatsP.filter(c=>(c.grudgedWith||[]).some(gid=>selCatsP.find(x=>x.id===gid)));
-        return(<div style={{textAlign:"center",padding:"2px 0",zIndex:1,animation:"fadeIn .15s ease-out"}}>
+        return(<div onClick={()=>{
+          const htDescs={Stray:"1 cat alone",Kin:"2 same season",["Two Kin"]:"2+2 seasons",Clowder:"3 same season",Colony:"4 same season",Litter:"5 same season",["Full Den"]:"3 of one + 2 of another",Kindred:"3+ sharing a trait"};
+          toast("🃏",`${evald.name}: ${htDescs[evald.name]||""}. Base ${baseC}C × ${baseM}M = ${baseC*baseM}. Chips × Mult = score.`,"#fbbf24");
+        }} style={{textAlign:"center",padding:"2px 0",zIndex:1,animation:"fadeIn .15s ease-out",cursor:"help"}}>
           <span style={{fontSize:13,fontWeight:700,color:"#fbbf24",fontFamily:"'Cinzel',serif",letterSpacing:2}}>{evald.name}{htLv>1?` Lv${htLv}`:""}</span>
           <span style={{fontSize:11,color:"#3b82f6",fontFamily:"system-ui",fontWeight:700,marginLeft:8}}>{baseC}C</span>
           <span style={{fontSize:11,color:"#ffffff22",margin:"0 2px"}}>×</span>
@@ -8027,13 +8033,13 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
           {(()=>{const cost=recruitCost();const canRecruit=ph==="playing"&&!autoPlay&&gold>=cost&&(draw.length>0||disc.length>0);
             return(<>
               <button onClick={recruitCat} disabled={!canRecruit} style={{...BTN(canRecruit?"#1a2e1a":"#111",canRecruit?"#4ade80":"#444",canRecruit),border:`1px solid ${canRecruit?"#4ade8044":"#222"}`,minWidth:mob?56:50,padding:mob?"10px 10px":"8px 10px",fontSize:10}}>+1 Cat</button>
-              <div style={{fontSize:10,color:cost===0?"#4ade80":gold>=cost?"#fbbf24":"#ef4444",marginTop:2,fontFamily:"system-ui"}}>{cost===0?"Free!":cost+"🐟"}</div>
+              <div onClick={()=>toast("🐱","Recruit: draw an extra cat into your hand. Cost doubles each time (1→2→4→8🐟). More cats = better hands + bench bonuses.","#4ade80")} style={{fontSize:10,color:cost===0?"#4ade80":gold>=cost?"#fbbf24":"#ef4444",marginTop:2,fontFamily:"system-ui",cursor:"help"}}>{cost===0?"Free!":cost+"🐟"}</div>
             </>);
           })()}
         </div>
         <div style={{textAlign:"center"}}>
           <button onClick={discardH} disabled={!sel.size||dLeft<=0||ph!=="playing"||cfx.noDisc} style={{...BTN(sel.size&&dLeft>0&&ph==="playing"&&!cfx.noDisc?"#1a1a2e":"#111",sel.size&&dLeft>0&&ph==="playing"&&!cfx.noDisc?"#ef4444":"#444",sel.size>0&&dLeft>0&&ph==="playing"&&!cfx.noDisc),border:`1px solid ${sel.size&&dLeft>0&&!cfx.noDisc?"#ef444444":"#222"}`,minWidth:mob?56:60,padding:mob?"10px 10px":"8px 14px"}}>Discard{cfx.noDisc?" 🚫":""}</button>
-          <div style={{fontSize:10,color:cfx.noDisc?"#ef4444bb":dLeft<=0?"#ef4444":"#888",marginTop:2,fontFamily:"system-ui"}}>{cfx.noDisc?"Disabled":`${dLeft} left`}</div>
+          <div onClick={()=>toast("♻️","Discard: swap selected cats for new draws. Free! Use to fish for season matches.","#ef4444")} style={{fontSize:10,color:cfx.noDisc?"#ef4444bb":dLeft<=0?"#ef4444":"#888",marginTop:2,fontFamily:"system-ui",cursor:"help"}}>{cfx.noDisc?"Disabled":`${dLeft} left`}</div>
           {sel.size>0&&dLeft>0&&!cfx.noDisc&&ph==="playing"&&(()=>{
             const selCats2=[...sel].map(i=>hand[i]).filter(Boolean);
             const hints=[];
@@ -8055,7 +8061,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         </div>
         <div style={{textAlign:"center"}}>
           <button onClick={playH} disabled={!sel.size||hLeft<=0||ph!=="playing"||!!autoPlay} style={{...BTN(sel.size&&ph==="playing"&&!autoPlay?"linear-gradient(135deg,#fbbf24,#f59e0b)":"#222",sel.size&&ph==="playing"&&!autoPlay?"#0a0a1a":"#555",sel.size>0&&ph==="playing"&&!autoPlay),minWidth:mob?80:70,padding:mob?"12px 18px":"8px 16px",fontSize:mob?15:14,animation:hLeft===1&&rScore<tgt?"fpp 1.2s ease infinite":"none",boxShadow:hLeft===1&&rScore<tgt?"0 0 20px #ef444488":"none"}}>Play{hLeft===1&&rScore<tgt?" ⚠":""}</button>
-          <div style={{fontSize:10,color:hLeft<=1&&rScore<tgt?"#ef4444":"#888",marginTop:2,fontFamily:"system-ui",fontWeight:hLeft<=1&&rScore<tgt?900:400,animation:hLeft<=1&&rScore<tgt?"fpp 1s ease infinite":"none"}}>{hLeft<=1&&rScore<tgt?"⚠ FINAL":hLeft===0?"Done":`Hands: ${hLeft}`}</div>
+          <div onClick={()=>toast("🃏",`Hands: ${hLeft} remaining this round. Each hand plays up to 5 cats. Score ≥ threshold to clear.`,"#3b82f6")} style={{fontSize:10,color:hLeft<=1&&rScore<tgt?"#ef4444":"#888",marginTop:2,fontFamily:"system-ui",fontWeight:hLeft<=1&&rScore<tgt?900:400,animation:hLeft<=1&&rScore<tgt?"fpp 1s ease infinite":"none",cursor:"help"}}>{hLeft<=1&&rScore<tgt?"⚠ FINAL":hLeft===0?"Done":`Hands: ${hLeft}`}</div>
         </div>
         {/* Deck view + Sort */}
         <div style={{textAlign:"center"}}>
@@ -8129,7 +8135,61 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         {abandonConfirm?<>
           <button onClick={()=>{setAbandonConfirm(false);setPh("title");setTab("play");}} style={{background:"#ef444433",border:"1px solid #ef4444",borderRadius:6,fontSize:10,cursor:"pointer",padding:"4px 10px",color:"#ef4444",fontFamily:"system-ui",animation:"fadeIn .2s ease-out"}}>Abandon Run</button>
           <button onClick={()=>setAbandonConfirm(false)} style={{background:"none",border:"1px solid #ffffff22",borderRadius:6,fontSize:10,cursor:"pointer",padding:"4px 8px",color:"#888",fontFamily:"system-ui"}}>✕</button>
-        </>:<button onClick={()=>setAbandonConfirm(true)} style={{background:"none",border:"1px solid #ffffff12",borderRadius:6,fontSize:9,cursor:"pointer",opacity:.3,padding:"3px 7px",color:"#888",fontFamily:"system-ui"}} title="Abandon run">☰</button>}
+        </>:<div style={{display:"flex",gap:3}}>
+          <button onClick={()=>setAbandonConfirm(true)} style={{background:"#ffffff08",border:"1px solid #ffffff22",borderRadius:8,fontSize:11,cursor:"pointer",padding:"6px 10px",color:"#aaa",fontFamily:"system-ui",display:"flex",alignItems:"center",gap:4}} title="Abandon run"><span style={{fontSize:14}}>☰</span><span style={{fontSize:9,letterSpacing:1}}>MENU</span></button>
+          <button onClick={()=>setShowLog(l=>!l)} style={{background:showLog?"#fbbf2412":"#ffffff08",border:`1px solid ${showLog?"#fbbf2444":"#ffffff22"}`,borderRadius:8,fontSize:11,cursor:"pointer",padding:"6px 10px",color:showLog?"#fbbf24":"#aaa",fontFamily:"system-ui",display:"flex",alignItems:"center",gap:4}} title="Run log"><span style={{fontSize:14}}>📋</span><span style={{fontSize:9,letterSpacing:1}}>LOG</span></button>
+        </div>}
+      </div>}
+      {/* ★ v55: Run Log panel — slide-out history of everything that happened */}
+      {showLog&&<div style={{position:"fixed",top:0,left:0,bottom:0,width:Math.min(320,vw-40),zIndex:250,background:"#0d1117f8",borderRight:"1px solid #ffffff15",overflowY:"auto",padding:"40px 12px 20px",animation:"slideIn .2s ease-out",fontFamily:"system-ui"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+          <div style={{fontSize:11,color:"#fbbf24",letterSpacing:3,fontWeight:700}}>📋 RUN LOG</div>
+          <button onClick={()=>setShowLog(false)} style={{background:"none",border:"none",color:"#555",fontSize:14,cursor:"pointer"}}>✕</button>
+        </div>
+        <div style={{fontSize:9,color:"#555",marginBottom:8}}>Night {ante} · Round {blind+1}/3 · {runLog.length} events</div>
+        {runLog.length===0?<div style={{fontSize:11,color:"#444",fontStyle:"italic"}}>Nothing has happened yet.</div>
+        :<div style={{display:"flex",flexDirection:"column",gap:3}}>
+          {[...runLog].reverse().map((e,i)=>{
+            const icons={hand:"🃏",draft:"📦",buy:"🛒",night:"🌙",fight:"⚔",death:"💀",bond:"💕",grudge:"⚡",reconcile:"🕊️",breed:"🐣",mentor:"📖",growth:"⭐",found:"🐟",wanderer:"🐱",trait:"✨",phoenix:"🔥",teach:"👪",reward:"🎁",exile:"🚫",training:"⚔️",sell:"🏷️"};
+            const icon=icons[e.type]||"•";
+            const colors={hand:"#fbbf24",death:"#ef4444",fight:"#ef4444",grudge:"#fb923c",bond:"#f472b6",breed:"#4ade80",reconcile:"#67e8f9",growth:"#4ade80",phoenix:"#fbbf24",trait:"#fbbf24",buy:"#fbbf24",night:"#888",draft:"#888",mentor:"#c084fc",teach:"#34d399"};
+            const color=colors[e.type]||"#666";
+            let text="";
+            const d=e.data;
+            if(e.type==="hand")text=`${d.type}: ${d.score.toLocaleString()} (${d.cats})`;
+            else if(e.type==="death")text=`${d.victim} lost`;
+            else if(e.type==="fight")text=`${d.loser} hurt (−${d.dmg}P)`;
+            else if(e.type==="bond")text=`${d.c1} + ${d.c2} bonded`;
+            else if(e.type==="grudge")text=`${d.c1} ⚡ ${d.c2} grudge`;
+            else if(e.type==="reconcile")text=`${d.c1} + ${d.c2} reconciled${d.bonded?" + bonded":""}`;
+            else if(e.type==="breed")text=`${d.baby} born (${d.parents})`;
+            else if(e.type==="buy")text=`Bought ${d.name} (${d.cost}🐟)`;
+            else if(e.type==="draft")text=`Drafted: ${d.picked}`;
+            else if(e.type==="night")text=`Night ${d.from} → ${d.to}`;
+            else if(e.type==="growth")text=`${d.cat} +1P`;
+            else if(e.type==="mentor")text=`${d.elder} → ${d.young}`;
+            else if(e.type==="found")text=`${d.cat} found ${d.gold}🐟`;
+            else if(e.type==="wanderer")text=`${d.cat} joined`;
+            else if(e.type==="trait")text=`${d.cat} gained ${d.trait}`;
+            else if(e.type==="phoenix")text=`${d.risen} rose!`;
+            else if(e.type==="teach")text=`${d.parent} taught ${d.child} ${d.trait}`;
+            else if(e.type==="reward")text=`Reward: ${d.name}`;
+            else if(e.type==="exile")text=d.victim;
+            else if(e.type==="training")text=`${d.c1} & ${d.c2} sparred`;
+            else text=JSON.stringify(d).slice(0,40);
+            return(<div key={i} style={{fontSize:10,color,lineHeight:1.4,padding:"2px 0",borderBottom:"1px solid #ffffff06"}}>
+              <span style={{opacity:.5}}>{icon}</span> {text}
+              <span style={{fontSize:8,color:"#444",marginLeft:4}}>N{e.ante}.{e.blind+1}</span>
+            </div>);
+          })}
+        </div>}
+      </div>}
+      {/* ★ v55: Global toast overlay — persists across ALL phase transitions */}
+      {toasts.length>0&&<div style={{position:"fixed",top:12,right:12,zIndex:300,display:"flex",flexDirection:"column",gap:6,pointerEvents:"none",maxWidth:280}}>
+        {toasts.map(t=>(<div key={t.id} style={{display:"flex",gap:8,alignItems:"center",padding:t.big?"12px 18px":"8px 14px",borderRadius:t.big?10:8,background:"#1a1a2eee",border:`1.5px solid ${t.color}${t.big?"66":"44"}`,boxShadow:`0 4px 16px #00000066,0 0 ${t.big?16:8}px ${t.color}${t.big?"44":"22"}`,animation:"slideIn .3s ease-out",fontFamily:"system-ui"}}>
+          <span style={{fontSize:t.big?22:16,flexShrink:0}}>{t.icon}</span>
+          <span style={{fontSize:t.big?14:12,color:t.color,fontWeight:t.big?700:600,lineHeight:1.3}}>{t.text}</span>
+        </div>))}
       </div>}
     </div>
   );
