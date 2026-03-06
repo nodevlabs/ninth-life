@@ -2,8 +2,8 @@
 // A roguelike deckbuilder — cats are cards, seasons are suits, survive the dark.
 // https://greatgamesgonewild.github.io/ninth-live/
 
-import React, { useState, useEffect, useRef } from "react";
-import * as Tone from "tone";
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+// Tone.js loaded via CDN
 
 
 // ═══════════════════════════════════════════════════════════════
