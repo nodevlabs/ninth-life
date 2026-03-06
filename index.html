@@ -15,37 +15,39 @@
       position: fixed; inset: 0; z-index: 9999;
       background: #0a0a1a;
       display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
+      align-items: center; justify-content: flex-start;
       transition: opacity 0.8s ease-out;
     }
     #loading.fade-out { opacity: 0; pointer-events: none; }
     #loading img {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
-      object-fit: cover; object-position: center 40%;
-      opacity: 0.7;
+      object-fit: cover; object-position: center center;
+      opacity: 0.6;
     }
     #loading .overlay {
       position: relative; z-index: 1;
       display: flex; flex-direction: column;
-      align-items: center; gap: 16px;
+      align-items: center; gap: 12px;
       text-align: center; padding: 20px;
+      margin-top: 18vh;
     }
     #loading h1 {
       font-family: 'Cinzel', serif;
-      font-size: 28px; font-weight: 900;
-      color: #fbbf24; letter-spacing: 8px;
-      text-shadow: 0 0 40px #fbbf2444, 0 0 80px #fbbf2422;
+      font-size: clamp(24px, 5vw, 36px); font-weight: 900;
+      color: #fbbf24; letter-spacing: 10px;
+      text-shadow: 0 0 40px #fbbf2466, 0 0 80px #fbbf2433, 0 2px 4px #000000aa;
       text-transform: uppercase;
     }
     #loading .sub {
       font-family: system-ui, sans-serif;
-      font-size: 12px; color: #ffffff66;
-      letter-spacing: 3px;
+      font-size: clamp(10px, 2vw, 13px); color: #ffffff77;
+      letter-spacing: 4px;
+      text-shadow: 0 1px 3px #000000aa;
     }
-    #loading .dots { display: flex; gap: 6px; margin-top: 8px; }
+    #loading .dots { display: flex; gap: 6px; margin-top: 12px; }
     #loading .dots span {
-      width: 6px; height: 6px; border-radius: 50%;
+      width: 5px; height: 5px; border-radius: 50%;
       background: #fbbf24;
       animation: loadpulse 1.4s ease-in-out infinite;
     }
@@ -58,7 +60,6 @@
   </style>
 </head>
 <body>
-  <!-- Loading screen — visible instantly while game loads -->
   <div id="loading">
     <img src="loading.jpg" alt="">
     <div class="overlay">
@@ -70,12 +71,7 @@
 
   <div id="root"></div>
 
-  <!--
-    PASTE YOUR EXISTING SCRIPT TAGS BELOW THIS LINE.
-    Keep whatever you currently have in your index.html that loads
-    React, Babel, Tone.js, and game.jsx — just paste it here unchanged.
-    The loading screen will fade out automatically once the game renders.
-  -->
+  <!-- KEEP YOUR EXISTING SCRIPT TAGS BELOW -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -86,7 +82,6 @@
     root.render(<NinthLife />);
   </script>
 
-  <!-- Loading screen auto-fade -->
   <script>
     (function() {
       function hide() {
