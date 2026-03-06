@@ -443,27 +443,33 @@ const NERVE_MAX=17;
 // ★ v47 BALANCE: FOCUS removed — sim proved 1-cat ×1.8 can never compete with 5-cat scoring
 
 const UPGRADES=[
-  // --- TIER 1: FUNDAMENTALS (cheap, always visible) ---
-  {id:"u_g",name:"Buried Provisions",icon:"🐟",desc:"+2 Rations each night",cost:25,b:{gold:2},max:3},
-  {id:"u_d",name:"Quick Instincts",icon:"🐾",desc:"+1 Free Recruit per round",cost:40,b:{freeRecruits:1},max:2},
-  // (Cat Mastery removed — XP ranks are cosmetic only)
-  {id:"u_den",name:"Deeper Burrow",icon:"🏠",desc:"+1 Shelter slot in the den",cost:50,b:{shelter:1},max:2},
-  // --- TIER 2: STRATEGIC (mid-cost, visible after 2+ purchases) ---
-  {id:"u_h",name:"Stubborn Will",icon:"✊",desc:"+1 Hand per round",cost:65,b:{hands:1},max:2},
-  {id:"u_f",name:"The Old Fire",icon:"🔥",desc:"Start with +2 Nerve",cost:70,b:{fervor:2},max:2},
-  {id:"u_pot",name:"The Warden",icon:"🛡️",desc:"Start each run with a random ward",cost:75,b:{startWard:1},max:2},
-  {id:"u_b",name:"Blood Memory",icon:"🩸",desc:"Starter cat inherits a Hearth cat's trait",cost:80,b:{bloodMemory:1},max:1},
-  // --- TIER 3: POWER (expensive, visible after 4+ purchases) ---
-  {id:"u_c",name:"Bloodline",icon:"📿",desc:"Companion +2 power, drafted cats +1 power",cost:100,b:{heirloom:2,draftPower:1},max:1},
-  {id:"u_scr",name:"Scar Memory",icon:"🩹",desc:"Scarred cats gain +2 mult (stacks with trait)",cost:100,b:{scarMult:2},max:1},
-  {id:"u_grd",name:"Grudge Tempering",icon:"⚡",desc:"Grudge penalty reduced: −2 mult → −1 mult",cost:110,b:{grudgeWisdom:1},max:1},
-  // --- TIER 4: ENDGAME (very expensive, visible after 6+ purchases) ---
-  {id:"u_o",name:"What The Stars Owe",icon:"🔍",desc:"+50% Stardust from the Hearth",cost:120,b:{dustBonus:.5},max:1},
-  {id:"u_draft",name:"Wider Horizons",icon:"🌅",desc:"See 4 cats per draft wave instead of 3",cost:130,b:{draftSize:1},max:1},
-  {id:"u_trait_luck",name:"The Colony's Memory",icon:"🧬",desc:"Drafted cats 25% more likely to have rare+ traits",cost:140,b:{traitLuck:1},max:1},
-  {id:"u_bond_str",name:"Unbreakable Bonds",icon:"💕",desc:"Bonded pairs score ×1.75",cost:150,b:{bondBoost:1},max:1},
-  {id:"u_nerve_floor",name:"Ember Within",icon:"🕯️",desc:"+2 starting Nerve each run",cost:160,b:{fervor:2},max:1},
-  {id:"u_second_wind",name:"Second Wind",icon:"💨",desc:"+1 extra Hand on final blind of each night",cost:180,b:{bossHand:1},max:1},
+  // --- TIER 1: FUNDAMENTALS (always visible) ---
+  {id:"u_g",name:"Buried Provisions",icon:"🐟",desc:"+2 Rations each night",cost:25,b:{gold:2},max:3,tier:1},
+  {id:"u_d",name:"Quick Instincts",icon:"📣",desc:"+1 Free Recruit per round",cost:40,b:{freeRecruits:1},max:2,tier:1},
+  {id:"u_den",name:"Deeper Burrow",icon:"🏠",desc:"+1 Shelter slot in the den",cost:50,b:{shelter:1},max:2,tier:1},
+  {id:"u_keen",name:"Keen Eye",icon:"🎯",desc:"Recruit costs 1🐟 less (min free)",cost:35,b:{recruitDiscount:1},max:1,tier:1},
+  // --- TIER 2: STRATEGIC (unlocks after 2 purchases) ---
+  {id:"u_h",name:"Stubborn Will",icon:"✊",desc:"+1 Hand per round",cost:65,b:{hands:1},max:2,tier:2},
+  {id:"u_f",name:"The Old Fire",icon:"🔥",desc:"Start with +2 Nerve",cost:70,b:{fervor:2},max:2,tier:2},
+  {id:"u_pot",name:"The Warden",icon:"🛡️",desc:"Start each run with a random ward",cost:75,b:{startWard:1},max:2,tier:2},
+  {id:"u_b",name:"Blood Memory",icon:"🩸",desc:"Starter cat inherits a Hearth cat's trait",cost:80,b:{bloodMemory:1},max:1,tier:2},
+  {id:"u_fertile",name:"Fertile Ground",icon:"🌿",desc:"Den breed chance +15%",cost:60,b:{breedBoost:0.15},max:1,tier:2},
+  {id:"u_scroll",name:"Ancient Scrolls",icon:"📜",desc:"Start with a random hand type leveled up",cost:75,b:{startScroll:1},max:1,tier:2},
+  // --- TIER 3: POWER (unlocks after 4 purchases) ---
+  {id:"u_c",name:"Bloodline",icon:"📿",desc:"Companion +2 power, drafted cats +1 power",cost:100,b:{heirloom:2,draftPower:1},max:1,tier:3},
+  {id:"u_scr",name:"Scar Memory",icon:"🩹",desc:"Scarred cats gain +2 mult (stacks with trait)",cost:100,b:{scarMult:2},max:1,tier:3},
+  {id:"u_grd",name:"Grudge Tempering",icon:"⚡",desc:"Grudge penalty reduced: −2 mult → −1 mult",cost:110,b:{grudgeWisdom:1},max:1,tier:3},
+  {id:"u_bench",name:"Deep Bench",icon:"🪑",desc:"Benched cats give double passive bonus",cost:90,b:{doubleBench:1},max:1,tier:3},
+  {id:"u_combo",name:"Power Resonance",icon:"💥",desc:"Power combos give +50% bonus",cost:110,b:{comboBoost:0.5},max:1,tier:3},
+  // --- TIER 4: ENDGAME (unlocks after 6 purchases) ---
+  {id:"u_o",name:"What The Stars Owe",icon:"🔍",desc:"+50% Stardust from the Hearth",cost:120,b:{dustBonus:.5},max:1,tier:4},
+  {id:"u_draft",name:"Wider Horizons",icon:"🌅",desc:"See 4 cats per draft wave instead of 3",cost:130,b:{draftSize:1},max:1,tier:4},
+  {id:"u_trait_luck",name:"The Colony's Memory",icon:"🧬",desc:"Drafted cats 25% more likely to have rare+ traits",cost:140,b:{traitLuck:1},max:1,tier:4},
+  {id:"u_bond_str",name:"Unbreakable Bonds",icon:"💕",desc:"Bonded pairs score ×1.75",cost:150,b:{bondBoost:1},max:1,tier:4},
+  {id:"u_nerve_floor",name:"Ember Within",icon:"🕯️",desc:"+2 starting Nerve each run",cost:160,b:{fervor:2},max:1,tier:4},
+  {id:"u_second_wind",name:"Second Wind",icon:"💨",desc:"+1 extra Hand on final blind of each night",cost:180,b:{bossHand:1},max:1,tier:4},
+  {id:"u_4draft",name:"Colony Instinct",icon:"🐱",desc:"Draft 4 cats instead of 3",cost:170,b:{extraDraft:1},max:1,tier:4},
+  {id:"u_mythic",name:"Mythic Bloodline",icon:"🌟",desc:"10% chance drafted cats get mythic trait",cost:200,b:{mythicChance:0.1},max:1,tier:4},
 ];
 
 const MILESTONES=[
@@ -1950,7 +1956,8 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
       const seasons=comboCats.map(c=>c.breed);
       resonance=seasons.every(s=>s===seasons[0]);
     }
-    const resMult=resonance?1.5:1;
+    const comboBoostUp=ctx.comboBoost||0; // ★ v54: Power Resonance upgrade (+50%)
+    const resMult=(resonance?1.5:1)*(1+comboBoostUp);
     const bc=Math.round(combo.bonus.c*resMult);
     const bm=Math.round(combo.bonus.m*resMult);
     chips+=bc;mult+=bm;
@@ -2118,17 +2125,17 @@ function calcScore(cats,fams,fLvl,cfx={},ctx={}){
 
   // ★ BENCH — cats in hand that weren't played give passive bonuses
   const bench=ctx.bench||[];
+  const benchMultiplier=(ctx.doubleBench||0)>0?2:1; // ★ v54: Deep Bench upgrade doubles bench bonuses
   if(bench.length>0){
     let bc=0,bm=0;
     bench.forEach(c=>{
-      if(catIsKitten(c))return; // kittens on bench do nothing
-      // Bench bonus based on trait
-      if(catHas(c,"Seer")){bm+=3;} // Seer watches from the bench
-      else if(catHas(c,"Guardian")){bm+=Math.min(4,cats.filter(x=>x.scarred||x.injured).length*2);} // Guards the played cats
-      else if(catHas(c,"Devoted")&&c.bondedTo&&cats.find(x=>x.id===c.bondedTo)){bm+=3;} // Cheering for mate
-      else if(catHas(c,"Forager")){bG+=1;} // Forages while others fight
-      else if(catHas(c,"Nocturnal")){bm+=Math.floor(fLvl/2);} // Watches from the shadows
-      else{bc+=c.power;} // Default: full power as chips on bench
+      if(catIsKitten(c))return;
+      if(catHas(c,"Seer")){bm+=3*benchMultiplier;}
+      else if(catHas(c,"Guardian")){bm+=Math.min(4,cats.filter(x=>x.scarred||x.injured).length*2)*benchMultiplier;}
+      else if(catHas(c,"Devoted")&&c.bondedTo&&cats.find(x=>x.id===c.bondedTo)){bm+=3*benchMultiplier;}
+      else if(catHas(c,"Forager")){bG+=1*benchMultiplier;}
+      else if(catHas(c,"Nocturnal")){bm+=Math.floor(fLvl/2)*benchMultiplier;}
+      else{bc+=c.power*benchMultiplier;} // Default: power as chips (doubled with Deep Bench)
     });
     if(bc>0){chips+=bc;bd.push({label:`🪑 Bench +${bc}C`,chips:bc,mult:0,type:"bench"});}
     if(bm>0){mult+=bm;bd.push({label:`🪑 Bench +${bm}M`,chips:0,mult:bm,type:"bench"});}
@@ -2164,7 +2171,7 @@ function getUnlocks(meta){
   };
 }
 
-function getTarget(a,b,firstRun,isLong){const scale=isLong?1.45:1.65;const base=(firstRun?[1200,2400,5000]:[2000,4000,8500])[b]*Math.pow(scale,a-1);const bossDiscount=b===2?(a===1?0.8:a===2&&firstRun?0.85:1):1;return Math.round(base*bossDiscount);} // ★ v54: Targets lowered to match FD un-nerf. Scaling reverted to ×1.65.
+function getTarget(a,b,firstRun,isLong){const scale=isLong?1.45:1.65;const base=(firstRun?[1200,2400,5000]:[2000,4000,8500])[b]*Math.pow(scale,a-1);const bossDiscount=b===2?(a===1?0.8:a===2&&firstRun?0.85:1):1;return Math.round(base*bossDiscount);}
 function getHeatMult(h){return 1+(h||0)*0.15;} // +15% per heat level (stacks: H5 = +75%)
 function getHeatFx(h){
   // Cumulative mechanical penalties per heat level
@@ -2753,6 +2760,7 @@ function NinthLife(){
   const[seen,setSeen]=useState({});
   // ★ v39: Audio mute state
   const[muted,setMuted]=useState(()=>{try{return localStorage.getItem("nl_mute")==="1";}catch(e){return false;}});
+  const[abandonConfirm,setAbandonConfirm]=useState(false);
   const toggleMute=()=>{setMuted(m=>{const v=!m;Audio.muted=v;try{localStorage.setItem("nl_mute",v?"1":"0");}catch(e){}return v;});};
   // ★ v34: Boss traits, Ninth Dawn, colony counter
   const[bossTraits,setBossTraits]=useState([]);
@@ -2846,31 +2854,20 @@ function NinthLife(){
     })();
   },[]);
   useEffect(()=>{Audio.muted=muted;},[muted]);
-  // ★ FIX v49: Safety net — if stuck at 0 hands for a full tick
-  // ★ FIX: Only trigger if not in scoring transition (sRes null means scoring is done)
-  useEffect(()=>{
-    if(ph==="playing"&&hLeft===0&&!sRes&&!scoringDone){
-      const t=(()=>{try{return eTgt();}catch(e){return Infinity;}})();
-      if(rScore<t){
-        const timer=setTimeout(()=>{
-          if(ph==="playing"&&hLeft===0){
-            advancingRef.current=false;
-            endRun(false,rScore);
-          }
-        },500);
-        return ()=>clearTimeout(timer);
-      }
-    }
-  },[ph,hLeft,rScore,sRes,scoringDone]); // eslint-disable-line
+  // ★ v54 FIX: Safety net REMOVED. It was firing prematurely due to React batching.
+  // The ONLY path to endRun(false) is now through advanceFromScoring when handsAfter<=0.
+  // The "Colony Fell" button at hLeft<=0 handles the UI case if scoring doesn't advance.
   // ★ FIX v49: Empty hand softlock — if hand is empty but hands remain, auto-resolve
   useEffect(()=>{
     if(ph==="playing"&&hLeft>0&&hand.length===0&&draw.length===0&&disc.length===0){
-      // No cards anywhere — can't play. Check if winning or losing.
+      // No cards anywhere — truly stuck. But double-check after a longer delay.
       const t=(()=>{try{return eTgt();}catch(e){return Infinity;}})();
       const timer=setTimeout(()=>{
+        // Re-check: if cards appeared (from React batch), abort
+        if(hand.length>0||draw.length>0||disc.length>0)return;
         if(rScore>=t){showOF(rScore,t,hLeft);}
         else{toast("💀","No cats left to play.","#ef4444");endRun(false,rScore);}
-      },300);
+      },1000); // ★ v54: Extended delay from 300ms to 1000ms to survive React batching
       return ()=>clearTimeout(timer);
     }
     // Also handle: hand is empty but draw/disc have cards (shouldn't happen, but safety)
@@ -2906,8 +2903,8 @@ function NinthLife(){
   }
 
   function getMB(){
-    if(!meta)return{gold:0,hands:0,discards:0,freeRecruits:0,fervor:0,bloodMemory:0,heirloom:0,draftPower:0,dustBonus:0,scarMult:0,startWard:0,grudgeWisdom:0,shelter:0,draftSize:0,traitLuck:0,bondBoost:0,nerveFloor:0,bossHand:0};
-    let b={gold:0,hands:0,discards:0,freeRecruits:0,fervor:0,bloodMemory:0,heirloom:0,draftPower:0,dustBonus:0,scarMult:0,startWard:0,grudgeWisdom:0,shelter:0,draftSize:0,traitLuck:0,bondBoost:0,nerveFloor:0,bossHand:0};
+    if(!meta)return{gold:0,hands:0,discards:0,freeRecruits:0,fervor:0,bloodMemory:0,heirloom:0,draftPower:0,dustBonus:0,scarMult:0,startWard:0,grudgeWisdom:0,shelter:0,draftSize:0,traitLuck:0,bondBoost:0,nerveFloor:0,bossHand:0,recruitDiscount:0,breedBoost:0,startScroll:0,doubleBench:0,comboBoost:0,extraDraft:0,mythicChance:0};
+    let b={gold:0,hands:0,discards:0,freeRecruits:0,fervor:0,bloodMemory:0,heirloom:0,draftPower:0,dustBonus:0,scarMult:0,startWard:0,grudgeWisdom:0,shelter:0,draftSize:0,traitLuck:0,bondBoost:0,nerveFloor:0,bossHand:0,recruitDiscount:0,breedBoost:0,startScroll:0,doubleBench:0,comboBoost:0,extraDraft:0,mythicChance:0};
     MILESTONES.forEach(m=>{if(meta.cats.length>=m.req)Object.entries(m.bonus).forEach(([k,v])=>{b[k]=(b[k]||0)+v;});});
     Object.entries(meta.ups||{}).forEach(([id,cnt])=>{const u=UPGRADES.find(x=>x.id===id);if(u)Object.entries(u.b).forEach(([k,v])=>{b[k]=(b[k]||0)+v*cnt;});});
     // v14: Cattery breed completion bonus
@@ -3022,12 +3019,17 @@ function NinthLife(){
     clearRunSave(); // ★ v47: Clear any saved colony when starting fresh
     _cid=0;_nis=Math.floor(Math.random()*STRAY_NAMES.length);_un.clear();
     const mb=getMB();const cats=[];
-    // ★ v52: 15 strays + 3 drafted = 18 total. No duplicate season/power combos.
-    // Balanced: at least 3 of each season (12), plus 3 random = 15
-    const strayBreeds=[...BK,...BK,...BK,pk(BK),pk(BK),pk(BK)]; // 3×4 + 3 = 15
+    // ★ v54: Dynamic stray count. Balanced: floor(strayCount/4) per season, rest random.
+    const draftCount=3+(mb.extraDraft||0);
+    const strayCount=18-draftCount;
+    const perSeason=Math.floor(strayCount/4);
+    const remainder=strayCount-perSeason*4;
+    const strayBreeds=[];
+    for(let s=0;s<4;s++)for(let i=0;i<perSeason;i++)strayBreeds.push(BK[s]);
+    for(let i=0;i<remainder;i++)strayBreeds.push(pk(BK));
     const shuffledBreeds=shuf(strayBreeds);
-    const usedCombos=new Set(); // track "breed-power" to prevent duplicates
-    for(let i=0;i<15;i++){
+    const usedCombos=new Set();
+    for(let i=0;i<strayCount;i++){
       const sex=i%2===0?"M":"F";
       const breed=shuffledBreeds[i];
       let cat=gC({sex,breed,trait:PLAIN});
@@ -3092,9 +3094,10 @@ function NinthLife(){
       allDraft=breeds.map(br=>{const c=genDraft();c.breed=br;c.name=gN(br,c.trait);c.quirk=pk(QUIRKS[br]||QUIRKS.Autumn);return c;});
       // ★ v49: Drafted cats start Experienced (tp:3) — they were chosen, not found
       allDraft.forEach(c=>{c.stats.tp=3;});
-      // Block S tier — downgrade Mythic traits to Legendary
+      // ★ v54: Mythic Bloodline upgrade allows mythic traits in draft (10% chance each)
       allDraft.forEach(c=>{
-        if((c.trait||PLAIN).tier==="mythic"){c.trait=pk(LEGENDARY_TRAITS);c.name=gN(c.breed,c.trait);}
+        if(mb.mythicChance>0&&Math.random()<mb.mythicChance){c.trait=pk(MYTHIC_TRAITS);c.name=gN(c.breed,c.trait);}
+        else if((c.trait||PLAIN).tier==="mythic"){c.trait=pk(LEGENDARY_TRAITS);c.name=gN(c.breed,c.trait);}
       });
       safety++;
     }while(safety<20&&(allDraft.reduce((s,c)=>s+c.power,0)<Math.round(20*totalDraftCats/9)||allDraft.reduce((s,c)=>s+c.power,0)>Math.round(55*totalDraftCats/9)));
@@ -3163,6 +3166,11 @@ function NinthLife(){
       setHearthDust(hd.total);
       if(hd.total>0){const u={...meta,dust:meta.dust+hd.total};setMeta(u);saveS(u);}
     }else{setHearthDust(0);}
+    // ★ v54: Ancient Scrolls upgrade — start with a random hand type leveled up
+    if(mb.startScroll>0){
+      const scrollHT=pk(HT.filter(h=>!h.hidden));
+      if(scrollHT)setHtLevels(prev=>({...prev,[scrollHT.name]:(prev[scrollHT.name]||1)+1}));
+    }
     // ★ v50: Hearth interstitial — if player has saved cats, show them briefly before draft
     if(meta&&meta.cats.length>0&&meta.stats.r>0){
       setHearthFlash(meta.cats);setPh("hearthFlash");
@@ -3238,7 +3246,7 @@ function NinthLife(){
     // ★ v53: Always allow naming drafted cats
     setNamingCat(cat);
     setDraftPicked(picked);
-    if(picked.length>=3){
+    if(picked.length>=(3+(getMB().extraDraft||0))){
       setPh("naming");
       cat._finalPick=true;
     }else{
@@ -3248,7 +3256,7 @@ function NinthLife(){
       setPh("naming");
     }
     return;
-    if(picked.length>=3){
+    if(picked.length>=(3+(getMB().extraDraft||0))){
       finalizeDraft(picked);
     }else{
       setDraftPicked(picked);
@@ -3384,8 +3392,9 @@ function NinthLife(){
     }else{
       setHand(rem);setDraw(draw);setDisc(nDisc);
     }
-    setSel(new Set());setHLeft(h=>h-1);setSRes(null);setSStep(-1);setRecruitsThisHand(0);
+    setSel(new Set());setHLeft(h=>h-1);setRecruitsThisHand(0);
     setRunChips(0);setRunMult(0);setNewBest(null);setScoringDone(false);
+    setSRes(null);setSStep(-1);
     // ★ FIX v49: Use local variable for remaining hands, not stale state
     const handsAfter=hLeft-1;
     if(ns>=tgt){
@@ -3455,7 +3464,7 @@ function NinthLife(){
     // ★ v53: beatingPace — used for strength meter display (no longer affects nerve)
     const beatingPace=rScore>=eTgt()*0.4;
     const activeBT=blind===2?bossTraits:[];
-    const result=calcScore(cats,fams,ferv,cfx,{gold,deckSize:allC.length,discSize:disc.length,handSize:hs(),beatingPace,bossTraitFx:activeBT,scarMult:getMB().scarMult||0,grudgeWisdom:getMB().grudgeWisdom||0,hasMastery:!!(getMB().xp),bondBoost:getMB().bondBoost||0,lastHandIds,lastHandLost,htLevels,devotion,bench:hand.filter(c=>!cats.find(x=>x.id===c.id))});
+    const result=calcScore(cats,fams,ferv,cfx,{gold,deckSize:allC.length,discSize:disc.length,handSize:hs(),beatingPace,bossTraitFx:activeBT,scarMult:getMB().scarMult||0,grudgeWisdom:getMB().grudgeWisdom||0,hasMastery:!!(getMB().xp),bondBoost:getMB().bondBoost||0,comboBoost:getMB().comboBoost||0,doubleBench:getMB().doubleBench||0,lastHandIds,lastHandLost,htLevels,devotion,bench:hand.filter(c=>!cats.find(x=>x.id===c.id))});
     advancingRef.current=false; // ★ FIX: Reset re-entry guard for new hand
     actionLock.current=false; // ★ FIX: Clear action lock
     // ★ v52: Start at sStep=-1 (reveal beat) — hand type name visible, no chips/mult yet
@@ -3671,7 +3680,9 @@ function NinthLife(){
     const freeLeft=Math.max(0,totalFreeRecruits()-freeRecruitsUsed);
     if(freeLeft>0)return 0;
     const paidCount=recruitsThisHand-Math.min(recruitsThisHand,totalFreeRecruits());
-    return [1,2,4,8][Math.min(Math.max(0,paidCount),3)];
+    const base=[1,2,4,8][Math.min(Math.max(0,paidCount),3)];
+    const discount=getMB().recruitDiscount||0; // ★ v54: Keen Eye reduces cost
+    return Math.max(0,base-discount);
   };
   function recruitCat(){
     if(ph!=="playing")return;
@@ -3993,7 +4004,7 @@ function NinthLife(){
     setDenNews([]);
     const hasMM=false;
     const heatFight=getHeatFx(meta?.heat).denFight||0;
-    const baseCtx={draftRejects,deckSize:dAll.length,nerveLvl:ferv,breedBoost:getAllDevotionFx(devotion).breedBoost||0};
+    const baseCtx={draftRejects,deckSize:dAll.length,nerveLvl:ferv,breedBoost:(getAllDevotionFx(devotion).breedBoost||0)+(getMB().breedBoost||0)};
     // Pass 1: Shelter — breed/bond/reconcile only (calm, safe, +15% breed bonus)
     const shelterResults=shelterCats.length>=2?resolveDen(shelterCats,hasMM,true,0,{...baseCtx,breedOnly:true}):[];
     shelterResults.forEach(r=>r.source="shelter");
@@ -4788,7 +4799,7 @@ function NinthLife(){
 
   async function buyUpg(u){if(!meta||meta.dust<u.cost)return;const cur=meta.ups[u.id]||0;if(cur>=u.max)return;const um={...meta,dust:meta.dust-u.cost,ups:{...meta.ups,[u.id]:cur+1}};setMeta(um);await saveS(um);
     // ★ v50: Upgrade narrative — the Hearth cats left this for you
-    const upgVoice={"gold":"They buried provisions for the ones who came next.","hands":"Steadier now. The old fire taught patience.","discards":"The remembered ones call reinforcements from the shadows.","fervor":"The old fire burns in the new colony's veins.","heirloom":"The bloodline carries what the mind forgets.","bloodMemory":"Memory in the blood. Deeper than names.","dustBonus":"The stars owe you. They're starting to pay.","xpBonus":"Every hand teaches more now.","scarMemory":"Scars carry wisdom. The Hearth cats knew this.","startWard":"Protection. The first gift of the remembered.","grudgeWisdom":"The old scars teach patience. Grudges sting less now.","shelter":"Deeper burrows. Safer dreams."};
+    const upgVoice={"gold":"They buried provisions for the ones who came next.","hands":"Steadier now. The old fire taught patience.","freeRecruits":"The remembered ones call reinforcements from the shadows.","fervor":"The old fire burns in the new colony's veins.","heirloom":"The bloodline carries what the mind forgets.","bloodMemory":"Memory in the blood. Deeper than names.","dustBonus":"The stars owe you. They're starting to pay.","xpBonus":"Every hand teaches more now.","scarMemory":"Scars carry wisdom. The Hearth cats knew this.","startWard":"Protection. The first gift of the remembered.","grudgeWisdom":"The old scars teach patience. Grudges sting less now.","shelter":"Deeper burrows. Safer dreams.","recruitDiscount":"Sharper eyes. The colony knows who to call.","breedBoost":"The earth remembers how to grow.","startScroll":"Ancient knowledge, passed down in paw prints.","doubleBench":"Those who watch learn twice as much.","comboBoost":"Power aligned. The colony resonates.","extraDraft":"One more voice in the chorus.","mythicChance":"The stars choose their champions.","bondBoost":"Love is the strongest multiplier.","bossHand":"One more breath. One more chance.","draftPower":"Stronger stock. The bloodline remembers.","draftSize":"Wider nets catch rarer fish.","traitLuck":"The colony remembers what it needs."};
     toast("✦",upgVoice[u.id]||"Something the Hearth cats knew. Something they left for you.","#c084fc");}
 
   // ★ v44: Memoize selection-dependent computations
@@ -5009,7 +5020,7 @@ function NinthLife(){
               nextBlind();
             }
           }else{
-            const isFinal=draftPicked.length>=3;
+            const isFinal=draftPicked.length>=(3+(getMB().extraDraft||0));
             setNamingCat(null);
             if(isFinal){
               finalizeDraft(draftPicked);
@@ -5273,11 +5284,12 @@ function NinthLife(){
     const avgPow=(totalPow/16).toFixed(1);
     // Assign each stray a unique origin
     const strayOrigins=strays.map(c=>pk(STRAY_ORIGINS[c.breed]||STRAY_ORIGINS.Autumn));
-    return(<div style={W}><div style={BG}/><style>{CSS}</style>
+    const enterNight=()=>{try{setColonyData(null);setNightCard({ante:1,blind:0});setPh("nightCard");}catch(e){console.error(e);setPh("nightCard");}};
+    return(<div style={W} onClick={enterNight}><div style={BG}/><style>{CSS}</style>
       <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",zIndex:1,gap:14,padding:20,maxWidth:600}}>
         {isNinthDawn&&<div style={{fontSize:10,color:"#fbbf24",letterSpacing:6,fontFamily:"system-ui",animation:"float 3s ease-in-out infinite",marginBottom:-4}}>「 THE NINTH DAWN 」</div>}
         {/* ★ v53: Colony naming — always available */}
-        {!isFirstRun&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,animation:"fadeIn 1s ease-out"}}>
+        {!isFirstRun&&<div onClick={e=>e.stopPropagation()} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,animation:"fadeIn 1s ease-out"}}>
           <div style={{fontSize:11,color:"#fbbf24",letterSpacing:4,fontFamily:"'Cinzel',serif",fontWeight:700}}>NAME YOUR COLONY</div>
           <input value={colonyName} onChange={e=>setColonyName(e.target.value.slice(0,20))} placeholder="..." onClick={e=>e.stopPropagation()}
             style={{background:"#ffffff08",border:`2px solid ${(meta?.achv||[]).includes("five_wins")?"#fbbf24":"#fbbf2444"}`,borderRadius:8,padding:"8px 14px",color:"#fbbf24",fontSize:16,fontFamily:"'Cinzel',serif",letterSpacing:3,width:220,outline:"none",textAlign:"center",boxShadow:(meta?.achv||[]).includes("five_wins")?"0 0 16px #fbbf2433":"none"}}/>
@@ -5359,8 +5371,8 @@ function NinthLife(){
           <span style={{fontSize:11,color:"#c084fc",fontFamily:"system-ui"}}>The Hearth radiates <span style={{fontWeight:700}}>+{hearthDust}✦</span></span>
         </div>}
 
-        <button onClick={()=>{setColonyData(null);setNightCard({ante:1,blind:0});setPh("nightCard");}} style={{background:"linear-gradient(135deg,#fbbf24,#f59e0b)",color:"#0a0a1a",border:"none",borderRadius:10,padding:"14px 44px",fontSize:17,fontWeight:900,cursor:"pointer",letterSpacing:4,fontFamily:"'Cinzel',serif",marginTop:8,animation:`fadeIn .8s ease-out ${isFirstRun?1.8:0.8}s both`,boxShadow:"0 0 40px #fbbf2433",textTransform:"uppercase"}}>Enter the Night</button>
-        {!isFirstRun&&<div style={{fontSize:10,color:"#ffffff15",fontFamily:"system-ui",marginTop:4,animation:"fadeIn 1s ease-out .5s both"}}>tap anywhere to continue</div>}
+        <button onClick={e=>{e.stopPropagation();enterNight();}} style={{background:"linear-gradient(135deg,#fbbf24,#f59e0b)",color:"#0a0a1a",border:"none",borderRadius:10,padding:"14px 44px",fontSize:17,fontWeight:900,cursor:"pointer",letterSpacing:4,fontFamily:"'Cinzel',serif",marginTop:8,boxShadow:"0 0 40px #fbbf2433",textTransform:"uppercase",zIndex:2}}>Enter the Night</button>
+        <div style={{fontSize:10,color:"#ffffff22",fontFamily:"system-ui",marginTop:4}}>tap anywhere to continue</div>
       </div>
     </div>);
   }
@@ -5466,7 +5478,7 @@ function NinthLife(){
           </div>}
           {/* ★ v47: Continue saved colony */}
           {savedRun&&<button onClick={()=>{Audio.init();resumeRun(savedRun);}} style={{...BTN("linear-gradient(135deg,#4ade80,#22c55e)","#0a0a1a"),padding:"14px 48px",fontSize:18,letterSpacing:3,textTransform:"uppercase",boxShadow:"0 0 30px #4ade8044",animation:"float 3s ease-in-out infinite",marginBottom:6}}>Continue Colony <span style={{fontSize:11,opacity:.7}}>Night {savedRun.ante}</span></button>}
-          <button onClick={()=>{Audio.init();if(!meta?.stats?.r){setGuide({step:0,msg:""});startGame(starter);setPh("coldOpen");}else{startGame(starter);}}} style={{...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)","#0a0a1a"),padding:"14px 48px",fontSize:18,letterSpacing:3,textTransform:"uppercase",boxShadow:"0 0 30px #fbbf2444"}}>{savedRun?"New Colony":"Enter the Night"}</button>
+          <button onClick={()=>{try{Audio.init();if(!meta?.stats?.r){setGuide({step:0,msg:""});startGame(starter);setPh("coldOpen");}else{startGame(starter);}}catch(e){console.error("Start error:",e);}}} style={{...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)","#0a0a1a"),padding:"14px 48px",fontSize:18,letterSpacing:3,textTransform:"uppercase",boxShadow:"0 0 30px #fbbf2444"}}>{savedRun?"New Colony":"Enter the Night"}</button>
           {/* ★ v34: Ninth Dawn button. the endgame */}
           {meta&&canUnlockNinthDawn(meta)&&!meta.ninthDawnCleared&&<button onClick={()=>{Audio.init();startNinthDawn();}} style={{...BTN("linear-gradient(135deg,#fbbf24,#fef08a)","#0a0a1a"),padding:"10px 36px",fontSize:13,letterSpacing:4,textTransform:"uppercase",boxShadow:"0 0 20px #fbbf2444",animation:"float 3s ease-in-out infinite"}}>「 THE NINTH DAWN 」</button>}
           {meta?.ninthDawnCleared&&<div style={{fontSize:11,color:"#fbbf2466",fontFamily:"system-ui",fontStyle:"italic"}}>🌅 The dawn holds.</div>}
@@ -5498,25 +5510,28 @@ function NinthLife(){
 
         {safeTab==="✦ upgrades"&&meta&&<div style={{width:"100%",display:"flex",flexDirection:"column",gap:6}}>
           {(()=>{
-            // ★ v34 ECON: Advanced upgrades (u_scr, u_pot, u_grd) unlock after 5+ upgrade levels purchased
             const totalLevels=Object.values(meta.ups||{}).reduce((s,v)=>s+v,0);
-            // Tier gating: T1 always visible, T2 after 2+, T3 after 4+, T4 after 6+
-            const tier2=["u_h","u_f","u_pot","u_b"];
-            const tier3=["u_c","u_scr","u_grd"];
-            const tier4=["u_o","u_draft","u_trait_luck","u_bond_str","u_nerve_floor","u_second_wind"];
-            const visibleUps=UPGRADES.filter(u=>{
-              if(tier4.includes(u.id))return totalLevels>=6;
-              if(tier3.includes(u.id))return totalLevels>=4;
-              if(tier2.includes(u.id))return totalLevels>=2;
-              return true;
+            const tierReq={1:0,2:2,3:4,4:6};
+            const tierName={1:"Fundamentals",2:"Strategic",3:"Power",4:"Endgame"};
+            const tierColor={1:"#888",2:"#60a5fa",3:"#c084fc",4:"#fbbf24"};
+            const tiers=[1,2,3,4];
+            return tiers.map(t=>{
+              const tierUps=UPGRADES.filter(u=>u.tier===t);
+              const unlocked=totalLevels>=tierReq[t];
+              return(<div key={t}>
+                <div style={{fontSize:10,color:unlocked?tierColor[t]:tierColor[t]+"66",letterSpacing:2,fontWeight:700,marginTop:t>1?8:0,marginBottom:4,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span>{unlocked?"":"🔒 "}{tierName[t].toUpperCase()}</span>
+                  {!unlocked&&<span style={{fontSize:9,color:"#555",fontWeight:400}}>Unlocks at {tierReq[t]} upgrades ({totalLevels}/{tierReq[t]})</span>}
+                </div>
+                {tierUps.map(u=>{const o=meta.ups[u.id]||0,mx=o>=u.max,can=unlocked&&meta.dust>=u.cost&&!mx;
+                  return(<div key={u.id} onClick={()=>can&&buyUpg(u)} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:8,background:mx?"#4ade8008":!unlocked?"#ffffff02":"#ffffff04",border:`1px solid ${mx?"#4ade8033":can?tierColor[t]+"44":"#ffffff0a"}`,cursor:can?"pointer":"default",opacity:!unlocked?0.35:can||mx?1:.5}}>
+                    <span style={{fontSize:18}}>{u.icon}</span>
+                    <div style={{flex:1,textAlign:"left"}}><div style={{fontSize:11,fontWeight:700,color:mx?"#4ade80":tierColor[t]}}>{u.name}{o>0?` (${o}/${u.max})`:""}</div><div style={{fontSize:10,color:"#888",fontFamily:"system-ui"}}>{u.desc}</div></div>
+                    <div style={{fontSize:11,color:mx?"#4ade80":"#c084fc",fontWeight:700}}>{mx?"MAX":`✦${u.cost}`}</div>
+                  </div>);
+                })}
+              </div>);
             });
-            return visibleUps.map(u=>{const o=meta.ups[u.id]||0,mx=o>=u.max,can=meta.dust>=u.cost&&!mx;
-            const isT4=tier4.includes(u.id);const isT3=tier3.includes(u.id);
-            return(<div key={u.id} onClick={()=>can&&buyUpg(u)} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:8,background:mx?"#4ade8008":isT4?"#fbbf2406":isT3?"#c084fc06":"#ffffff04",border:`1px solid ${mx?"#4ade8033":can?(isT4?"#fbbf2433":"#c084fc33"):"#ffffff0a"}`,cursor:can?"pointer":"default",opacity:can||mx?1:.5}}>
-              <span style={{fontSize:18}}>{u.icon}</span>
-              <div style={{flex:1,textAlign:"left"}}><div style={{fontSize:11,fontWeight:700,color:mx?"#4ade80":isT4?"#fbbf24":isT3?"#c084fc":"#e8e6e3"}}>{u.name}{o>0?` (${o}/${u.max})`:""}{isT4&&o===0?" ◆":isT3&&o===0?" ✦":""}</div><div style={{fontSize:10,color:"#888",fontFamily:"system-ui"}}>{u.desc}</div></div>
-              <div style={{fontSize:11,color:mx?"#4ade80":"#c084fc",fontWeight:700}}>{mx?"MAX":`✦${u.cost}`}</div>
-            </div>);});
           })()}
         </div>}
 
@@ -6823,7 +6838,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
                     setScoringCats(cats);setAftermath([]);setFirstHandPlayed(true);Audio.cardPlay();
                     const beatingPace=rScore>=eTgt()*0.4;
                     const activeBT=blind===2?bossTraits:[];
-                    const result=calcScore(cats,fams,ferv,cfx,{gold,deckSize:allC.length,discSize:disc.length,handSize:hs(),beatingPace,bossTraitFx:activeBT,scarMult:getMB().scarMult||0,grudgeWisdom:getMB().grudgeWisdom||0,hasMastery:!!(getMB().xp),bondBoost:getMB().bondBoost||0,lastHandIds,lastHandLost,htLevels,devotion,bench:hand.filter(c=>!cats.find(x=>x.id===c.id))});
+                    const result=calcScore(cats,fams,ferv,cfx,{gold,deckSize:allC.length,discSize:disc.length,handSize:hs(),beatingPace,bossTraitFx:activeBT,scarMult:getMB().scarMult||0,grudgeWisdom:getMB().grudgeWisdom||0,hasMastery:!!(getMB().xp),bondBoost:getMB().bondBoost||0,comboBoost:getMB().comboBoost||0,doubleBench:getMB().doubleBench||0,lastHandIds,lastHandLost,htLevels,devotion,bench:hand.filter(c=>!cats.find(x=>x.id===c.id))});
                     advancingRef.current=false;
                     setSRes(result);setSStep(-1);setPh("scoring");setRunChips(0);setRunMult(0);setNewBest(null);setHandDiscovery([]);
                     let rC=0,rM=0;
@@ -6975,7 +6990,11 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
             {!mob&&rScore<tgt&&hLeft>0&&(()=>{const nph=Math.ceil((tgt-rScore)/hLeft);return (<div style={{fontSize:12,color:nph>45000?"#ef4444":nph>24000?"#fb923c":"#aaa",fontFamily:"system-ui",fontWeight:700,animation:nph>45000?"fpp 2s ease infinite":"none"}}>🎯 {nph.toLocaleString()}/hand</div>);})()}
         </div>
         <div style={{textAlign:"right"}}><div style={{color:"#fbbf24",fontWeight:700,fontSize:13}}>🐟{gold}</div><div style={{fontSize:10,color:"#4ade80",fontFamily:"system-ui"}}>{Math.min(5,Math.floor(gold/5))>0?`+${Math.min(5,Math.floor(gold/5))} stores`:""}</div></div>
-        <button onClick={e=>{e.stopPropagation();toggleMute();}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer",opacity:.4,padding:4}} title={muted?"Unmute":"Mute"}>{muted?"🔇":"🔊"}</button>
+        <div style={{display:"flex",gap:4,alignItems:"center"}}>
+          <button onClick={e=>{e.stopPropagation();setAbandonConfirm(c=>!c);}} style={{background:abandonConfirm?"#ef444422":"none",border:`1px solid ${abandonConfirm?"#ef4444":"#ffffff12"}`,borderRadius:4,fontSize:10,cursor:"pointer",opacity:abandonConfirm?1:.4,padding:"2px 6px",color:abandonConfirm?"#ef4444":"#888",fontFamily:"system-ui"}} title="Abandon run">{abandonConfirm?"Confirm?":"✕"}</button>
+          {abandonConfirm&&<button onClick={e=>{e.stopPropagation();setAbandonConfirm(false);setPh("title");setTab("play");}} style={{background:"#ef444433",border:"1px solid #ef4444",borderRadius:4,fontSize:10,cursor:"pointer",padding:"2px 8px",color:"#ef4444",fontFamily:"system-ui",animation:"fadeIn .2s ease-out"}}>Abandon</button>}
+          <button onClick={e=>{e.stopPropagation();toggleMute();}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer",opacity:.4,padding:4}} title={muted?"Unmute":"Mute"}>{muted?"🔇":"🔊"}</button>
+        </div>
       </div>
       {/* ★ v52: Mobile needed-per-hand breakout — most important strategic number gets its own line */}
       {mob&&rScore<tgt&&hLeft>0&&(()=>{const nph=Math.ceil((tgt-rScore)/hLeft);return(
@@ -7348,7 +7367,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
 
           {/* Continue. replaces the breath */}
           {scoringDone&&(
-            <button onClick={advanceFromScoring} style={{background:"linear-gradient(135deg,#fbbf24,#f59e0b)",color:"#0a0a1a",border:"none",borderRadius:10,padding:"10px 32px",fontSize:13,fontWeight:700,cursor:"pointer",letterSpacing:1,fontFamily:"system-ui",boxShadow:"0 0 24px #fbbf2444",animation:"fadeIn .3s ease-out"}}>Continue</button>
+            <button onClick={e=>{e.stopPropagation();advanceFromScoring();}} style={{background:"linear-gradient(135deg,#fbbf24,#f59e0b)",color:"#0a0a1a",border:"none",borderRadius:10,padding:"10px 32px",fontSize:13,fontWeight:700,cursor:"pointer",letterSpacing:1,fontFamily:"system-ui",boxShadow:"0 0 24px #fbbf2444",animation:"fadeIn .3s ease-out"}}>Continue</button>
           )}
 
           {/* v16: Visual Cat Scoring - Balatro-style: highlight involved cats per step */}
