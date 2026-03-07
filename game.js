@@ -4618,7 +4618,7 @@ function NinthLife() {
     }
     setTimeout(() => setFFlash(null), 400);
   }
-  function startGame(st) {
+  function startGame() {
     clearRunSave();
     _cid = 0;
     _nis = Math.floor(Math.random() * CAT_NAMES.length);
@@ -5627,6 +5627,7 @@ function NinthLife() {
     try {
       try {
         clearRunSave();
+        setSavedRun(null);
       } catch (e) {
       }
       const fScore = finalScore != null ? finalScore : rScore;
@@ -7952,10 +7953,10 @@ function NinthLife() {
         Audio.init();
         if (!meta?.stats?.r) {
           setGuide({ step: 0, msg: "" });
-          startGame(starter);
+          startGame();
           setPh("coldOpen");
         } else {
-          startGame(starter);
+          startGame();
         }
       } catch (e) {
         console.error("Start error:", e);
