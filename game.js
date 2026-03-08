@@ -1565,7 +1565,7 @@
         return `${a} knocked ${b}'s food sideways. Deliberate. ${b} turned slow. The colony went quiet. This is either going to end with blood or with something stronger than blood. You can feel everyone waiting to see which.`;
       },
       choices: [
-        { label: "Blood, then. Get it over with.", desc: "Winner +2 Power. Loser hardened.", fx: { catFight: true } },
+        { label: "Blood, then. Get it over with.", desc: "Winner +2 Power. Loser hardened.", fx: { catFight: true, chainSet: "challenge_blood" } },
         { label: "Not tonight.", desc: "Both -1 Power. But no blood.", fx: { bothWeaken: true, fervor: 1 } }
       ]
     },
@@ -1621,9 +1621,9 @@
         return `You know what's louder than a storm? ${n} cats pretending they're not scared. The ones on the outside are taking the worst of it. The ones on the inside are taking it differently. Everyone needs something and there isn't enough of anything.`;
       },
       choices: [
-        { label: "Shield the youngest. We owe them that.", desc: "Strongest cat hardened. +2 Nerve.", fx: { targetGambleScar: true, fervor: 2 } },
-        { label: "Ride it out. Everyone takes their share.", desc: "2 cats -2 Power. +1 hand next round.", fx: { weakDmg: true, tempHands: 1 } },
-        { label: "Burn supplies for shelter. Everything.", desc: "-4 Rations. Full heal. Den safe.", fx: { gold: -4, fullHeal: true, eventDenSafe: true } }
+        { label: "Shield the youngest. We owe them that.", desc: "Strongest cat hardened. +2 Nerve.", fx: { targetGambleScar: true, fervor: 2, chainSet: "storm_shield" } },
+        { label: "Ride it out. Everyone takes their share.", desc: "2 cats -2 Power. +1 hand next round.", fx: { weakDmg: true, tempHands: 1, chainSet: "storm_ride" } },
+        { label: "Burn supplies for shelter. Everything.", desc: "-4 Rations. Full heal. Den safe.", fx: { gold: -4, fullHeal: true, eventDenSafe: true, chainSet: "storm_shelter" } }
       ]
     },
     {
@@ -2379,6 +2379,71 @@
       choices: [
         { label: "Celebrate them.", desc: "All bonded cats +1 Power. +3 mood.", fx: { bondBoost: true } },
         { label: "Stay focused.", desc: "+2 Nerve. Love doesn't win fights alone.", fx: { fervor: 2 } }
+      ]
+    },
+    // ═══════════════════════════════════════════════════
+    // v0.7: MISSING CHAIN FOLLOW-UPS + NEW CHAINS
+    // ═══════════════════════════════════════════════════
+    {
+      id: "debt_reward",
+      title: "The Debt Remembered",
+      icon: "\u{1F381}",
+      minNight: 3,
+      chainRequires: "debt_paid",
+      tag: "memory",
+      textFn: (_, ctx) => `The dark remembers debts paid. Something was left at the entrance. A gift. Or a receipt.`,
+      choices: [
+        { label: "Accept it. We earned this.", desc: "Find a ward. +2 Rations.", fx: { gold: 5, fervor: 1 } },
+        { label: "Leave it. We paid, but we're not friends.", desc: "+4 Nerve.", fx: { fervor: 4 } }
+      ]
+    },
+    {
+      id: "fire_ashes",
+      title: "What the Fire Left",
+      icon: "\u{1F525}",
+      minNight: 3,
+      chainRequires: "fire_taken",
+      needsCat: "random",
+      tag: "survival",
+      textFn: (t) => {
+        const n = t[0]?.name.split(" ")[0] || "Someone";
+        return `${n} sifts through the ashes. Something hardened by the heat. Changed.`;
+      },
+      choices: [
+        { label: "Keep digging.", desc: "Cat gains Scrapper. Cat hardened.", fx: { targetNamedTrait: "Scrapper", targetScar: true } },
+        { label: "Let the ashes scatter.", desc: "+3 Rations.", fx: { gold: 3 } }
+      ]
+    },
+    {
+      id: "stranger_home",
+      title: "The Stranger's Name",
+      icon: "\u{1F3E0}",
+      minNight: 3,
+      chainRequires: "stranger_redeemed",
+      tag: "belonging",
+      textFn: () => `The one you turned away and then let in. They brought food without being asked. They have a name now.`,
+      choices: [
+        { label: "You're one of us.", desc: "All cats +1 Power. +2 Nerve.", fx: { allPower: 1, fervor: 2 } },
+        { label: "Prove it tonight.", desc: "Random cat gains rare trait. -3 Rations.", fx: { rareTrait: true, gold: -3 } }
+      ]
+    },
+    {
+      id: "storm_aftermath",
+      title: "After the Storm",
+      icon: "\u{1F308}",
+      minNight: 3,
+      tag: "hope",
+      condFn: (_, ctx) => {
+        const eh = ctx.eventHistory || {};
+        return eh.storm_shield || eh.storm_ride || eh.storm_shelter;
+      },
+      textFn: (_, ctx) => {
+        const eh = ctx.eventHistory || {};
+        return eh.storm_shelter ? "The supplies you burned kept everyone alive. But everyone is still here." : eh.storm_shield ? "The strongest took the worst of it. The youngest are untouched." : "Everyone took their share. The bruises are equal. So is the bond.";
+      },
+      choices: [
+        { label: "We survived. That's the lesson.", desc: "All cats +1 Power.", fx: { allPower: 1 } },
+        { label: "Never again. Prepare.", desc: "+1 Shelter. +2 Nerve. -3 Rations.", fx: { eventDenSafe: true, fervor: 2, gold: -3 } }
       ]
     }
   ];
@@ -6188,6 +6253,8 @@
                   ninthDawnCleared,
                   hearthTotal,
                   belovedNames,
+                  streak: won ? (meta.stats.streak || 0) + 1 : 0,
+                  bestStreak: Math.max(meta.stats.bestStreak || 0, won ? (meta.stats.streak || 0) + 1 : 0),
                   totalFallen: (meta.stats.totalFallen || 0) + fallen.length,
                   epithetsEarned: (meta.stats.epithetsEarned || 0) + runEpithets,
                   maxBonds: Math.max(meta.stats.maxBonds || 0, Math.floor(runBonds)),
@@ -6846,6 +6913,10 @@
             delete cat2._newEpithet;
             toast("\u{1F3F7}\uFE0F", epithetToastMsg(cat2), BREEDS[cat2.breed]?.color || "#fbbf24", 2500);
             Audio.epithetEarned();
+            if (!seen.inspectHint) {
+              setSeen((s) => ({ ...s, inspectHint: true }));
+              setTimeout(() => toast("\u{1F446}", "Tap a cat card to inspect their full biography", "#888", 4e3), 3e3);
+            }
           }
           [setHand, setDraw, setDisc].forEach((s) => {
             s((arr) => arr.map((c) => c.id === cat2.id ? { ...c, epithet: cat2.epithet, epithetKey: cat2.epithetKey, story: cat2.story } : c));
@@ -8692,7 +8763,7 @@
       })()), safeTab === "play" && /* @__PURE__ */ React.createElement(React.Fragment, null, savedRun && /* @__PURE__ */ React.createElement("button", { onClick: () => {
         Audio.init();
         resumeRun(savedRun);
-      }, style: { ...BTN("linear-gradient(135deg,#4ade80,#22c55e)", "#0a0a1a"), padding: "14px 48px", fontSize: 18, letterSpacing: 3, textTransform: "uppercase", boxShadow: "0 0 30px #4ade8044", animation: "float 3s ease-in-out infinite", marginBottom: 2 } }, "Continue Colony ", /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, opacity: 0.7 } }, "Night ", savedRun.ante)), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      }, style: { ...BTN("linear-gradient(135deg,#4ade80,#22c55e)", "#0a0a1a"), padding: "14px 48px", fontSize: 18, letterSpacing: 3, textTransform: "uppercase", boxShadow: "0 0 30px #4ade8044", animation: "float 3s ease-in-out infinite", marginBottom: 2 } }, "Continue Colony ", /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, opacity: 0.7 } }, "Night ", savedRun.ante)), savedRun && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80aa", textAlign: "center", maxWidth: 300, marginBottom: 4 } }, "Night ", savedRun.ante, ", ", ["Dusk", "Midnight", "Boss"][savedRun.blind] || "?", " \xB7 ", (savedRun.hand || []).length + (savedRun.draw || []).length, " cats \xB7 ", savedRun.gold || 0, "\u{1F41F}"), /* @__PURE__ */ React.createElement("button", { onClick: () => {
         try {
           Audio.init();
           if (savedRun) {
@@ -8719,7 +8790,18 @@
         const r = HEAT_RELICS[h];
         return r ? /* @__PURE__ */ React.createElement("div", { key: h, style: { padding: "3px 8px", borderRadius: 5, background: "#fbbf2408", border: "1px solid #fbbf2422", fontSize: 10, color: "#fbbf24" }, title: `${r.name}: ${r.desc}
 "${r.flavor}"` }, r.icon, " ", r.name) : null;
-      })), (!meta || meta.stats.r === 0) && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf2466", lineHeight: 1.5, textAlign: "center", maxWidth: 300 } }, "3 nights. 18 cats. The game teaches as you play."), meta && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 14, fontSize: 10, color: "#666", alignItems: "center", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setSeen((s) => ({ ...s, howToPlay: !s.howToPlay })), style: { background: "none", border: "1px solid #ffffff12", borderRadius: 12, color: "#666", fontSize: 10, cursor: "pointer", padding: "2px 8px" } }, "How to Play"), /* @__PURE__ */ React.createElement("span", null, meta.stats.r, " runs"), /* @__PURE__ */ React.createElement("span", null, meta.stats.w, " wins")), seen.howToPlay && /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 16px", borderRadius: 10, background: "#ffffff06", border: "1px solid #ffffff0a", maxWidth: 400, fontSize: 13, color: "#aaa", lineHeight: 1.6, animation: "fadeIn .4s ease-out", textAlign: "left" } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, color: "#fbbf24", marginBottom: 4 } }, "Quick Rules"), /* @__PURE__ */ React.createElement("div", null, "Draw 6 cats. Pick up to 5. Discard to swap (free)."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 4 } }, "Match 3+ of one season for Clowder or Colony."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 4 } }, "Same-season cats resonate and score far better. Traits multiply the total. Beat the target."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6 } }, "Scars (\xD71.25) and Bonds (\xD71.5) multiply your score."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 4 } }, "Nerve builds every blind you clear. Fast boss clears give more."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 4 } }, "In the Den, shelter a \u2642+\u2640 pair to breed. Everyone else enters the wilds."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, color: "#67e8f9" } }, "\u{1F3AF} Match seasons for Clowder or Colony hands."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 2, color: "#67e8f9" } }, "Same-season cats resonate for bigger scores. Unplayed cats with traits give bench bonuses."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, color: "#34d399" } }, "\u{1F46A} Shelter a parent with their child to teach traits."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 2, color: "#34d399" } }, "Save a M/F pair to the Hearth. Their descendants begin your next colony."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, padding: "6px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", fontSize: 11, color: "#666", lineHeight: 1.6 } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, color: "#888", marginBottom: 2, fontSize: 10, letterSpacing: 1 } }, "GLOSSARY"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#3b82f6" } }, "Chips"), " = base score from Power. ", /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444" } }, "Mult"), " = multiplier from traits and bonuses."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "Nerve"), " = momentum. Builds each round, multiplies everything."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#888" } }, "Bench"), " = cats in your hand that you didn't play. Traits still give passive bonuses."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#c084fc" } }, "Wards"), " = passive items. Boost score every hand. ", /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "Scrolls"), " = level up hand types."))), meta && (mb.gold > 0 || mb.hands > 0 || mb.discards > 0 || mb.fervor > 0) && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", fontSize: 10 } }, mb.gold > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "+", mb.gold, "\u{1F41F}"), mb.hands > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#3b82f6" } }, "+", mb.hands, "H"), mb.discards > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444" } }, "+", mb.discards, "D"), mb.fervor > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#d97706" } }, "N+", mb.fervor))), safeTab === "\u2726 upgrades" && meta && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", display: "flex", flexDirection: "column", gap: 6 } }, (() => {
+      })), (!meta || meta.stats.r === 0) && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf2466", lineHeight: 1.5, textAlign: "center", maxWidth: 300 } }, "3 nights. 18 cats. The game teaches as you play."), meta && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 14, fontSize: 10, color: "#666", alignItems: "center", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setSeen((s) => ({ ...s, howToPlay: !s.howToPlay })), style: { background: "none", border: "1px solid #ffffff12", borderRadius: 12, color: "#666", fontSize: 10, cursor: "pointer", padding: "2px 8px" } }, "How to Play"), /* @__PURE__ */ React.createElement("span", null, meta.stats.r, " runs"), /* @__PURE__ */ React.createElement("span", null, meta.stats.w, " wins"), (meta.stats.streak || 0) >= 2 && /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80", fontWeight: 700 } }, "\u{1F525} W", meta.stats.streak), meta.stats.r >= 3 && /* @__PURE__ */ React.createElement("span", { onClick: () => setSeen((s) => ({ ...s, careerStats: !s.careerStats })), style: { cursor: "pointer", color: seen.careerStats ? "#fbbf24" : "#666" } }, "\u{1F4CA} Stats")), seen.careerStats && meta && meta.stats.r >= 3 && (() => {
+        const s = meta.stats;
+        const cats = meta.cats || [];
+        const sc = {};
+        cats.forEach((c) => {
+          sc[c.breed] = (sc[c.breed] || 0) + 1;
+        });
+        const favSeason = Object.entries(sc).sort((a, b) => b[1] - a[1])[0];
+        const hp = s.handTypePlays || {};
+        const favHand = Object.entries(hp).sort((a, b) => b[1] - a[1])[0];
+        return /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 16px", borderRadius: 10, background: "#ffffff04", border: "1px solid #ffffff0a", maxWidth: 360, fontSize: 11, color: "#888", lineHeight: 1.8, animation: "fadeIn .3s ease-out", textAlign: "left" } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, color: "#fbbf24", marginBottom: 4, fontSize: 10, letterSpacing: 2 } }, "CAREER"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 16px" } }, /* @__PURE__ */ React.createElement("span", null, "Runs: ", /* @__PURE__ */ React.createElement("b", { style: { color: "#e8e6e3" } }, s.r)), /* @__PURE__ */ React.createElement("span", null, "Wins: ", /* @__PURE__ */ React.createElement("b", { style: { color: "#4ade80" } }, s.w)), /* @__PURE__ */ React.createElement("span", null, "Cats saved: ", /* @__PURE__ */ React.createElement("b", { style: { color: "#c084fc" } }, cats.length)), /* @__PURE__ */ React.createElement("span", null, "Stardust: ", /* @__PURE__ */ React.createElement("b", { style: { color: "#c084fc" } }, meta.dust || 0, "\u2726")), /* @__PURE__ */ React.createElement("span", null, "Deaths: ", /* @__PURE__ */ React.createElement("b", { style: { color: "#ef4444" } }, s.totalFallen || 0)), /* @__PURE__ */ React.createElement("span", null, "Epithets: ", /* @__PURE__ */ React.createElement("b", { style: { color: "#fbbf24" } }, s.epithetsEarned || 0)), favSeason && /* @__PURE__ */ React.createElement("span", null, "Fav season: ", /* @__PURE__ */ React.createElement("b", { style: { color: BREEDS[favSeason[0]]?.color } }, BREEDS[favSeason[0]]?.icon, " ", favSeason[0])), favHand && /* @__PURE__ */ React.createElement("span", null, "Fav hand: ", /* @__PURE__ */ React.createElement("b", { style: { color: "#e8e6e3" } }, favHand[0])), /* @__PURE__ */ React.createElement("span", null, "Best score: ", /* @__PURE__ */ React.createElement("b", { style: { color: "#fbbf24" } }, (s.hs || 0).toLocaleString())), /* @__PURE__ */ React.createElement("span", null, "Heat: ", /* @__PURE__ */ React.createElement("b", { style: { color: meta.heat > 0 ? "#ef4444" : "#666" } }, meta.heat || 0))));
+      })(), seen.howToPlay && /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 16px", borderRadius: 10, background: "#ffffff06", border: "1px solid #ffffff0a", maxWidth: 400, fontSize: 13, color: "#aaa", lineHeight: 1.6, animation: "fadeIn .4s ease-out", textAlign: "left" } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, color: "#fbbf24", marginBottom: 4 } }, "Quick Rules"), /* @__PURE__ */ React.createElement("div", null, "Draw 6 cats. Pick up to 5. Discard to swap (free)."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 4 } }, "Match 3+ of one season for Clowder or Colony."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 4 } }, "Same-season cats resonate and score far better. Traits multiply the total. Beat the target."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6 } }, "Scars (\xD71.25) and Bonds (\xD71.5) multiply your score."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 4 } }, "Nerve builds every blind you clear. Fast boss clears give more."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 4 } }, "In the Den, shelter a \u2642+\u2640 pair to breed. Everyone else enters the wilds."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, color: "#67e8f9" } }, "\u{1F3AF} Match seasons for Clowder or Colony hands."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 2, color: "#67e8f9" } }, "Same-season cats resonate for bigger scores. Unplayed cats with traits give bench bonuses."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, color: "#34d399" } }, "\u{1F46A} Shelter a parent with their child to teach traits."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 2, color: "#34d399" } }, "Save a M/F pair to the Hearth. Their descendants begin your next colony."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, padding: "6px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", fontSize: 11, color: "#666", lineHeight: 1.6 } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, color: "#888", marginBottom: 2, fontSize: 10, letterSpacing: 1 } }, "GLOSSARY"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#3b82f6" } }, "Chips"), " = base score from Power. ", /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444" } }, "Mult"), " = multiplier from traits and bonuses."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "Nerve"), " = momentum. Builds each round, multiplies everything."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#888" } }, "Bench"), " = cats in your hand that you didn't play. Traits still give passive bonuses."), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#c084fc" } }, "Wards"), " = passive items. Boost score every hand. ", /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "Scrolls"), " = level up hand types."))), meta && (mb.gold > 0 || mb.hands > 0 || mb.discards > 0 || mb.fervor > 0) && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", fontSize: 10 } }, mb.gold > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "+", mb.gold, "\u{1F41F}"), mb.hands > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#3b82f6" } }, "+", mb.hands, "H"), mb.discards > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444" } }, "+", mb.discards, "D"), mb.fervor > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#d97706" } }, "N+", mb.fervor))), safeTab === "\u2726 upgrades" && meta && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", display: "flex", flexDirection: "column", gap: 6 } }, (() => {
         const totalLevels = Object.values(meta.ups || {}).reduce((s, v) => s + v, 0);
         const tierReq = { 1: 0, 2: 2, 3: 4, 4: 6 };
         const tierName = { 1: "Fundamentals", 2: "Strategic", 3: "Power", 4: "Endgame" };
@@ -9394,7 +9476,21 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
       })(), fallen.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center", animation: "fadeIn 2.5s ease-out" } }, fallen.map((f, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { fontSize: 10, color: BREEDS[f.breed]?.color || "#888", opacity: 0.5 } }, f.name.split(" ")[0]))), /* @__PURE__ */ React.createElement("button", { onClick: () => {
         setDefeatData(null);
         setPh("gameOver");
-      }, style: { ...BTN("linear-gradient(135deg,#ef4444,#dc2626)", "#fff"), padding: "12px 40px", fontSize: 15, animation: "fadeIn 2.5s ease-out", marginTop: 8 } }, "Continue")));
+      }, style: { ...BTN("linear-gradient(135deg,#ef4444,#dc2626)", "#fff"), padding: "12px 40px", fontSize: 15, animation: "fadeIn 2.5s ease-out", marginTop: 8 } }, "Continue"), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+        setDefeatData(null);
+        startGame();
+      }, style: { ...BTN("#1a1a2e", "#fbbf24"), padding: "8px 24px", fontSize: 11, animation: "fadeIn 3s ease-out", marginTop: 4, border: "1px solid #fbbf2444" } }, "Quick Retry \u2192"), (() => {
+        const tips = [];
+        if (fams.length === 0) tips.push("Wards boost every hand you play. Buy one early from the Market.");
+        else if (fams.length === 1 && ante >= 3) tips.push("More wards = more mult. Try buying 2-3 wards by Night 3.");
+        const bestHt = runLog.filter((e) => e.type === "hand").reduce((b, e) => e.data?.type || b, "Stray");
+        if (bestHt === "Stray" || bestHt === "Kin") tips.push("Colony hands (4 same season) score 3\xD7 more than Kin. Draft one season.");
+        if (fallen.length >= 3) tips.push("Camp heals injuries and builds Nerve. Try camping before the boss.");
+        if (deficit > 0 && deficit < defeatData.target * 0.15) tips.push("That was close. One more ward or scroll level would have cleared it.");
+        if (ferv < 8 && ante >= 3) tips.push("Nerve multiplies everything. Clear blinds faster for bigger Nerve gains.");
+        const tip = tips.length > 0 ? tips[Math.floor(Math.random() * tips.length)] : null;
+        return tip ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf2466", textAlign: "center", maxWidth: 320, lineHeight: 1.5, animation: "fadeIn 3.5s ease-out", padding: "6px 12px", borderRadius: 8, background: "#fbbf2406", border: "1px solid #fbbf2411" } }, "\u{1F4A1} ", tip) : null;
+      })()));
     }
     if (ph === "gameOver" || ph === "victory") {
       const won = ph === "victory";
@@ -9905,7 +10001,17 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
         } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 16 } }, f.icon), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: can ? "#fbbf24" : "#555", fontWeight: 700 } }, wp, "\u{1F41F}", f._starter ? /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80" } }, " STARTER") : "")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: isHtWard ? "#c084fc" : "#e8e6e3cc", marginTop: 4 } }, f.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888", lineHeight: 1.4, marginTop: 2 } }, f.desc), isHtWard && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fc88", marginTop: 3, letterSpacing: 1 } }, "HAND TYPE BONUS"), hasSynergy && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#4ade80", marginTop: 3, letterSpacing: 1, fontWeight: 700 }, onClick: (e) => {
           e.stopPropagation();
           toast("\u2726", "SYNERGY means this ward matches your colony. It will score better for your current build.", "#4ade80", 4e3);
-        } }, "\u2726 SYNERGY"));
+        } }, "\u2726 SYNERGY"), (() => {
+          try {
+            const sample = allC.slice(0, 5);
+            const est = f.eff(sample);
+            const mult = est.mult || 0;
+            const chips = est.chips || 0;
+            if (mult > 0 || chips > 0) return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#4ade8088", marginTop: 2 } }, "Est. ", mult > 0 ? `+${mult}M` : "", mult > 0 && chips > 0 ? " " : "", chips > 0 ? `+${chips}C` : "", "/hand");
+          } catch (e) {
+          }
+          return null;
+        })());
       })) : !ul.fams && !isFirstRun ? /* @__PURE__ */ React.createElement("div", { style: { color: "#666", fontSize: 10, fontStyle: "italic", textAlign: "center", padding: 12, marginBottom: 12 } }, "\u{1F512} Complete a run to unlock Wards") : /* @__PURE__ */ React.createElement("div", { style: { color: "#666", fontSize: 10, textAlign: "center", padding: 12, marginBottom: 12 } }, "No wards available"), fams.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888", letterSpacing: 2, marginBottom: 4 } }, "EQUIPPED (", fams.length, "/", MF, ")"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap" } }, fams.map((f) => /* @__PURE__ */ React.createElement("div", { key: f.id, onClick: () => toast(f.icon, `${f.name}: ${f.desc}`, "#fbbf24"), style: { display: "flex", alignItems: "center", gap: 4, padding: "4px 8px", borderRadius: 6, background: "#ffffff06", border: "1px solid #ffffff0a", cursor: "pointer" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 14 } }, f.icon), /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#aaa" } }, f.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666" } }, f.desc)), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
         e.stopPropagation();
         sellFam(f);
@@ -9941,7 +10047,11 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
       })(), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: sellMode ? "#c084fc" : "#888", fontWeight: sellMode ? 700 : 400 } }, sellMode ? /* @__PURE__ */ React.createElement("span", null, "\u{1F54A}\uFE0F THE LETTING GO ", /* @__PURE__ */ React.createElement("span", { style: { color: sellsLeft > 0 ? "#4ade80" : "#ef4444" } }, "(", sellsLeft, " left)")) : /* @__PURE__ */ React.createElement("span", null, "YOUR COLONY")), /* @__PURE__ */ React.createElement("button", { onClick: () => setSellMode(!sellMode), style: { fontSize: 10, padding: "4px 12px", borderRadius: 6, border: `1px solid ${sellMode ? "#c084fc44" : "#fbbf2444"}`, background: sellMode ? "#c084fc11" : "transparent", color: sellMode ? "#c084fc" : "#fbbf24", cursor: "pointer" } }, sellMode ? "Done" : "Let Go...")), sellMode && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fcbb", marginBottom: 6, fontStyle: "italic" } }, "Each departure costs 1 Nerve. Scarred cats leave without penalty. Tap a cat to release them."), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", maxHeight: 300, overflowY: "auto", paddingBottom: 4 } }, uAll.map((c) => {
         const pg = getPartingGifts(c);
         const canSell = sellMode && sellsLeft > 0 && uAll.length > 8 && (pg.goldVal >= 0 || gold >= Math.abs(pg.goldVal));
-        return /* @__PURE__ */ React.createElement("div", { key: c.id, style: { position: "relative", textAlign: "center" }, className: "scroll-reveal" }, /* @__PURE__ */ React.createElement(CC, { cat: c, sm: true, onClick: sellMode && canSell ? () => setSellConfirm(c) : !sellMode ? () => setInspectCat(c) : void 0, dis: sellMode && !canSell, onTraitClick: (ct) => setTraitTip(ct) }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: BREEDS[c.breed]?.color || "#888", marginTop: 1, maxWidth: 88, lineHeight: 1, whiteSpace: "nowrap" } }, c.name.split(" ")[0]), sellMode && canSell && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: 2, right: 2, fontSize: 10, color: "#c084fc", fontWeight: 700, background: "#000000dd", borderRadius: 3, padding: "1px 3px", cursor: "pointer", maxWidth: 72, lineHeight: 1.3 } }, pg.goldVal > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80" } }, "+", pg.goldVal, "\u{1F41F} "), !cat.scarred && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444" } }, "-1\u{1F525} "), pg.gifts.map((g, gi) => /* @__PURE__ */ React.createElement("span", { key: gi, style: { color: "#c084fc" } }, g, " ")), pg.goldVal === 0 && pg.gifts.length === 0 && cat.scarred && /* @__PURE__ */ React.createElement("span", { style: { color: "#888" } }, "free")));
+        return /* @__PURE__ */ React.createElement("div", { key: c.id, style: { position: "relative", textAlign: "center" }, className: "scroll-reveal" }, /* @__PURE__ */ React.createElement(CC, { cat: c, sm: true, onClick: sellMode && canSell ? () => {
+          const isValuable = c.epithet || c.bondedTo || (c.trait || PLAIN).name !== "Plain" || c.power >= 6 || c.scarred;
+          if (isValuable) setSellConfirm(c);
+          else sellCat(c);
+        } : !sellMode ? () => setInspectCat(c) : void 0, dis: sellMode && !canSell, onTraitClick: (ct) => setTraitTip(ct) }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: BREEDS[c.breed]?.color || "#888", marginTop: 1, maxWidth: 88, lineHeight: 1, whiteSpace: "nowrap" } }, c.name.split(" ")[0]), sellMode && canSell && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: 2, right: 2, fontSize: 10, color: "#c084fc", fontWeight: 700, background: "#000000dd", borderRadius: 3, padding: "1px 3px", cursor: "pointer", maxWidth: 72, lineHeight: 1.3 } }, pg.goldVal > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80" } }, "+", pg.goldVal, "\u{1F41F} "), !cat.scarred && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444" } }, "-1\u{1F525} "), pg.gifts.map((g, gi) => /* @__PURE__ */ React.createElement("span", { key: gi, style: { color: "#c084fc" } }, g, " ")), pg.goldVal === 0 && pg.gifts.length === 0 && cat.scarred && /* @__PURE__ */ React.createElement("span", { style: { color: "#888" } }, "free")));
       })), sellConfirm && sellMode && (() => {
         const sc = sellConfirm;
         const pg = getPartingGifts(sc);
@@ -10678,17 +10788,38 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
       return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, justifyContent: "center", flexWrap: "wrap", marginBottom: 2, zIndex: 1 } }, Object.entries(sc).sort(([, a], [, b]) => b - a).map(
         ([br, ct]) => /* @__PURE__ */ React.createElement("span", { key: br, style: { fontSize: 9, color: BREEDS[br]?.color || "#888", padding: "1px 4px", borderRadius: 3, background: BREEDS[br]?.color + "11", border: `1px solid ${BREEDS[br]?.color}22` } }, BREEDS[br]?.icon, ct)
       ), topTrait && topTrait[1] >= 2 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 9, color: "#c084fc", padding: "1px 4px", borderRadius: 3, background: "#c084fc11", border: "1px solid #c084fc22" } }, topTrait[1], "\xD7", topTrait[0]), bonds > 0 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 9, color: "#f472b6", padding: "1px 4px", borderRadius: 3, background: "#f472b611", border: "1px solid #f472b622" } }, "\u{1F495}", Math.floor(bonds)), hardened > 0 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 9, color: "#fbbf24", padding: "1px 4px", borderRadius: 3, background: "#fbbf2411", border: "1px solid #fbbf2422" } }, "\u2694", hardened), weather && /* @__PURE__ */ React.createElement("span", { onClick: () => toast("\u{1F324}", `${weather.season === "Autumn" ? "Falling Leaves" : weather.season === "Winter" ? "Cold Snap" : weather.season === "Spring" ? "Fresh Growth" : "Long Light"}: ${weather.season} cats get +2 base score tonight.`, BREEDS[weather.season]?.color || "#fbbf24", 4e3), style: { fontSize: 9, color: BREEDS[weather.season]?.color || "#888", padding: "1px 4px", borderRadius: 3, background: BREEDS[weather.season]?.color + "11", border: `1px solid ${BREEDS[weather.season]?.color}22`, cursor: "help" } }, "\u{1F324}", BREEDS[weather.season]?.icon));
-    })(), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: mob ? 2 : 3, padding: "0 4px", zIndex: 1, justifyContent: "center", flexWrap: "nowrap", maxWidth: mob ? vw - 8 : 840, width: "100%", overflowX: "visible" } }, (() => {
+    })(), /* @__PURE__ */ React.createElement("div", { style: {
+      display: "flex",
+      gap: mob ? 2 : 3,
+      padding: "0 4px",
+      zIndex: 1,
+      justifyContent: "center",
+      flexWrap: "nowrap",
+      maxWidth: mob ? vw - 8 : 840,
+      width: "100%",
+      overflowX: "visible",
+      animation: hLeft === 1 && rScore < tgt && isBoss ? "shake .5s ease-in-out infinite" : "none"
+    } }, (() => {
       const seasonOrder = { Autumn: 0, Winter: 1, Spring: 2, Summer: 3 };
       const indexed = hand.map((c, i) => ({ c, i }));
       const sorted = handSort === "season" ? [...indexed].sort((a, b) => (seasonOrder[a.c.breed] || 0) - (seasonOrder[b.c.breed] || 0) || b.c.power - a.c.power) : [...indexed].sort((a, b) => b.c.power - a.c.power);
       const _cw = mob ? Math.max(48, Math.min(80, Math.floor((vw - 32) / Math.max(5, hand.length)))) : 0;
       return sorted.map(({ c, i }) => {
         const selCats = [...sel].map((idx) => hand[idx]).filter(Boolean);
+        const selSeasons = (() => {
+          if (selCats.length === 0) return null;
+          const bc = {};
+          selCats.forEach((sc) => {
+            bc[sc.breed] = (bc[sc.breed] || 0) + 1;
+          });
+          const top = Object.entries(bc).sort((a, b) => b[1] - a[1])[0];
+          return top ? top[0] : null;
+        })();
+        const isDimmed = selSeasons && !sel.has(i) && c.breed !== selSeasons && !catHas(c, "Wild") && !catHas(c, "Chimera");
         const isRelated = !sel.has(i) && selCats.some((sc) => sc.bondedTo === c.id || c.parentIds?.includes(sc.id) || sc.parentIds?.includes(c.id) || c.stats?.par && c.stats.par.includes(sc.name.split(" ")[0]));
         const relType = isRelated ? selCats.some((sc) => sc.bondedTo === c.id) ? "mate" : "kin" : null;
         const isGuideHL = hand._guideHL?.has(i) && !sel.has(i);
-        return /* @__PURE__ */ React.createElement("div", { key: c.id, style: { position: "relative", flexShrink: 0, animation: isGuideHL ? "guidePulse 1.5s ease-in-out infinite" : "none" } }, /* @__PURE__ */ React.createElement(CC, { cat: c, sel: sel.has(i), onClick: () => toggleS(i), dis: ph !== "playing" || !!autoPlay, fog: cfx.fog && !sel.has(i), chemHint: !sel.has(i) ? getHint(c) : null, hl: isRelated || isGuideHL, onTraitClick: (ct) => setTraitTip(ct), sm: mob, cw: _cw || void 0 }), isRelated && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, background: relType === "mate" ? "#f472b622" : "#4ade8022", padding: "1px 6px", borderRadius: 4, border: `1px solid ${relType === "mate" ? "#f472b644" : "#4ade8044"}`, whiteSpace: "nowrap", animation: "countUp .3s ease-out", zIndex: 10, color: relType === "mate" ? "#f472b6" : "#4ade80" } }, relType === "mate" ? "\u{1F495} mate" : "\u{1F46A} kin"), isGuideHL && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, background: "#fbbf2422", padding: "1px 6px", borderRadius: 4, border: "1px solid #fbbf2444", whiteSpace: "nowrap", animation: "guidePulse 1.5s ease-in-out infinite", zIndex: 10, color: "#fbbf24" } }, "\u{1F446} select"));
+        return /* @__PURE__ */ React.createElement("div", { key: c.id, style: { position: "relative", flexShrink: 0, animation: isGuideHL ? "guidePulse 1.5s ease-in-out infinite" : "none", opacity: isDimmed ? 0.55 : 1, transition: "opacity .15s" } }, /* @__PURE__ */ React.createElement(CC, { cat: c, sel: sel.has(i), onClick: () => toggleS(i), dis: ph !== "playing" || !!autoPlay, fog: cfx.fog && !sel.has(i), chemHint: !sel.has(i) ? getHint(c) : null, hl: isRelated || isGuideHL, onTraitClick: (ct) => setTraitTip(ct), sm: mob, cw: _cw || void 0 }), isRelated && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, background: relType === "mate" ? "#f472b622" : "#4ade8022", padding: "1px 6px", borderRadius: 4, border: `1px solid ${relType === "mate" ? "#f472b644" : "#4ade8044"}`, whiteSpace: "nowrap", animation: "countUp .3s ease-out", zIndex: 10, color: relType === "mate" ? "#f472b6" : "#4ade80" } }, relType === "mate" ? "\u{1F495} mate" : "\u{1F46A} kin"), isGuideHL && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, background: "#fbbf2422", padding: "1px 6px", borderRadius: 4, border: "1px solid #fbbf2444", whiteSpace: "nowrap", animation: "guidePulse 1.5s ease-in-out infinite", zIndex: 10, color: "#fbbf24" } }, "\u{1F446} select"));
       });
     })()), sel.size >= 1 && ph === "playing" && !autoPlay && (() => {
       const selCatsP = [...sel].map((i) => hand[i]).filter(Boolean);
@@ -10723,7 +10854,13 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
         else if (catHas(c, "Scavenger")) hints.push({ icon: "\u{1F33E}", text: "+2\u{1F41F}", color: "#4ade80" });
       });
       return hints.length > 0 ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80", marginTop: 1 } }, hints.slice(0, 2).map((h, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { color: h.color } }, h.icon, h.text, " "))) : null;
-    })()), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: playH, disabled: !sel.size || hLeft <= 0 || ph !== "playing" || !!autoPlay, style: { ...BTN(sel.size && ph === "playing" && !autoPlay ? "linear-gradient(135deg,#fbbf24,#f59e0b)" : "#222", sel.size && ph === "playing" && !autoPlay ? "#0a0a1a" : "#555", sel.size > 0 && ph === "playing" && !autoPlay), minWidth: mob ? 80 : 70, padding: mob ? "12px 18px" : "8px 16px", fontSize: mob ? 15 : 14, animation: hLeft === 1 && rScore < tgt ? "fpp 1.2s ease infinite" : "none", boxShadow: hLeft === 1 && rScore < tgt ? "0 0 20px #ef444488" : "none" } }, "Play", hLeft === 1 && rScore < tgt ? " \u26A0" : ""), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u{1F0CF}", `Hands: ${hLeft} remaining this round. Each hand plays up to 5 cats. Score \u2265 target to clear.`, "#3b82f6", 4500), style: { fontSize: 10, color: hLeft <= 1 && rScore < tgt ? "#ef4444" : "#888", marginTop: 2, fontWeight: hLeft <= 1 && rScore < tgt ? 900 : 400, animation: hLeft <= 1 && rScore < tgt ? "fpp 1s ease infinite" : "none", cursor: "help" } }, hLeft <= 1 && rScore < tgt ? "\u26A0 FINAL" : hLeft === 0 ? "Done" : `Hands: ${hLeft}`)), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setDeckView(true), style: { ...BTN("#1a1a2e", "#888"), border: "1px solid #ffffff12", padding: mob ? "10px 10px" : "8px 10px", fontSize: 10, minWidth: mob ? 44 : 45 } }, "Deck"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", marginTop: 2, cursor: "pointer" }, onClick: () => setHandSort((s) => s === "season" ? "power" : "season") }, handSort === "season" ? "\u2600 szn" : "\u26A1 pwr")))), meta && meta.stats.w < 3 && ph === "playing" && !autoPlay && (() => {
+    })()), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, sel.size >= 2 && ph === "playing" && !autoPlay && (() => {
+      const cats = [...sel].map((i) => hand[i]).filter(Boolean);
+      if (cats.length < 1) return null;
+      const preview2 = calcScore(cats, fams, ferv, cfx, { gold, deckSize: allC.length, discSize: disc.length, handSize: hs(), beatingPace: rScore >= tgt, bossTraitFx: [], scarMult: getMB().scarMult || 0, grudgeWisdom: getMB().grudgeWisdom || 0, hasMastery: !!getMB().xp, bondBoost: getMB().bondBoost || 0, comboBoost: getMB().comboBoost || 0, doubleBench: getMB().doubleBench || 0, kindredMult: tempMods.kindredMult || 0, weatherSeason: weather?.season || null, lastHandIds, lastHandLost, lastHandType, htLevels, devotion, bench: hand.filter((c) => !cats.find((x) => x.id === c.id)) });
+      const htName = preview2.ht || "?";
+      return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf24aa", marginBottom: 2, letterSpacing: 1 } }, htName, " \xB7 ~", preview2.total.toLocaleString());
+    })(), /* @__PURE__ */ React.createElement("button", { onClick: playH, disabled: !sel.size || hLeft <= 0 || ph !== "playing" || !!autoPlay, style: { ...BTN(sel.size && ph === "playing" && !autoPlay ? "linear-gradient(135deg,#fbbf24,#f59e0b)" : "#222", sel.size && ph === "playing" && !autoPlay ? "#0a0a1a" : "#555", sel.size > 0 && ph === "playing" && !autoPlay), minWidth: mob ? 80 : 70, padding: mob ? "12px 18px" : "8px 16px", fontSize: mob ? 15 : 14, animation: hLeft === 1 && rScore < tgt ? "fpp 1.2s ease infinite" : "none", boxShadow: hLeft === 1 && rScore < tgt ? "0 0 20px #ef444488" : "none" } }, "Play", hLeft === 1 && rScore < tgt ? " \u26A0" : ""), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u{1F0CF}", `Hands: ${hLeft} remaining this round. Each hand plays up to 5 cats. Score \u2265 target to clear.`, "#3b82f6", 4500), style: { fontSize: 10, color: hLeft <= 1 && rScore < tgt ? "#ef4444" : "#888", marginTop: 2, fontWeight: hLeft <= 1 && rScore < tgt ? 900 : 400, animation: hLeft <= 1 && rScore < tgt ? "fpp 1s ease infinite" : "none", cursor: "help" } }, hLeft <= 1 && rScore < tgt ? "\u26A0 FINAL" : hLeft === 0 ? "Done" : `Hands: ${hLeft}`)), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setDeckView(true), style: { ...BTN("#1a1a2e", "#888"), border: "1px solid #ffffff12", padding: mob ? "10px 10px" : "8px 10px", fontSize: 10, minWidth: mob ? 44 : 45 } }, "Deck"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", marginTop: 2, cursor: "pointer" }, onClick: () => setHandSort((s) => s === "season" ? "power" : "season") }, handSort === "season" ? "\u2600 szn" : "\u26A1 pwr")))), meta && meta.stats.w < 3 && ph === "playing" && !autoPlay && (() => {
       const isVeryNew = !meta || meta.stats.r <= 1;
       const PLAY_HINTS = isVeryNew ? [
         "Match season icons (\u{1F342}\u2600\uFE0F\u2744\uFE0F\u{1F331}) for bigger scores. More matches = more points!",
