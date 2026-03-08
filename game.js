@@ -491,9 +491,6 @@
     { name: "Eternal", icon: "\u2728", desc: "\xD73 mult, scores twice at full power", tier: "mythic" },
     { name: "Phoenix", icon: "\u{1F525}", desc: "\xD72.5 mult. Hardened: \xD74. Revives once on death", tier: "mythic" }
   ];
-  const COMMON_TRAITS = TRAITS.filter((t) => t.tier === "common");
-  const RARE_TRAITS = TRAITS.filter((t) => t.tier === "rare" || t.tier === "rare_neg");
-  const RARE_POS = TRAITS.filter((t) => t.tier === "rare");
   const RARE_NEG = TRAITS.filter((t) => t.tier === "rare_neg");
   const LEGENDARY_TRAITS = TRAITS.filter((t) => t.tier === "legendary");
   const MYTHIC_TRAITS = TRAITS.filter((t) => t.tier === "mythic");
@@ -1021,19 +1018,6 @@
     (a, b, baby) => `They chose each other. In the gentleness between heartbeats, ${baby} came into being.`,
     (a, b, baby) => `${a} had never stayed this close to anyone before. But ${b} was different. And ${baby} was proof.`,
     (a, b, baby) => `The den was small and warm. ${a} and ${b} made it smaller. ${baby} made it complete.`
-  ];
-  const DEN_DEATH = [
-    (a, b, victim) => `The fight went too far. ${victim} didn't get up. Nobody spoke for a long time after.`,
-    (a, b, victim) => `${victim} had survived everything. The hunger. The cold. The swarm. But not this. Not tonight. The others pressed against the spot where the warmth had been and didn't move until dawn.`,
-    (a, b, victim) => `One moment ${victim} was there. Then the sound. Then the silence. Then the space. The colony would carry that space for a long time.`,
-    (a, b, victim) => `${a} didn't mean it. Everyone knew that. But ${victim} was gone, and meaning had nothing to do with it.`
-  ];
-  const DEN_QUIET = [
-    () => "Moonlight through the cracks. The cats dreamed separately. Tomorrow they would need each other again.",
-    () => "Nothing happened. Sometimes that's the most merciful thing a night can do.",
-    () => "Someone purred. Someone shifted. The others pretended to sleep. In the morning, no one mentioned the sound they all heard at the treeline.",
-    () => "Rain on the roof. The den smelled like wet earth and warm fur. For a few hours, they were just animals. Just alive. Just here.",
-    () => "The quietest nights are the ones you remember. Not for what happened. For what almost didn't."
   ];
   const DEN_PHOENIX = [
     (a, b, risen) => `The fight should have ended ${risen}. It did, for a moment. But something older than death flickered behind those eyes, and ${risen} rose, changed, burning with what comes after the last chance.`,
@@ -4153,43 +4137,28 @@
   const PORTRAIT_BASE = "https://raw.githubusercontent.com/greatgamesgonewild/ninth-life/main/portraits/";
   function getPortraitUrl(cat2) {
     try {
-      const season = (cat2.breed || "autumn").toLowerCase();
-      let style = "plain";
-      const allT = [cat2.trait, ...cat2.extraTraits || []].filter((t) => t && t.name !== "Plain");
+      if (!cat2 || !cat2.breed) return null;
+      const season = cat2.breed.toLowerCase();
+      const allT = catAllTraits(cat2);
       const hasT = (n) => allT.some((t) => t.name === n);
       const hasTier = (t) => allT.some((tr) => tr.tier === t);
-      const tp = cat2.stats?.tp || 0;
       const power = cat2.power || 1;
+      const tp = cat2.stats?.tp || 0;
+      let style = "plain";
       if (catIsKitten(cat2)) style = "kitten";
       else if (hasTier("mythic") || hasT("Eternal") || hasT("Phoenix")) style = "mythic";
       else if (hasTier("legendary") && power >= 8) style = "noble";
       else if (tp >= 10) style = "elder";
-      else if (hasT("Scrapper") || hasT("Alpha") || cat2.scarred) style = "alert";
+      else if (hasT("Scrapper") || hasT("Alpha") || hasT("Guardian") || cat2.scarred) style = "alert";
       else if (hasT("Wild") || hasT("Chimera") || hasT("Feral") || hasT("Cursed")) style = "wild";
-      else if (hasT("Devoted") || hasT("Provider") || hasT("Seer") || hasT("Guardian")) style = "gentle";
-      else if (hasTier("legendary")) style = "noble";
+      else if (hasT("Devoted") || hasT("Loyal") || hasT("Scavenger")) style = "gentle";
+      else if (hasT("Seer") || hasTier("legendary")) style = "noble";
       else if (allT.length > 0) style = "alert";
-      return `${PORTRAIT_BASE}${style}-${season}.png`;
+      return PORTRAIT_BASE + style + "-" + season + ".png";
     } catch (e) {
-      return "";
+      return null;
     }
   }
-  let _portraitsAvailable = null;
-  let _goldBorders = false;
-  (function testPortraits() {
-    try {
-      const img = new Image();
-      img.onload = () => {
-        _portraitsAvailable = true;
-      };
-      img.onerror = () => {
-        _portraitsAvailable = false;
-      };
-      img.src = PORTRAIT_BASE + "plain-autumn.png";
-    } catch (e) {
-      _portraitsAvailable = false;
-    }
-  })();
   function _CC({ cat: _cat, sel, onClick, sm, cw: _cw, dis, hl, fog, chemHint, denMode, onTraitClick }) {
     const cat2 = !_cat || !_cat.trait ? { ..._cat || {}, trait: PLAIN, extraTraits: [], breed: "Autumn", name: "???", power: 1, sex: "M" } : _cat;
     const b = BREEDS[cat2.breed] || BREEDS.Autumn, w = _cw || (sm ? 80 : 112), h = _cw ? Math.round(_cw * 1.4) : sm ? 112 : 158, fn = cat2.name ? cat2.name.split(" ")[0] : "?";
@@ -4424,10 +4393,10 @@
         textTransform: "uppercase",
         lineHeight: 1.2,
         whiteSpace: "nowrap"
-      } }, fn, /* @__PURE__ */ React.createElement("span", { style: { fontSize: xs ? 7 : sm ? 9 : 11, fontWeight: 700, marginLeft: 2, color: cat2.sex === "M" ? "#60a5fa" : "#f472b6" } }, cat2.sex === "M" ? "\u2642" : "\u2640")))),
-      chemHint && chemHint.grudge && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: sm ? 3 : 4, left: "50%", transform: "translateX(-50%)", zIndex: 6 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 5, height: 5, borderRadius: 3, background: "#fb923c", boxShadow: "0 0 6px #fb923c88" } }))
+      } }, fn, /* @__PURE__ */ React.createElement("span", { style: { fontSize: xs ? 7 : sm ? 9 : 11, fontWeight: 700, marginLeft: 2, color: cat2.sex === "M" ? "#60a5fa" : "#f472b6" } }, cat2.sex === "M" ? "\u2642" : "\u2640"))))
     );
   }
+  const CC = React.memo(_CC);
   function ProgressMap({ ante, blind, mx }) {
     const dots = [];
     for (let a = 1; a <= mx; a++) {
@@ -4451,7 +4420,6 @@
       } }));
     }));
   }
-  const CC = React.memo(_CC);
   function _FM({ level, prev }) {
     const fv = NERVE[level] || NERVE[0], pct = level / NERVE_MAX * 100, mx = level === NERVE_MAX, ch = prev !== null && prev !== level, up = ch && level > prev, dn = ch && level < prev;
     return /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: "0 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6 } }, /* @__PURE__ */ React.createElement("span", { title: "NERVE multiplies ALL scores.\nGain: +1 per Dusk/Midnight clear.\nBoss: +hands remaining (faster clear = more nerve).\nNo decay. No loss.\nAt NINTH LIFE (max): \xD72.2 to ALL scores.", style: { fontSize: 12, fontWeight: 700, color: fv.color, letterSpacing: 2, textShadow: mx ? `0 0 14px ${fv.glow}` : level > 5 ? `0 0 6px ${fv.color}44` : "none", animation: mx ? "fp 1s ease-in-out infinite" : up ? "fpp .4s ease-out" : dn ? "shake .3s ease" : "none", cursor: "help" } }, mx ? "\u2726 " : "", fv.name, mx ? " \u2726" : ""), /* @__PURE__ */ React.createElement("span", { style: { fontSize: fv.xM > 1 ? 13 : 11, color: fv.color, fontWeight: 900, opacity: fv.xM > 1 ? 1 : 0.3, letterSpacing: fv.xM > 1 ? 1 : 0, textShadow: fv.xM > 1.3 ? `0 0 8px ${fv.color}44` : "none" } }, fv.xM > 1 ? `\xD7${fv.xM}` : "\xD71"), ch && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, fontWeight: 700, animation: "countUp .4s ease-out", color: up ? "#4ade80" : "#ef4444" } }, up ? "\u25B2" : "\u25BC")), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#666" } }, level, "/", NERVE_MAX)), /* @__PURE__ */ React.createElement("div", { style: { height: 8, background: "#1a1a2e", borderRadius: 4, overflow: "hidden", border: "1px solid #ffffff08" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${pct}%`, borderRadius: 4, background: mx ? "linear-gradient(90deg,#b85c2c,#f59e0b,#fef08a,#ffffffcc)" : `linear-gradient(90deg,#b8956a,${fv.color})`, transition: "width .5s cubic-bezier(.34,1.56,.64,1)", boxShadow: level > 5 ? `0 0 8px ${fv.color}44` : "none", animation: level > 8 ? `nervePulse ${Math.max(0.6, 2 - level * 0.1)}s ease-in-out infinite` : "none" } })), level === 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", marginTop: 2, textAlign: "center" } }, "Clear blinds to build Nerve. Faster boss clears give more."));
@@ -4486,14 +4454,9 @@
   }
   function NinthLife() {
     const [ph, _setPh] = useState("title");
-    const [phFade, setPhFade] = useState(false);
     const setPh = (p) => {
       flavorCache.current = {};
-      setPhFade(true);
-      setTimeout(() => {
-        _setPh(p);
-        setPhFade(false);
-      }, 60);
+      _setPh(p);
     };
     const [ante, setAnte] = useState(1);
     const [blind, setBlind] = useState(0);
@@ -8008,7 +7971,7 @@
     const tgt = eTgt();
     const isBoss = blind === 2;
     const blindN = ["Dusk", "Midnight", boss?.name || "The Boss"];
-    const W = { width: "100%", minHeight: "100vh", background: isBoss ? "linear-gradient(180deg,#140808,#1a0808,#0d0815)" : ferv >= 7 ? "linear-gradient(180deg,#0f0808,#1a0a0a,#0d0815)" : "linear-gradient(180deg,#06060f,#0a0a1a,#0d0815)", color: "#e8e6e3", display: "flex", flexDirection: "column", alignItems: "center", position: "relative", overflow: "hidden", transition: "background .8s, opacity .08s", opacity: phFade ? 0.7 : 1 };
+    const W = { width: "100%", minHeight: "100vh", background: isBoss ? "linear-gradient(180deg,#140808,#1a0808,#0d0815)" : ferv >= 7 ? "linear-gradient(180deg,#0f0808,#1a0a0a,#0d0815)" : "linear-gradient(180deg,#06060f,#0a0a1a,#0d0815)", color: "#e8e6e3", display: "flex", flexDirection: "column", alignItems: "center", position: "relative", overflow: "hidden", transition: "background .8s" };
     const BG = { position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, backgroundImage: `${isBoss ? "radial-gradient(circle at 50% 30%,#ef444411,transparent 50%)" : ferv >= NERVE_MAX ? "radial-gradient(circle at 50% 50%,#fef08a11,transparent 40%)" : "radial-gradient(circle at 20% 80%,#7a665211,transparent 50%),radial-gradient(circle at 80% 20%,#06b6d411,transparent 50%)"},radial-gradient(ellipse at 50% 50%,transparent 50%,#00000088 100%)` };
     const BTN = (bg, col, on = true) => ({ padding: "9px 24px", fontSize: 13, fontWeight: 700, border: "none", borderRadius: 8, cursor: on ? "pointer" : "not-allowed", letterSpacing: 1, background: on ? bg : "#222", color: on ? col : "#555", transition: "all .15s" });
     const CSS = `
@@ -9269,9 +9232,9 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
         const forceMarket = isFirstRun && ante === 1 && blind === 0 && !seen.shop;
         const forceScavenge = isFirstRun && ante === 1 && blind === 1 && !seen.scavenge;
         const forceCamp = isFirstRun && ante === 1 && blind === 2 && !seen.camp;
-        const showMarket = forceMarket || !forceScavenge && !forceCamp;
-        const showScavenge = forceScavenge || seen.shop && !forceMarket && !forceCamp && !isFirstRun || seen.scavenge;
-        const showCamp = forceCamp || seen.scavenge && !forceMarket && !forceScavenge && !isFirstRun || seen.camp;
+        const showMarket = !isFirstRun || forceMarket || !forceScavenge && !forceCamp;
+        const showScavenge = !isFirstRun || forceScavenge || seen.scavenge;
+        const showCamp = !isFirstRun || forceCamp || seen.camp;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, showMarket && /* @__PURE__ */ React.createElement("button", { onClick: () => {
           setOData(null);
           setSkipShop(false);
