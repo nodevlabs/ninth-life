@@ -4135,6 +4135,21 @@
     return { cats: hd, total, raw: activeRaw, gross, maintenance, enshrined, activeCats: activeCats.length };
   }
   const PORTRAIT_BASE = "https://raw.githubusercontent.com/greatgamesgonewild/ninth-life/main/portraits/";
+  let _portraitsAvailable = null;
+  (function() {
+    try {
+      const img = new Image();
+      img.onload = () => {
+        _portraitsAvailable = true;
+      };
+      img.onerror = () => {
+        _portraitsAvailable = false;
+      };
+      img.src = PORTRAIT_BASE + "plain-autumn.png";
+    } catch (e) {
+      _portraitsAvailable = false;
+    }
+  })();
   function getPortraitUrl(cat2) {
     try {
       if (!cat2 || !cat2.breed) return null;
@@ -6988,7 +7003,7 @@
         if (e.chainRequires && !eventHistory[e.chainRequires]) return false;
         if (e.metaRequires && !e.metaRequires(meta?.stats || {})) return false;
         if (e.metaExcludes && e.metaExcludes(meta?.stats || {})) return false;
-        if (e.condFn && !e.condFn(targets, { meta, colony: all.length, fallen, all })) return false;
+        if (e.condFn && !e.condFn(null, { meta, colony: all.length, fallen, all })) return false;
         if (e.once && (meta?.seenOnce || []).includes(e.id)) return false;
         return true;
       });
