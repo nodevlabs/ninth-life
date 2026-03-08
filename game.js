@@ -492,6 +492,8 @@
     { name: "Phoenix", icon: "\u{1F525}", desc: "\xD72.5 mult. Hardened: \xD74. Revives once on death", tier: "mythic" }
   ];
   const RARE_NEG = TRAITS.filter((t) => t.tier === "rare_neg");
+  const COMMON_TRAITS = TRAITS.filter((t) => t.tier === "common");
+  const RARE_TRAITS = TRAITS.filter((t) => t.tier === "rare");
   const LEGENDARY_TRAITS = TRAITS.filter((t) => t.tier === "legendary");
   const MYTHIC_TRAITS = TRAITS.filter((t) => t.tier === "mythic");
   function pickTrait(allowHigh = false) {
