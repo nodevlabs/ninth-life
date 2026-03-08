@@ -400,26 +400,26 @@ const POWER_COMBOS=[
 // WARDS (passive bonuses that watch over your colony)
 // ═══════════════════════════════════════════════════════════════
 const FAMS=[
-  {id:"f1",name:"Falling Leaf",icon:"🍂",desc:"+2 mult per Autumn cat, +5 if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Autumn")).length;return{mult:n*2+(n>=3?5:0)};}},
-  {id:"f2",name:"Warm Hearth",icon:"☀️",desc:"+2 mult per Summer cat, +5 if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Summer")).length;return{mult:n*2+(n>=3?5:0)};}},
-  {id:"f3",name:"Snowglobe",icon:"🔮",desc:"+2 mult per Winter cat, +5 if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Winter")).length;return{mult:n*2+(n>=3?5:0)};}},
-  {id:"f4",name:"First Bud",icon:"🌸",desc:"+2 mult per Spring cat, +5 if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Spring")).length;return{mult:n*2+(n>=3?5:0)};}},
+  {id:"f1",name:"Falling Leaf",icon:"🍂",desc:"+2M per Autumn, +5M if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Autumn")).length;return{mult:n*2+(n>=3?5:0)};}},
+  {id:"f2",name:"Warm Hearth",icon:"☀️",desc:"+2M per Summer, +5M if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Summer")).length;return{mult:n*2+(n>=3?5:0)};}},
+  {id:"f3",name:"Snowglobe",icon:"🔮",desc:"+2M per Winter, +5M if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Winter")).length;return{mult:n*2+(n>=3?5:0)};}},
+  {id:"f4",name:"First Bud",icon:"🌸",desc:"+2M per Spring, +5M if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Spring")).length;return{mult:n*2+(n>=3?5:0)};}},
   {id:"f5",name:"Golden Yarn",icon:"🧶",desc:"+15 chips per cat",eff:c=>({chips:c.length*15})},
   {id:"f6",name:"Moonstone",icon:"🌙",desc:"×1.3 if 4 or more cats",eff:c=>c.length>=4?{xMult:1.3}:{}},
   {id:"f7",name:"Black Mirror",icon:"🪞",desc:"×1.5 if all same season",eff:c=>{const b0=getCatBreeds(c[0]||{});return c.length>1&&c.every(x=>getCatBreeds(x).some(br=>b0.includes(br)))?{xMult:1.5}:{}}},
   {id:"f8",name:"Witch's Bell",icon:"🔔",desc:"+1 Ration per hand",eff:()=>({gold:1})},
-  {id:"f9",name:"Stubborn's Stone",icon:"🪨",desc:"+6 mult with Stubborn",eff:c=>c.some(x=>catHas(x,"Stubborn"))?{mult:6}:{}},
+  {id:"f9",name:"Stubborn's Stone",icon:"🪨",desc:"+6M with Stubborn",eff:c=>c.some(x=>catHas(x,"Stubborn"))?{mult:6}:{}},
   {id:"f10",name:"Wild Card",icon:"🃏",desc:"×2 with Wild cat",eff:c=>c.some(x=>catHas(x,"Wild"))?{xMult:2}:{}},
-  {id:"f11",name:"Echo Chamber",icon:"🔊",desc:"+5 mult per Echo cat",eff:c=>({mult:c.filter(x=>catHas(x,"Echo")).length*5})},
-  {id:"f12",name:"Brawler's Belt",icon:"🥋",desc:"+3 mult per Scrapper",eff:c=>({mult:c.filter(x=>catHas(x,"Scrapper")).length*3})},
+  {id:"f11",name:"Echo Chamber",icon:"🔊",desc:"+5M per Echo",eff:c=>({mult:c.filter(x=>catHas(x,"Echo")).length*5})},
+  {id:"f12",name:"Brawler's Belt",icon:"🥋",desc:"+3M per Scrapper",eff:c=>({mult:c.filter(x=>catHas(x,"Scrapper")).length*3})},
   {id:"f18",name:"Iron Will",icon:"🛡️",desc:"×1.15 per scarred cat",eff:c=>{const sc=c.filter(x=>x.scarred&&!x.injured).length;return sc>0?{xMult:Math.round(Math.pow(1.15,sc)*100)/100}:{}}},
   {id:"f19",name:"Nesting Ward",icon:"🏠",desc:"+1 Shelter slot",eff:()=>({shelter:1}),passive:true},
   // ★ Hand-type bonus wards. steer hand selection strategy
   {id:"f20",name:"Pair Bond",icon:"💎",desc:"Kin ×1.4",eff:()=>({}),htBonus:{Kin:{xMult:1.4}}},
   {id:"f21",name:"Pack Howl",icon:"🐺",desc:"Clowder ×1.3, Colony ×1.5",eff:()=>({}),htBonus:{Clowder:{xMult:1.3},Colony:{xMult:1.5}}},
-  {id:"f22",name:"Harmony",icon:"🎵",desc:"Two Kin ×1.7, Full Den ×1.6",eff:()=>({}),htBonus:{"Two Kin":{xMult:1.7},"Full Den":{xMult:1.6}}},
+  {id:"f22",name:"Harmony",icon:"🎵",desc:"Two Kin ×1.7, Den ×1.6",eff:()=>({}),htBonus:{"Two Kin":{xMult:1.7},"Full Den":{xMult:1.6}}},
   {id:"f23",name:"Lone Wolf",icon:"🌑",desc:"Stray ×2.5",eff:()=>({}),htBonus:{Stray:{xMult:2.5}}},
-  {id:"f24",name:"Bench Coach",icon:"🪑",desc:"+2 mult per unplayed cat",eff:(c,ctx)=>({mult:(ctx?.benchSize||0)*2})},
+  {id:"f24",name:"Bench Coach",icon:"🪑",desc:"+2M per benched cat",eff:(c,ctx)=>({mult:(ctx?.benchSize||0)*2})},
   {id:"f25",name:"Soul Bond",icon:"💜",desc:"Kindred ×1.6",eff:()=>({}),htBonus:{Kindred:{xMult:1.6}}},
 ];
 
@@ -1686,7 +1686,7 @@ const NIGHT_SUB=[
   "You are the sum of every choice.",
   "What were their names?",
   "You weren't supposed to be here.",
-  "Longer than any of them. Longer than all of them.",
+  "Longer than any. Longer than all.",
   "The dark is repeating itself. You're not.",
   "Nine.",
 ];
@@ -3986,13 +3986,13 @@ export default function NinthLife(){
     checkHandDiscovery(end.ht,end.combo);
     setAftermath(end.aft);
     setScoringDone(true);
-    // v0.7: step 2→3 now manual (Next button)
+    if(!autoPlay&&guide&&guide.step===2)setTimeout(()=>setGuide(g=>g&&g.step===2?({...g,step:3}):g),4000);
   }
 
   const toggleS=i=>{if(ph!=="playing"||autoPlay)return;Audio.cardSelect();const s=new Set(sel);if(s.has(i))s.delete(i);else if(s.size<5)s.add(i);setSel(s);
     if(guide&&guide.step===0&&s.size>=2){
       const sc=[...s].map(j=>hand[j]).filter(Boolean);const bc={};sc.forEach(c=>{bc[c.breed]=(bc[c.breed]||0)+1;});
-      // v0.7: guide steps now manual — removed auto-advance on card select
+      if(Object.values(bc).some(v=>v>=2))setGuide(g=>({...g,step:1}));
     }
   };
 
@@ -4001,7 +4001,7 @@ export default function NinthLife(){
     if(actionLock.current)return;actionLock.current=true;
     Audio.cardPlay();
     setDenNews([]); // clear level-up/devotion notifications from previous hand
-    // v0.7: guide steps now manual — removed auto-advance on play
+    if(guide&&guide.step<=1)setGuide(g=>({...g,step:2}));
     setFirstHandPlayed(true);
     const cats=[...sel].map(i=>hand[i]).filter(Boolean);
     // v0.7: Grief toast — first time a bereaved cat is played (Kasavin: "someone notices")
@@ -4162,7 +4162,7 @@ export default function NinthLife(){
         checkHandDiscovery(end.ht,end.combo);
         setAftermath(end.aft);
         setScoringDone(true);
-        // v0.7: step 2→3 now manual (Next button)
+        if(!autoPlay&&guide&&guide.step===2)setTimeout(()=>setGuide(g=>g&&g.step===2?({...g,step:3}):g),4000);
         const tier=getScoreTier(end.total);
         if(tier&&tier.label)Audio.tierReveal(Math.min(5,Math.floor(end.total/5000)));
       }
@@ -5602,7 +5602,7 @@ export default function NinthLife(){
           Strays. Fighters. Survivors.<br/>
           They need someone to remember their names.
         </div>
-        <div style={{fontSize:14,color:"#fbbf24cc",textAlign:"center",maxWidth:280,lineHeight:1.8,animation:"fadeIn 2.5s ease-out",marginTop:8,fontWeight:600}}>
+        <div style={{fontSize:14,color:"#fbbf24cc",textAlign:"center",maxWidth:320,lineHeight:1.8,animation:"fadeIn 2.5s ease-out",marginTop:8,fontWeight:600}}>
           That's you.<br/>Keep the fire burning.
         </div>
       </>),
@@ -5621,7 +5621,7 @@ export default function NinthLife(){
           Same-season cats resonate.<br/>
           They score better together.
         </div>
-        <div style={{fontSize:12,color:"#ffffff55",textAlign:"center",maxWidth:280,lineHeight:1.7,animation:"fadeIn 1.8s ease-out",marginTop:4}}>
+        <div style={{fontSize:12,color:"#ffffff55",textAlign:"center",maxWidth:320,lineHeight:1.7,animation:"fadeIn 1.8s ease-out",marginTop:4}}>
           Match seasons. Build hands. Beat the target.<br/>
           The rest, the dark will teach you.
         </div>
@@ -5990,8 +5990,8 @@ export default function NinthLife(){
               const neverPlayed=allC.filter(c=>(c.stats?.tp||0)===0);
               const overPlayed=allC.filter(c=>(c.stats?.tp||0)>plays.length*0.4);
               if(neverPlayed.length>=2)return <div style={{fontSize:10,color:"#ffffff22",fontStyle:"italic",textAlign:"center",maxWidth:300,lineHeight:1.5,animation:"fadeIn 3s ease-out 1.5s both",marginTop:4}}>{neverPlayed.map(c=>c.name.split(" ")[0]).join(" and ")} {neverPlayed.length===2?"haven't":"haven't"} played a single hand. They're starting to wonder why they're here.</div>;
-              if(overPlayed.length===1)return <div style={{fontSize:10,color:"#ffffff22",fontStyle:"italic",textAlign:"center",maxWidth:300,lineHeight:1.5,animation:"fadeIn 3s ease-out 1.5s both",marginTop:4}}>The same hand again. {overPlayed[0].name.split(" ")[0]} is starting to feel like the only strategy.</div>;
-              if(fallen.length>3)return <div style={{fontSize:10,color:"#ffffff22",fontStyle:"italic",textAlign:"center",maxWidth:300,lineHeight:1.5,animation:"fadeIn 3s ease-out 1.5s both",marginTop:4}}>The colony is lighter. Whether that's freedom or loss depends on who you ask.</div>;
+              if(overPlayed.length===1)return <div style={{fontSize:10,color:"#ffffff22",fontStyle:"italic",textAlign:"center",maxWidth:300,lineHeight:1.5,animation:"fadeIn 3s ease-out 1.5s both",marginTop:4}}>The same hand again. {overPlayed[0].name.split(" ")[0]} carries every hand. The others watch.</div>;
+              if(fallen.length>3)return <div style={{fontSize:10,color:"#ffffff22",fontStyle:"italic",textAlign:"center",maxWidth:300,lineHeight:1.5,animation:"fadeIn 3s ease-out 1.5s both",marginTop:4}}>The colony is lighter. Nobody says whether that's freedom or loss.</div>;
               return null;
             })()}
           </>;
@@ -6085,8 +6085,8 @@ export default function NinthLife(){
             })}
           </div>
           <div style={{fontSize:12,color:"#888",fontStyle:"italic",textAlign:"center",lineHeight:1.6,maxWidth:340,marginTop:8,animation:"fadeIn .8s ease-out .5s both"}}>
-            Three you chose. Fifteen who were already here, waiting for someone worth following.<br/>
-            <span style={{color:"#999999aa"}}>Eighteen against the dark. It only takes one night to find out if that's enough.</span>
+            Three you chose. Fifteen already here.<br/>Waiting for someone worth following.<br/>
+            <span style={{color:"#999999aa"}}>Eighteen against the dark. One night to find out if that's enough.</span>
           </div>
           <div style={{fontSize:11,color:"#999999aa",fontStyle:"italic",textAlign:"center",lineHeight:1.6,maxWidth:320,marginTop:12,animation:"fadeIn 1.2s ease-out 1.5s both",padding:"8px 14px",borderRadius:10,background:"#ffffff04",border:"1px solid #ffffff08"}}>
             The dark forgets everything. Leave an impression it can't.
@@ -6151,7 +6151,7 @@ export default function NinthLife(){
         </div>}
 
         <button onClick={enterNight} style={{background:"linear-gradient(135deg,#fbbf24,#f59e0b)",color:"#0a0a1a",border:"none",borderRadius:10,padding:"14px 44px",fontSize:17,fontWeight:900,cursor:"pointer",letterSpacing:4,marginTop:8,boxShadow:"0 0 40px #fbbf2433",textTransform:"uppercase",zIndex:2,animation:"fadeIn 2s ease-out 1s both"}}>Enter the Night</button>
-        <div style={{fontSize:10,color:"#ffffff55",marginTop:4}}>tap anywhere to continue</div>
+        
       </div>
     </div>);
   }
@@ -6311,10 +6311,10 @@ export default function NinthLife(){
           {meta&&<div style={{display:"flex",gap:14,fontSize:10,color:"#666",alignItems:"center",flexWrap:"wrap"}}><button onClick={()=>setSeen(s=>({...s,howToPlay:!s.howToPlay}))} style={{background:"none",border:"1px solid #ffffff12",borderRadius:12,color:"#666",fontSize:10,cursor:"pointer",padding:"2px 8px"}}>How to Play</button><span>{meta.stats.r} runs</span><span>{meta.stats.w} wins</span></div>}
           {seen.howToPlay&&<div style={{padding:"10px 16px",borderRadius:10,background:"#ffffff06",border:"1px solid #ffffff0a",maxWidth:400,fontSize:13,color:"#aaa",lineHeight:1.6,animation:"fadeIn .4s ease-out",textAlign:"left"}}>
             <div style={{fontWeight:700,color:"#fbbf24",marginBottom:4}}>Quick Rules</div>
-            Draw 6 cats. Pick up to 5. match 3+ of one season for Clowder or Colony. Discard to swap cards (free). Recruit to draw extra cats (costs 🐟). Same-season cats resonate and score far better. Traits multiply the total. Beat the target.
-            <div style={{marginTop:6}}>Scars (×1.25) and Bonds (×1.5) multiply your score. Nerve builds every blind you clear. fast boss clears give more. In the Den, shelter a ♂+♀ pair to breed. Everyone else enters the wilds.</div>
-            <div style={{marginTop:6,color:"#67e8f9"}}>🎯 Match seasons for Clowder or Colony hands. Same-season cats resonate for bigger scores. Unplayed cats with traits give bench bonuses.</div>
-            <div style={{marginTop:6,color:"#34d399"}}>👪 Shelter a parent with their child to teach traits. Save a M/F pair to the Hearth. their descendants begin your next colony.</div>
+            <div>Draw 6 cats. Pick up to 5. Discard to swap (free).</div><div style={{marginTop:4}}>Match 3+ of one season for Clowder or Colony.</div><div style={{marginTop:4}}>Same-season cats resonate and score far better. Traits multiply the total. Beat the target.</div>
+            <div style={{marginTop:6}}>Scars (×1.25) and Bonds (×1.5) multiply your score.</div><div style={{marginTop:4}}>Nerve builds every blind you clear. Fast boss clears give more.</div><div style={{marginTop:4}}>In the Den, shelter a ♂+♀ pair to breed. Everyone else enters the wilds.</div>
+            <div style={{marginTop:6,color:"#67e8f9"}}>🎯 Match seasons for Clowder or Colony hands.</div><div style={{marginTop:2,color:"#67e8f9"}}>Same-season cats resonate for bigger scores. Unplayed cats with traits give bench bonuses.</div>
+            <div style={{marginTop:6,color:"#34d399"}}>👪 Shelter a parent with their child to teach traits.</div><div style={{marginTop:2,color:"#34d399"}}>Save a M/F pair to the Hearth. Their descendants begin your next colony.</div>
           </div>}
           {meta&&(mb.gold>0||mb.hands>0||mb.discards>0||mb.fervor>0)&&<div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center",fontSize:10}}>
             {mb.gold>0&&<span style={{color:"#fbbf24"}}>+{mb.gold}🐟</span>}{mb.hands>0&&<span style={{color:"#3b82f6"}}>+{mb.hands}H</span>}{mb.discards>0&&<span style={{color:"#ef4444"}}>+{mb.discards}D</span>}{mb.fervor>0&&<span style={{color:"#d97706"}}>N+{mb.fervor}</span>}</div>}
@@ -7279,7 +7279,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
           const isFirstHearthSave=!meta||meta.cats.length===0;
           return(<div style={{width:"100%",textAlign:"center"}}>
           {isFirstHearthSave&&picked.length===0&&<div style={{fontSize:11,color:"#c084fcbb",fontStyle:"italic",lineHeight:1.6,marginBottom:10,maxWidth:360,margin:"0 auto 10px",padding:"10px 14px",borderRadius:10,background:"#c084fc06",border:"1px solid #c084fc15"}}>The Hearth has been dark since the eighth colony fell. Two names will relight it. Not as memories. As founders. Their blood flows through every colony that comes after.</div>}
-          {!isFirstHearthSave&&picked.length===0&&<div style={{fontSize:11,color:"#c084fcbb",fontStyle:"italic",lineHeight:1.6,marginBottom:10,maxWidth:360,margin:"0 auto 10px",padding:"10px 14px",borderRadius:10,background:"#c084fc06",border:"1px solid #c084fc15"}}>Two names enter the Hearth. The rest walk into history without a fire to carry them. Choose who is remembered.</div>}
+          {!isFirstHearthSave&&picked.length===0&&<div style={{fontSize:11,color:"#c084fcbb",fontStyle:"italic",lineHeight:1.6,marginBottom:10,maxWidth:360,margin:"0 auto 10px",padding:"10px 14px",borderRadius:10,background:"#c084fc06",border:"1px solid #c084fc15"}}>Two names enter the Hearth. The rest walk into history. Choose who is remembered.</div>}
           {/* v0.7: Cat-specific reaction when first of pair is chosen */}
           {picked.length===1&&(()=>{
             const p=picked[0];const pn=p.name.split(" ")[0];
@@ -7694,14 +7694,14 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         {/* First-encounter shop hint. explain rations, scrolls, devotion */}
         {!seen.shop&&<div style={{padding:"12px 18px",borderRadius:10,background:"linear-gradient(145deg,#fbbf2408,#f59e0b04)",border:"1px solid #fbbf2433",fontSize:12,color:"#e8e6e3cc",lineHeight:1.7,textAlign:"left",maxWidth:400,animation:"fadeIn .6s ease-out"}}>
           <div style={{fontSize:13,fontWeight:700,color:"#fbbf24",marginBottom:6,letterSpacing:1}}>THE MARKET</div>
-          <div><span style={{color:"#fbbf24"}}>🐟 Rations</span> are currency. Save them for <span style={{color:"#4ade80"}}>interest</span> (every 5🐟 = +1 per round) or spend on:</div>
+          <div><span style={{color:"#fbbf24"}}>🐟 Rations</span> are currency. Spend them or save for <span style={{color:"#4ade80"}}>interest</span>.</div><div style={{fontSize:10,color:"#ffffff55",marginTop:2}}>Every 5🐟 saved = +1🐟 per round.</div>
           <div style={{marginTop:6,display:"flex",flexDirection:"column",gap:3}}>
             <div><span style={{color:"#fbbf24"}}>🐱 Cats</span>. stronger cats with traits boost your score</div>
             <div><span style={{color:"#fbbf24"}}>📜 Scrolls</span>. level up hand types for bigger base scores</div>
             <div><span style={{color:"#fbbf24"}}>🛡️ Wards</span>. passive bonuses that trigger every hand</div>
           </div>
           <div style={{marginTop:8,padding:"6px 10px",borderRadius:6,background:"#ffffff06",border:"1px solid #ffffff0a"}}>
-            <div style={{fontSize:11,color:"#fbbf24bb"}}>💡 <b>Season Devotion</b>: The more cats of one season you play, the stronger that season becomes. Check your progress in the Upgrades tab.</div>
+            <div style={{fontSize:11,color:"#fbbf24bb"}}>💡 <b>Season Devotion</b>: Play cats of one season to make that season stronger. Check progress in the Upgrades tab.</div>
           </div>
           <div style={{marginTop:8,textAlign:"center"}}><button onClick={()=>setSeen(s=>({...s,shop:true}))} style={{fontSize:11,background:"linear-gradient(135deg,#fbbf24,#f59e0b)",border:"none",borderRadius:5,color:"#0a0a1a",cursor:"pointer",padding:"5px 16px",fontWeight:700}}>Got it</button></div>
         </div>}
@@ -7758,14 +7758,14 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
           {/* ★ First-time intro */}
           {!seen.shop2&&<div style={{padding:"10px 14px",borderRadius:8,background:"#fbbf2408",border:"1px solid #fbbf2422",marginBottom:10,animation:"fadeIn .6s ease-out"}}>
             <div style={{fontSize:11,color:"#fbbf24cc",lineHeight:1.6}}>
-              <b>🛡️ Wards</b> give passive bonuses every hand. <b>📜 Scrolls</b> level up hand types. Both shape your strategy.
+              <b>🛡️ Wards</b> boost your score every hand.<br/><b>📜 Scrolls</b> level up hand types for bigger bases.<br/>Both shape your strategy.
             </div>
             <div style={{marginTop:6,textAlign:"center"}}><button onClick={()=>setSeen(s=>({...s,shop2:true}))} style={{fontSize:10,background:"#fbbf24",border:"none",borderRadius:4,color:"#0a0a1a",cursor:"pointer",padding:"3px 12px",fontWeight:700}}>Got it</button></div>
           </div>}
 
           {/* ═══ WARDS SECTION ═══ */}
           {fams.length===0&&sFams.length>0&&<div style={{padding:"8px 14px",borderRadius:8,background:"#4ade8008",border:"1px solid #4ade8033",marginBottom:8,animation:"breathe 2s ease-in-out infinite"}}>
-            <div style={{fontSize:11,color:"#4ade80",fontWeight:700}}>💡 Buy a ward! Wards boost your score every hand, all run long.</div>
+            <div style={{fontSize:11,color:"#4ade80",fontWeight:700}}>💡 Buy a ward! They boost your score every hand.</div>
           </div>}
           <div style={{fontSize:10,color:"#c084fcbb",letterSpacing:2,marginBottom:6}}>🛡️ WARDS FOR SALE</div>
           {sFams.length>0?<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
@@ -8159,7 +8159,7 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
         if(guide.step===0){
           const bIcon=suggestBreed?BREEDS[suggestBreed[0]]?.icon:"";
           msg=`${bIcon} Your turn! Select same-season cats`;
-          sub="Match the season icons (bottom-right of each card). Power (top-left) = base score. Traits (bottom-left) multiply it.";
+          sub="Season icons: bottom-right. Power: top-left. Traits: bottom-left. Match seasons to multiply your score.";
         }else if(guide.step===1){
           const ht=evalH?.(selCats);
           msg=`✨ ${ht?.name||"Hand"} ready! Hit Play ▶`;
