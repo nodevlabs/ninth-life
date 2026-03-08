@@ -2,8 +2,7 @@
 // A roguelike deckbuilder. cats are cards, seasons are suits, survive the dark.
 // https://greatgamesgonewild.github.io/ninth-live/
 
-import React, { useState, useEffect, useRef } from "react";
-import * as Tone from "tone";
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
 // ═══════════════════════════════════════════════════════════════
 const Audio={
@@ -400,18 +399,18 @@ const POWER_COMBOS=[
 // WARDS (passive bonuses that watch over your colony)
 // ═══════════════════════════════════════════════════════════════
 const FAMS=[
-  {id:"f1",name:"Falling Leaf",icon:"🍂",desc:"+2M per Autumn, +5M if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Autumn")).length;return{mult:n*2+(n>=3?5:0)};}},
-  {id:"f2",name:"Warm Hearth",icon:"☀️",desc:"+2M per Summer, +5M if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Summer")).length;return{mult:n*2+(n>=3?5:0)};}},
-  {id:"f3",name:"Snowglobe",icon:"🔮",desc:"+2M per Winter, +5M if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Winter")).length;return{mult:n*2+(n>=3?5:0)};}},
-  {id:"f4",name:"First Bud",icon:"🌸",desc:"+2M per Spring, +5M if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Spring")).length;return{mult:n*2+(n>=3?5:0)};}},
-  {id:"f5",name:"Golden Yarn",icon:"🧶",desc:"+15 chips per cat",eff:c=>({chips:c.length*15})},
+  {id:"f1",name:"Falling Leaf",icon:"🍂",desc:"Autumn cats: +2 to multiplier each, +5 bonus if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Autumn")).length;return{mult:n*2+(n>=3?5:0)};}},
+  {id:"f2",name:"Warm Hearth",icon:"☀️",desc:"Summer cats: +2 to multiplier each, +5 bonus if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Summer")).length;return{mult:n*2+(n>=3?5:0)};}},
+  {id:"f3",name:"Snowglobe",icon:"🔮",desc:"Winter cats: +2 to multiplier each, +5 bonus if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Winter")).length;return{mult:n*2+(n>=3?5:0)};}},
+  {id:"f4",name:"First Bud",icon:"🌸",desc:"Spring cats: +2 to multiplier each, +5 bonus if 3+",eff:c=>{const n=c.filter(x=>getCatBreeds(x).includes("Spring")).length;return{mult:n*2+(n>=3?5:0)};}},
+  {id:"f5",name:"Golden Yarn",icon:"🧶",desc:"+15 to base score per cat",eff:c=>({chips:c.length*15})},
   {id:"f6",name:"Moonstone",icon:"🌙",desc:"×1.3 if 4 or more cats",eff:c=>c.length>=4?{xMult:1.3}:{}},
   {id:"f7",name:"Black Mirror",icon:"🪞",desc:"×1.5 if all same season",eff:c=>{const b0=getCatBreeds(c[0]||{});return c.length>1&&c.every(x=>getCatBreeds(x).some(br=>b0.includes(br)))?{xMult:1.5}:{}}},
   {id:"f8",name:"Witch's Bell",icon:"🔔",desc:"+1 Ration per hand",eff:()=>({gold:1})},
-  {id:"f9",name:"Stubborn's Stone",icon:"🪨",desc:"+6M with Stubborn",eff:c=>c.some(x=>catHas(x,"Stubborn"))?{mult:6}:{}},
+  {id:"f9",name:"Stubborn's Stone",icon:"🪨",desc:"Stubborn in hand: +6 to multiplier",eff:c=>c.some(x=>catHas(x,"Stubborn"))?{mult:6}:{}},
   {id:"f10",name:"Wild Card",icon:"🃏",desc:"×2 with Wild cat",eff:c=>c.some(x=>catHas(x,"Wild"))?{xMult:2}:{}},
-  {id:"f11",name:"Echo Chamber",icon:"🔊",desc:"+5M per Echo",eff:c=>({mult:c.filter(x=>catHas(x,"Echo")).length*5})},
-  {id:"f12",name:"Brawler's Belt",icon:"🥋",desc:"+3M per Scrapper",eff:c=>({mult:c.filter(x=>catHas(x,"Scrapper")).length*3})},
+  {id:"f11",name:"Echo Chamber",icon:"🔊",desc:"Echo cats: +5 to multiplier each",eff:c=>({mult:c.filter(x=>catHas(x,"Echo")).length*5})},
+  {id:"f12",name:"Brawler's Belt",icon:"🥋",desc:"Scrapper cats: +3 to multiplier each",eff:c=>({mult:c.filter(x=>catHas(x,"Scrapper")).length*3})},
   {id:"f18",name:"Iron Will",icon:"🛡️",desc:"×1.15 per scarred cat",eff:c=>{const sc=c.filter(x=>x.scarred&&!x.injured).length;return sc>0?{xMult:Math.round(Math.pow(1.15,sc)*100)/100}:{}}},
   {id:"f19",name:"Nesting Ward",icon:"🏠",desc:"+1 Shelter slot",eff:()=>({shelter:1}),passive:true},
   // ★ Hand-type bonus wards. steer hand selection strategy
@@ -419,7 +418,7 @@ const FAMS=[
   {id:"f21",name:"Pack Howl",icon:"🐺",desc:"Clowder ×1.3, Colony ×1.5",eff:()=>({}),htBonus:{Clowder:{xMult:1.3},Colony:{xMult:1.5}}},
   {id:"f22",name:"Harmony",icon:"🎵",desc:"Two Kin ×1.7, Den ×1.6",eff:()=>({}),htBonus:{"Two Kin":{xMult:1.7},"Full Den":{xMult:1.6}}},
   {id:"f23",name:"Lone Wolf",icon:"🌑",desc:"Stray ×2.5",eff:()=>({}),htBonus:{Stray:{xMult:2.5}}},
-  {id:"f24",name:"Bench Coach",icon:"🪑",desc:"+2M per benched cat",eff:(c,ctx)=>({mult:(ctx?.benchSize||0)*2})},
+  {id:"f24",name:"Bench Coach",icon:"🪑",desc:"+2 to multiplier per unplayed cat",eff:(c,ctx)=>({mult:(ctx?.benchSize||0)*2})},
   {id:"f25",name:"Soul Bond",icon:"💜",desc:"Kindred ×1.6",eff:()=>({}),htBonus:{Kindred:{xMult:1.6}}},
 ];
 
@@ -3010,7 +3009,7 @@ function ChemPreview({cats}){
 // MAIN GAME
 // ═══════════════════════════════════════════════════════════════
 
-export default function NinthLife(){
+function NinthLife(){
   const[ph,_setPh]=useState("title");
   const[phFade,setPhFade]=useState(false);
   const setPh=(p)=>{
@@ -5877,7 +5876,7 @@ export default function NinthLife(){
               <div style={{fontSize:12,color:b.color,marginTop:4,lineHeight:1.3,fontWeight:700}}>{c.name.split(" ")[0]} <span style={{fontWeight:400,opacity:.6,fontSize:10}}>{c.sex==="M"?"\u2642":"\u2640"}</span></div>
               <div style={{fontSize:10,color:"#ffffff99",fontStyle:"italic",lineHeight:1.4,minHeight:28,marginTop:3}}>"{voice}"</div>
               {c.trait.name!=="Plain"&&(()=>{
-                const hook={Wild:"Fits into any season combo.",Stubborn:"Stronger when your last hand failed.",Stray:"Bonus for mixing different seasons.",Loyal:"Bonus for repeating the same team.",Devoted:"Powerful when paired with their mate.",Scavenger:"Stronger the more rations you hold.",Scrapper:"Tough fighter. Even tougher when scarred.",Cursed:"Risky. Deadly when isolated.",Guardian:"Stronger when allies are wounded.",Feral:"Stronger the more cats you play.",Seer:"Bonus for repeating hand types.",Chimera:"Belongs to every season at once.",Alpha:"Leads from the front. Multiplies everything.",Echo:"Scores twice. One of the strongest.",Nocturnal:"Feeds on desperation. Scales with Nerve.",Eternal:"The strongest trait in the game.",Phoenix:"Burns bright. Comes back from death."};
+                const hook={Wild:"Fits into any season combo.",Stubborn:"Stronger when your last hand failed.",Stray:"Bonus for mixing different seasons.",Loyal:"Bonus for repeating the same team.",Devoted:"Powerful when paired with their mate.",Scavenger:"Stronger the more rations you hold.",Scrapper:"Tough fighter. Even tougher when scarred.",Cursed:"Risky. Deadly when isolated.",Guardian:"Stronger when allies are wounded.",Feral:"Stronger the more cats you play.",Seer:"Bonus for repeating hand types.",Chimera:"Belongs to every season at once.",Alpha:"Strongest cat scores even bigger.",Echo:"Scores twice. One of the strongest.",Nocturnal:"Gets stronger the longer you survive.",Eternal:"The strongest trait in the game.",Phoenix:"Burns bright. Comes back from death."};
                 const tier=traitTierLabel(c.trait);
                 return(<div style={{fontSize:10,color:tier.color,marginTop:2,lineHeight:1.3,maxWidth:120}}>
                   <span style={{fontWeight:700,fontSize:9,letterSpacing:1,textTransform:"uppercase",opacity:.7}}>{tier.label}</span>{" "}
@@ -6315,6 +6314,13 @@ export default function NinthLife(){
             <div style={{marginTop:6}}>Scars (×1.25) and Bonds (×1.5) multiply your score.</div><div style={{marginTop:4}}>Nerve builds every blind you clear. Fast boss clears give more.</div><div style={{marginTop:4}}>In the Den, shelter a ♂+♀ pair to breed. Everyone else enters the wilds.</div>
             <div style={{marginTop:6,color:"#67e8f9"}}>🎯 Match seasons for Clowder or Colony hands.</div><div style={{marginTop:2,color:"#67e8f9"}}>Same-season cats resonate for bigger scores. Unplayed cats with traits give bench bonuses.</div>
             <div style={{marginTop:6,color:"#34d399"}}>👪 Shelter a parent with their child to teach traits.</div><div style={{marginTop:2,color:"#34d399"}}>Save a M/F pair to the Hearth. Their descendants begin your next colony.</div>
+            <div style={{marginTop:8,padding:"6px 10px",borderRadius:6,background:"#ffffff04",border:"1px solid #ffffff08",fontSize:11,color:"#666",lineHeight:1.6}}>
+              <div style={{fontWeight:700,color:"#888",marginBottom:2,fontSize:10,letterSpacing:1}}>GLOSSARY</div>
+              <div><span style={{color:"#3b82f6"}}>Chips</span> = base score from Power. <span style={{color:"#ef4444"}}>Mult</span> = multiplier from traits and bonuses.</div>
+              <div><span style={{color:"#fbbf24"}}>Nerve</span> = momentum. Builds each round, multiplies everything.</div>
+              <div><span style={{color:"#888"}}>Bench</span> = cats in your hand that you didn't play. Traits still give passive bonuses.</div>
+              <div><span style={{color:"#c084fc"}}>Wards</span> = passive items. Boost score every hand. <span style={{color:"#fbbf24"}}>Scrolls</span> = level up hand types.</div>
+            </div>
           </div>}
           {meta&&(mb.gold>0||mb.hands>0||mb.discards>0||mb.fervor>0)&&<div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center",fontSize:10}}>
             {mb.gold>0&&<span style={{color:"#fbbf24"}}>+{mb.gold}🐟</span>}{mb.hands>0&&<span style={{color:"#3b82f6"}}>+{mb.hands}H</span>}{mb.discards>0&&<span style={{color:"#ef4444"}}>+{mb.discards}D</span>}{mb.fervor>0&&<span style={{color:"#d97706"}}>N+{mb.fervor}</span>}</div>}
@@ -9110,3 +9116,6 @@ Saved from Night ${c.fromAnte||"?"}`} style={{
     </div>
   );
 }
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(React.createElement(NinthLife));
