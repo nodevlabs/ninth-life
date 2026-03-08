@@ -1465,8 +1465,8 @@
       },
       choices: [
         { label: "Dead colony, full pantry. Take it.", desc: "+4 Rations.", fx: { gold: 4 } },
-        { label: "Feed the one who needs it most.", desc: "Best cat +2 Power.", fx: { bestPower: 2 } },
-        { label: "Burn it. The warmth matters more.", desc: "+2 Nerve.", fx: { fervor: 2 } }
+        { label: "Feed the one who needs it most.", desc: "Best cat +3 Power. -2 Rations.", fx: { bestPower: 3, gold: -2 } },
+        { label: "Burn it. The warmth matters more.", desc: "+3 Nerve. All cats +1 Power. -4 Rations.", fx: { fervor: 3, allPower: 1, gold: -4 } }
       ]
     },
     {
@@ -1482,7 +1482,7 @@
         return `${n} brought something back. Dropped it at the entrance without a word and sat down. ${sc > 0 ? `Not the first to bleed for this colony. Won't be the last. But ${n} didn't need to be asked.` : `The others don't know what to do with it. ${n} does. ${n}'s known since before you got here.`}`;
       },
       choices: [
-        { label: "You've earned this.", desc: "Cat +2 Power.", fx: { targetPower: 2 } },
+        { label: "You've earned this.", desc: "Cat +2 Power. Cat hardened.", fx: { targetPower: 2, targetScar: true } },
         { label: "Everyone eats tonight.", desc: "+3 Rations.", fx: { gold: 3 } }
       ]
     },
@@ -1513,7 +1513,7 @@
       },
       choices: [
         { label: "Sit with them. Say nothing.", desc: "Cat +1 Power. +1 Nerve.", fx: { targetPower: 1, fervor: 1 } },
-        { label: "Let them have this.", desc: "Cat gains Loyal.", fx: { targetNamedTrait: "Loyal" } }
+        { label: "Let them have this.", desc: "Cat gains Loyal. -2 Rations.", fx: { targetNamedTrait: "Loyal", gold: -2 } }
       ]
     },
     // ——— PRESSURE (Night 2-3) ———
@@ -1656,7 +1656,7 @@
         return fallen > 0 ? `You count them. ${n}. You count again. Still ${n}. The number doesn't change no matter how many times you check. ${fallen} empty spaces where names used to be. You'll carry those spaces with you. That's the deal.` : `You count them. ${n}. Every single one. You count again. Still ${n}. All of them. Still here. You know how rare that is? Most colonies can't say that by Night 2.`;
       },
       choices: [
-        { label: "Say the names. All of them.", desc: "+3 Nerve.", fx: { fervor: 3 } },
+        { label: "Say the names. All of them.", desc: "+3 Nerve. -2 Rations for the ceremony.", fx: { fervor: 3, gold: -2 } },
         { label: "Focus on the living.", desc: "All cats +1 Power.", fx: { allPower: 1 } }
       ]
     },
@@ -1673,7 +1673,7 @@
       },
       choices: [
         { label: "Not us. Not tonight. Not ever.", desc: "+4 Nerve.", fx: { fervor: 4 } },
-        { label: "Rest. We'll need everything for tomorrow.", desc: "Full heal. +2 Rations.", fx: { fullHeal: true, gold: 2 } }
+        { label: "Rest. We'll need everything for tomorrow.", desc: "Full heal. -3 Rations.", fx: { fullHeal: true, gold: -3 } }
       ]
     },
     {
@@ -1705,7 +1705,7 @@
         return fallen.length > 0 ? `Someone placed a stone at the entrance for each cat lost. ${fallen.length} stone${fallen.length > 1 ? "s" : ""}. ${n} cats sitting around them in silence. Not grieving. Remembering. There's a difference, and the colony that knows the difference is the colony that makes it.` : `No one can sleep. All ${n} of them, awake, watching the entrance. Not because they're afraid. Because they want to be awake for this. Whatever tonight becomes, they want to be present for it.`;
       },
       choices: [
-        { label: "Say their names. Every one.", desc: "+3 Nerve.", fx: { fervor: 3 } },
+        { label: "Say their names. Every one.", desc: "+4 Nerve. -3 Rations for the vigil.", fx: { fervor: 4, gold: -3 } },
         { label: "Add a stone for the living.", desc: "All cats +1 Power.", fx: { allPower: 1 } }
       ]
     },
@@ -1772,7 +1772,7 @@
         return `${n} found a cache buried so deep it was clearly meant to stay hidden. Old. Sealed. Enough to feed the colony twice over. The question isn't whether to eat it. The question is how fast.`;
       },
       choices: [
-        { label: "Feast. Tonight we live.", desc: "+6 Rations. Full heal.", fx: { gold: 6, fullHeal: true } },
+        { label: "Feast. Tonight we live.", desc: "-3 Rations. Full heal. All cats +1 Power.", fx: { gold: -3, fullHeal: true, allPower: 1 } },
         { label: "Ration it. Make it last.", desc: "+3 Rations. Cat gains Scavenger.", fx: { gold: 3, targetNamedTrait: "Scavenger" } }
       ]
     },
@@ -1957,7 +1957,7 @@
         return fallen.length > 0 ? `${n} woke up screaming. Said they saw ${fallen[0]?.name || "the one who was lost"}. Said they were warm. Waiting somewhere past the dark. The others pretend they didn't hear. They all heard.` : `${n} woke up smiling. Said they dreamed of a place with no dark. No cold. Just sun and grass and every cat they'd ever known. They looked embarrassed. Nobody laughed.`;
       },
       choices: [
-        { label: "Tell me more. We need this.", desc: "Cat +2 Power. +2 Nerve.", fx: { targetPower: 2, fervor: 2 } },
+        { label: "Tell me more. We need this.", desc: "Cat +2 Power. +3 Nerve. -3 Rations.", fx: { targetPower: 2, fervor: 3, gold: -3 } },
         { label: "Dreams are for after. Focus.", desc: "+3 Nerve.", fx: { fervor: 3 } }
       ]
     },
@@ -2135,7 +2135,7 @@
         return `${n} won't eat alone anymore. Won't sleep alone. Won't even groom alone. At first it seemed clingy. Now you realize it's something else. ${n} fights three times as hard when the others are nearby. Not brave. Just... more.`;
       },
       choices: [
-        { label: "You're stronger in a crowd, aren't you?", desc: "Cat gains Feral.", fx: { targetNamedTrait: "Feral" } },
+        { label: "You're stronger in a crowd, aren't you?", desc: "Cat gains Feral. -2 Rations.", fx: { targetNamedTrait: "Feral", gold: -2 } },
         { label: "Don't depend on others. Depend on yourself.", desc: "Cat +2 Power.", fx: { targetPower: 2 } }
       ]
     },
@@ -2151,7 +2151,7 @@
         return `${n} froze mid-step this morning. Eyes wide. Pupils like moons. Then said one word: "Clowder." Three hands later, you played a Clowder. Coincidence. Except it's happened three times now. ${n} sees things before they happen. The question is whether that's a gift or a warning.`;
       },
       choices: [
-        { label: "Tell me what you see next.", desc: "Cat gains Seer.", fx: { targetNamedTrait: "Seer" } },
+        { label: "Tell me what you see next.", desc: "Cat gains Seer. Cat injured.", fx: { targetNamedTrait: "Seer", targetInjure: true } },
         { label: "Dreams are for after. Focus.", desc: "+3 Nerve.", fx: { fervor: 3 } }
       ]
     },
@@ -7374,7 +7374,12 @@
       }
       if (fx.targetScar && targets[0]) {
         [setHand, setDraw, setDisc].forEach((s) => {
-          s((arr) => arr.map((x) => x.id === targets[0].id ? { ...x, scarred: true } : x));
+          s((arr) => arr.map((x) => x.id === targets[0].id ? { ...x, scarred: true, _hardenedNight: x._hardenedNight || ante } : x));
+        });
+      }
+      if (fx.targetInjure && targets[0]) {
+        [setHand, setDraw, setDisc].forEach((s) => {
+          s((arr) => arr.map((x) => x.id === targets[0].id ? { ...x, injured: true, injuryTimer: 2, stats: { ...x.stats, injuries: (x.stats?.injuries || 0) + 1 } } : x));
         });
       }
       if (fx.targetLegendary && targets[0]) {
@@ -7960,6 +7965,7 @@
       if (fx.targetWeaken && targets[0]) lines.push({ text: `${targets[0].name.split(" ")[0]} \u2212${fx.targetWeaken} Power.`, color: "#ef4444", icon: "\u{1F4C9}" });
       if (fx.bothPower && targets.length >= 2) lines.push({ text: `${targets[0].name.split(" ")[0]} and ${targets[1].name.split(" ")[0]} both +${fx.bothPower} Power.`, color: "#4ade80", icon: "\u26A1" });
       if (fx.targetScar && targets[0]) lines.push({ text: `${targets[0].name.split(" ")[0]} hardened.`, color: "#fbbf24", icon: "\u2694" });
+      if (fx.targetInjure && targets[0]) lines.push({ text: `${targets[0].name.split(" ")[0]} injured.`, color: "#ef4444", icon: "\u{1FA79}" });
       if (fx.targetLegendary && targets[0]) lines.push({ text: `${targets[0].name.split(" ")[0]} gained a Legendary trait!`, color: "#f97316", icon: "\u2728" });
       if (fx.bestInjure) lines.push({ text: `Best cat injured. The cost was steep.`, color: "#ef4444", icon: "\u{1FA79}" });
       if (fx.addNamedTrait) lines.push({ text: `A cat gained ${fx.addNamedTrait}.`, color: "#4ade80", icon: TRAITS.find((t) => t.name === fx.addNamedTrait)?.icon || "\u2728" });
@@ -8571,7 +8577,17 @@
         const json = await exportSlot(activeSlot);
         navigator.clipboard?.writeText(json);
         toast("\u{1F4CB}", "Save copied to clipboard", "#4ade80");
-      }, style: { fontSize: 10, background: "none", border: "1px solid #ffffff15", borderRadius: 4, color: "#4ade80", cursor: "pointer", padding: "3px 8px" } }, "Export Slot ", activeSlot), /* @__PURE__ */ React.createElement("button", { onClick: () => setShowImport(!showImport), style: { fontSize: 10, background: "none", border: "1px solid #ffffff15", borderRadius: 4, color: "#fb923c", cursor: "pointer", padding: "3px 8px" } }, "Import")), showImport && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6 } }, /* @__PURE__ */ React.createElement("textarea", { value: importText, onChange: (e) => setImportText(e.target.value), placeholder: "Paste save JSON...", onClick: (e) => e.stopPropagation(), style: { width: "100%", height: 50, background: "#0a0a1a", border: "1px solid #ffffff15", borderRadius: 4, color: "#e8e6e3", fontSize: 10, fontFamily: "monospace", padding: 4, resize: "none" } }), /* @__PURE__ */ React.createElement("button", { onClick: async () => {
+      }, style: { fontSize: 10, background: "none", border: "1px solid #ffffff15", borderRadius: 4, color: "#4ade80", cursor: "pointer", padding: "3px 8px" } }, "Export Slot ", activeSlot), /* @__PURE__ */ React.createElement("button", { onClick: () => setShowImport(!showImport), style: { fontSize: 10, background: "none", border: "1px solid #ffffff15", borderRadius: 4, color: "#fb923c", cursor: "pointer", padding: "3px 8px" } }, "Import"), /* @__PURE__ */ React.createElement("button", { onClick: async () => {
+        if (!window.confirm(`Clear Slot ${activeSlot}? This deletes all progress in this slot.`)) return;
+        await saveS(dSave(), activeSlot);
+        await clearRunSave();
+        setMeta(dSave());
+        setSavedRun(null);
+        const sums = [];
+        for (let i = 1; i <= SLOT_COUNT; i++) sums.push(await getSlotSummary(i));
+        setSlotSummaries(sums);
+        toast("\u{1F5D1}\uFE0F", `Slot ${activeSlot} cleared.`, "#ef4444");
+      }, style: { fontSize: 10, background: "none", border: "1px solid #ef444444", borderRadius: 4, color: "#ef4444", cursor: "pointer", padding: "3px 8px" } }, "Clear Slot ", activeSlot)), showImport && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6 } }, /* @__PURE__ */ React.createElement("textarea", { value: importText, onChange: (e) => setImportText(e.target.value), placeholder: "Paste save JSON...", onClick: (e) => e.stopPropagation(), style: { width: "100%", height: 50, background: "#0a0a1a", border: "1px solid #ffffff15", borderRadius: 4, color: "#e8e6e3", fontSize: 10, fontFamily: "monospace", padding: 4, resize: "none" } }), /* @__PURE__ */ React.createElement("button", { onClick: async () => {
         if (!importText.trim()) return;
         const d = await importSlot(importText, activeSlot);
         if (d) {
@@ -10198,13 +10214,19 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
       }, style: { marginTop: 8, fontSize: 11, background: "#fbbf2422", border: "1px solid #fbbf2444", borderRadius: 6, color: "#fbbf24", cursor: "pointer", padding: "5px 16px", fontWeight: 700, letterSpacing: 1 } }, "Got it"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, justifyContent: "center", marginTop: 6 } }, [0, 1, 2, 3].map((i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { width: 6, height: 6, borderRadius: "50%", background: i === guide.step ? "#fbbf24" : i < guide.step ? "#fbbf2444" : "#333", transition: "all .15s" } }))));
     })(), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: mob ? "6px 12px" : "8px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, borderBottom: `1px solid ${isBoss ? "#ef444422" : "#ffffff0a"}` } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#888", letterSpacing: 2 } }, "NIGHT ", ante, "/", MX, !mob && /* @__PURE__ */ React.createElement("span", { style: { color: "#666" } }, " Round ", blind + 1, "/3")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: mob ? 13 : 14, fontWeight: 700, color: isBoss ? "#ef4444" : "#fbbf24" } }, blindN[blind]), !mob && /* @__PURE__ */ React.createElement(ProgressMap, { ante, blind, mx: MX })), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#888", letterSpacing: 2 } }, "SCORE"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: mob ? 16 : 18, fontWeight: 900 } }, /* @__PURE__ */ React.createElement("span", { style: { color: rScore >= tgt ? "#4ade80" : "#e8e6e3" } }, rScore.toLocaleString()), /* @__PURE__ */ React.createElement("span", { style: { color: "#666", fontSize: 12 } }, " / ", tgt.toLocaleString())), !mob && rScore < tgt && hLeft > 0 && (() => {
       const need = tgt - rScore;
-      return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: need / hLeft > 45e3 ? "#ef4444" : need / hLeft > 24e3 ? "#fb923c" : "#aaa", fontWeight: 700, animation: need / hLeft > 45e3 ? "fpp 2s ease infinite" : "none" } }, "\u{1F3AF} Need ", need.toLocaleString());
-    })()), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "right" } }, /* @__PURE__ */ React.createElement("div", { style: { color: "#fbbf24", fontWeight: 700, fontSize: 13 } }, "\u{1F41F}", gold), runCount >= 1 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80" } }, Math.min(5, Math.floor(gold / 5)) > 0 ? `+${Math.min(5, Math.floor(gold / 5))} stores` : "")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, alignItems: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+      const nph = Math.ceil(need / hLeft);
+      return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: nph > 45e3 ? "#ef4444" : nph > 24e3 ? "#fb923c" : "#aaa", fontWeight: 700, animation: nph > 45e3 ? "fpp 2s ease infinite" : "none" } }, "\u{1F3AF} Need ", need.toLocaleString(), hLeft > 1 ? /* @__PURE__ */ React.createElement("span", { style: { color: "#666", fontWeight: 400 } }, " (", nph.toLocaleString(), "/hand)") : "");
+    })()), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "right" } }, /* @__PURE__ */ React.createElement("div", { style: { color: "#fbbf24", fontWeight: 700, fontSize: 13 } }, "\u{1F41F}", gold), runCount >= 1 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80" } }, Math.min(5, Math.floor(gold / 5)) > 0 ? `+${Math.min(5, Math.floor(gold / 5))} stores` : ""), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u{1F431}", `Colony: ${allC.length} cats (${hand.length} in hand, ${draw.length} in draw)`, "#888", 3e3), style: { fontSize: 10, color: "#666", cursor: "help" } }, allC.length, " \u{1F431}")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, alignItems: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+      e.stopPropagation();
+      const htRef = HT.map((h) => `${h.name}: ${h.base}C\xD7${h.baseMult}M`).join("\n");
+      toast("\u{1F4D6}", HT.map((h) => h.name + ": " + ({ Stray: "1 alone", Kin: "2 same season", "Two Kin": "2+2 seasons", Clowder: "3 same season", Colony: "4 same season", Litter: "5 same season", "Full Den": "3+2 seasons", Kindred: "3+ same trait" }[h.name] || "")).join(" \xB7 "), "#fbbf24", 6e3);
+    }, style: { background: "none", border: "none", fontSize: 14, cursor: "pointer", opacity: 0.4, padding: 4 }, title: "Hand Types" }, "\u{1F4D6}"), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
       e.stopPropagation();
       toggleMute();
     }, style: { background: "none", border: "none", fontSize: 14, cursor: "pointer", opacity: 0.4, padding: 4 }, title: muted ? "Unmute" : "Mute" }, muted ? "\u{1F507}" : "\u{1F50A}"))), mob && rScore < tgt && hLeft > 0 && (() => {
-      const nph = Math.ceil((tgt - rScore) / hLeft);
-      return /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "3px 0", zIndex: 1, maxWidth: 700, width: "100%" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, color: nph > 45e3 ? "#ef4444" : nph > 24e3 ? "#fb923c" : "#aaa", fontWeight: 800, letterSpacing: 1 } }, "\u{1F3AF} Need ", (tgt - rScore).toLocaleString()));
+      const need = tgt - rScore;
+      const nph = Math.ceil(need / hLeft);
+      return /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "3px 0", zIndex: 1, maxWidth: 700, width: "100%" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, color: nph > 45e3 ? "#ef4444" : nph > 24e3 ? "#fb923c" : "#aaa", fontWeight: 800, letterSpacing: 1 } }, "\u{1F3AF} Need ", need.toLocaleString()), hLeft > 1 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#666", marginLeft: 6 } }, "(", nph.toLocaleString(), "/hand)"));
     })(), mob ? /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, padding: "2px 12px", zIndex: 1, maxWidth: 700, width: "100%", justifyContent: "center", alignItems: "center", flexWrap: "nowrap" } }, !seen.mobBar && (fams.length > 0 || Object.values(devotion).some((v) => v > 0)) && runCount >= 1 && /* @__PURE__ */ React.createElement("span", { onClick: () => {
       setSeen((s) => ({ ...s, mobBar: true }));
       toast("\u2139\uFE0F", "Tap any icon for details", "#fbbf24");
