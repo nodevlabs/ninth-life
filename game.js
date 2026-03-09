@@ -324,7 +324,7 @@
   const BK = Object.keys(BREEDS);
   const DEVOTION_MILESTONES = {
     Autumn: [
-      { at: 10, name: "First Harvest", desc: "+1 mult per Autumn cat played", fx: { multPerCat: 1 } },
+      { at: 10, name: "First Harvest", desc: "+1 bonus per Autumn cat played", fx: { multPerCat: 1 } },
       { at: 25, name: "Scarred Earth", desc: "Scarred cats score \xD71.4", fx: { scarMult: 1.4 } },
       { at: 50, name: "Endurance", desc: "+1 hand per round", fx: { hands: 1 } },
       { at: 80, name: "Ironwood", desc: "Injuries heal in 1 round", fx: { fastHeal: true } },
@@ -338,14 +338,14 @@
       { at: 90, name: "The Blazing Sun", desc: "All Summer cats +3 Power", fx: { powerBoost: 3 } }
     ],
     Winter: [
-      { at: 10, name: "First Frost", desc: "+1 mult per Winter cat played", fx: { multPerCat: 1 } },
+      { at: 10, name: "First Frost", desc: "+1 bonus per Winter cat played", fx: { multPerCat: 1 } },
       { at: 25, name: "Permafrost", desc: "First recruit each blind is free", fx: { freeRecruit: true } },
       { at: 50, name: "Stillness", desc: "+1 hand per round", fx: { hands: 1 } },
       { at: 80, name: "Absolute Zero", desc: "Boss curses reduced by 1", fx: { curseReduce: 1 } },
       { at: 90, name: "The Frozen Throne", desc: "All Winter cats +3 Power", fx: { powerBoost: 3 } }
     ],
     Spring: [
-      { at: 10, name: "First Bloom", desc: "+1 mult per bonded cat played", fx: { bondMult: 1 } },
+      { at: 10, name: "First Bloom", desc: "+1 bonus per bonded cat played", fx: { bondMult: 1 } },
       { at: 25, name: "Overgrowth", desc: "Breed cap 75% \u2192 100%", fx: { breedBoost: 0.25 } },
       { at: 50, name: "Deep Roots", desc: "Bonds score \xD71.75", fx: { bondScale: 1.75 } },
       { at: 80, name: "Renewal", desc: "+1 Shelter slot", fx: { shelter: 1 } },
@@ -471,25 +471,25 @@
   const TRAITS = [
     // --- COMMON (C tier): utility, economy, enablers ---
     { name: "Wild", icon: "\u{1F300}", desc: "Counts as any season", tier: "common" },
-    { name: "Devoted", icon: "\u{1FAC0}", desc: "+5 mult when played with mate. Discard: mate +1 Power", tier: "common" },
-    { name: "Stubborn", icon: "\u{1FAA8}", desc: "+3 mult. Lost last hand: +6 mult. Discard: +1 Nerve", tier: "common" },
-    { name: "Stray", icon: "\u{1F408}", desc: "+3 mult per unique season played. Discard: +1 draw", tier: "common" },
-    { name: "Loyal", icon: "\u{1FAC2}", desc: "+2 mult. Repeat same cats: +4. Discard: +1 mult all", tier: "common" },
-    { name: "Scavenger", icon: "\u{1F33E}", desc: "+1 mult per Ration held (max +5). Discard: +2 Rations", tier: "common" },
+    { name: "Devoted", icon: "\u{1FAC0}", desc: "+5 bonus with partner. Discard: partner +1 Power", tier: "common" },
+    { name: "Stubborn", icon: "\u{1FAA8}", desc: "+3 bonus. Lost last round: +6 bonus. Discard: +1 Nerve", tier: "common" },
+    { name: "Stray", icon: "\u{1F408}", desc: "+3 bonus per unique season in group. Discard: +1 draw", tier: "common" },
+    { name: "Loyal", icon: "\u{1FAC2}", desc: "+2 bonus. Same cats as last: +4. Discard: +1 bonus all", tier: "common" },
+    { name: "Scavenger", icon: "\u{1F33E}", desc: "+1 bonus per \u{1F41F} held (max +5). Discard: +2\u{1F41F}", tier: "common" },
     // --- RARE (B tier): solid contributors with conditions ---
-    { name: "Scrapper", icon: "\u{1F94A}", desc: "+3 mult, +5 if hardened. Discard: +1 Nerve", tier: "rare" },
-    { name: "Cursed", icon: "\u{1F480}", desc: "\u22123 mult. Alone in their season: +8. Discard: +1 Nerve", tier: "rare_neg" },
-    { name: "Feral", icon: "\u{1F43E}", desc: "+2 mult per cat played. Stronger in big hands", tier: "rare" },
-    { name: "Seer", icon: "\u{1F441}\uFE0F", desc: "+4 mult. Same hand type as last: +8 mult", tier: "rare" },
-    { name: "Guardian", icon: "\u{1F6E1}\uFE0F", desc: "+2 mult per injured or hardened cat played. Discard: heal 1", tier: "rare" },
+    { name: "Scrapper", icon: "\u{1F94A}", desc: "+3 bonus, +5 if scarred in battle. Discard: +1 Nerve", tier: "rare" },
+    { name: "Cursed", icon: "\u{1F480}", desc: "\u22123 bonus. Only one of their season: +8. Discard: +1 Nerve", tier: "rare_neg" },
+    { name: "Feral", icon: "\u{1F43E}", desc: "+2 bonus per cat played. Stronger in big groups", tier: "rare" },
+    { name: "Seer", icon: "\u{1F441}\uFE0F", desc: "+4 bonus. Same group type as last: +8 bonus", tier: "rare" },
+    { name: "Guardian", icon: "\u{1F6E1}\uFE0F", desc: "+2 bonus per injured ally played. Discard: heal 1", tier: "rare" },
     // --- LEGENDARY (A tier): build-defining ---
     { name: "Echo", icon: "\u{1F501}", desc: "Scores twice, half power on second", tier: "legendary" },
     { name: "Chimera", icon: "\u{1F9EC}", desc: "Counts as all seasons. Play 3+ cats: \xD71.5", tier: "legendary" },
     { name: "Alpha", icon: "\u{1F43A}", desc: "\xD71.3 if highest power among played cats", tier: "rare" },
-    { name: "Nocturnal", icon: "\u{1F319}", desc: "+2 mult per Nerve level. Discard: +2 Nerve", tier: "legendary" },
+    { name: "Nocturnal", icon: "\u{1F319}", desc: "+2 bonus per momentum level. Grows every round", tier: "legendary" },
     // --- MYTHIC (S tier): run-defining ---
-    { name: "Eternal", icon: "\u2728", desc: "\xD73 mult, scores twice at full power", tier: "mythic" },
-    { name: "Phoenix", icon: "\u{1F525}", desc: "\xD72.5 mult. Hardened: \xD74. Revives once on death", tier: "mythic" }
+    { name: "Eternal", icon: "\u2728", desc: "\xD73 bonus, scores twice at full power", tier: "mythic" },
+    { name: "Phoenix", icon: "\u{1F525}", desc: "\xD72.5 bonus. Battle-scarred: \xD74. Revives once on death", tier: "mythic" }
   ];
   const RARE_NEG = TRAITS.filter((t) => t.tier === "rare_neg");
   const COMMON_TRAITS = TRAITS.filter((t) => t.tier === "common");
@@ -3076,13 +3076,16 @@
     const cats = shuf([...denCats]);
     const breedOnly = ctx.breedOnly || false;
     const noBreed = ctx.noBreed || false;
+    const MAX_COLONY = 25;
+    const MAX_BIRTHS = 2 + (ctx.breedBoost >= 0.15 ? 1 : 0);
+    const colonyTooLarge = (ctx.deckSize || 0) >= MAX_COLONY;
     const breedCensus = {};
     cats.forEach((c) => {
       breedCensus[c.breed] = (breedCensus[c.breed] || 0) + 1;
     });
     const minEvents = Math.max(1, Math.floor(cats.length / 2));
     const maxEvents = cats.length;
-    const baseEvents = breedOnly ? minEvents : Math.min(maxEvents, 2 + Math.floor(Math.random() * 2));
+    const baseEvents = breedOnly ? Math.min(minEvents, MAX_BIRTHS) : Math.min(maxEvents, 2 + Math.floor(Math.random() * 2));
     let bonusEvents = 0;
     if (breedOnly) {
       for (let e = 0; e < Math.max(0, cats.length - 2); e++) {
@@ -3114,8 +3117,10 @@
         if (moodMod > 60) bCh = Math.min(100, bCh + 5);
         if (moodMod < 30) bCh = Math.min(100, bCh + 8);
         if (breedOnly) bCh = Math.min(100, bCh + 15);
+        const birthsSoFar = results.filter((r) => r.type === "breed").length;
+        const breedBlocked = colonyTooLarge || birthsSoFar >= MAX_BIRTHS;
         const roll = Math.random() * 100;
-        if (!noBreed && roll < bCh) {
+        if (!noBreed && !breedBlocked && roll < bCh) {
           const baby = breedC(cats[i], cats[j]);
           const twins = Math.random() < 0.08;
           results.push({ type: "breed", c1: cats[i], c2: cats[j], baby, twins });
@@ -6737,8 +6742,12 @@
     }, 0);
     const MAX_ISOLATE = campMode ? 2 : 3 + (getMB().shelter || 0) + shelterFromWards + (eventDenBonus || 0);
     const toggleDen = (c) => {
-      if (den.find((d) => d.id === c.id)) setDen((d) => d.filter((x) => x.id !== c.id));
-      else if (den.length < MAX_ISOLATE) setDen((d) => [...d, c]);
+      setDen((d) => {
+        if (d.find((x) => x.id === c.id)) return d.filter((x) => x.id !== c.id);
+        if (d.length >= MAX_ISOLATE) return d;
+        if (d.some((x) => x.id === c.id)) return d;
+        return [...d, c];
+      });
     };
     function endNight() {
       const dAll = [...hand, ...draw, ...disc];
@@ -9213,7 +9222,7 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
       const o = oData;
       const pctClear = o.tgt > 0 ? Math.round(o.fs / o.tgt * 100) : 100;
       const clearLine = blind >= 2 ? null : getThresholdClear(ante, blind, clutch, pctClear);
-      return /* @__PURE__ */ React.createElement("div", { style: { ...W, animation: clutch ? "flash .6s ease-out" : "none" } }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), clutch && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 50, background: "radial-gradient(circle,#fbbf2433,transparent 70%)", pointerEvents: "none", animation: "flash 1.5s ease-out" } }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", zIndex: 1, gap: 10, padding: 20 } }, clutch && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 22, fontWeight: 900, color: "#fbbf24", letterSpacing: 8, textShadow: "0 0 30px #fbbf24cc", animation: "clutchBurst .8s ease-out", marginBottom: 4 } }, "CLUTCH"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: blind >= 2 ? "#4ade80" : "#fbbf24", letterSpacing: 3 } }, blind >= 2 ? clutch ? "Survived. Barely." : "Survived." : "Cleared."), clearLine && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ffffffbb", fontStyle: "italic", textAlign: "center", maxWidth: 320, lineHeight: 1.6, animation: "fadeIn 1.2s ease-out", textShadow: "0 0 15px #ffffff11" } }, clearLine), blind >= 2 && boss && (() => {
+      return /* @__PURE__ */ React.createElement("div", { style: { ...W, animation: clutch ? "flash .6s ease-out" : "none" } }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), clutch && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 50, background: "radial-gradient(circle,#fbbf2433,transparent 70%)", pointerEvents: "none", animation: "flash 1.5s ease-out" } }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", zIndex: 1, gap: 10, padding: 20 } }, clutch && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 22, fontWeight: 900, color: "#fbbf24", letterSpacing: 8, textShadow: "0 0 30px #fbbf24cc", animation: "clutchBurst .8s ease-out", marginBottom: 4 } }, "CLUTCH"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: blind >= 2 ? "#4ade80" : "#fbbf24", letterSpacing: 3 } }, blind >= 2 ? clutch ? "Survived. Barely." : "Survived." : "Cleared."), isFirstRun && ante === 1 && blind === 0 && !seen.shop && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24aa", textAlign: "center", maxWidth: 300, lineHeight: 1.6, animation: "fadeIn 1s ease-out" } }, "Round 1 of 3 done. Midnight next, then the Boss.", /* @__PURE__ */ React.createElement("br", null), "\u{1F41F} = rations. Spend them to get stronger."), clearLine && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ffffffbb", fontStyle: "italic", textAlign: "center", maxWidth: 320, lineHeight: 1.6, animation: "fadeIn 1.2s ease-out", textShadow: "0 0 15px #ffffff11" } }, clearLine), blind >= 2 && boss && (() => {
         const scarredCats2 = allC.filter((c) => c.scarred);
         const bondedCats2 = allC.filter((c) => c.bondedTo);
         const strongest2 = [...allC].sort((a, b) => b.power - a.power)[0];
