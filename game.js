@@ -3052,7 +3052,12 @@
     if (tName && TRAIT_NAMES[tName]) pool.push(...TRAIT_NAMES[tName], ...TRAIT_NAMES[tName], ...TRAIT_NAMES[tName]);
     const shuffled = pool.sort(() => Math.random() - 0.5);
     let n = shuffled.find((x) => !_un.has(x) && x.length <= 8);
-    if (!n) n = shuffled[0];
+    if (!n) {
+      const base = shuffled.find((x) => x.length <= 6) || shuffled[0] || "Cat";
+      let suffix = 2;
+      while (_un.has(base + suffix) && suffix < 99) suffix++;
+      n = base + suffix;
+    }
     _un.add(n);
     if (tName && Math.random() < 0.3) {
       const rareTitles = TITL_RARE[tName];
@@ -9010,7 +9015,7 @@
       if (meta && meta.stats.r >= 1) availTabs.push("bestiary");
       if (meta && meta.stats.w >= 1) availTabs.push("rankings");
       const safeTab = availTabs.includes(tab) ? tab : "play";
-      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement(Dust, null), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 10, right: 10, zIndex: 200, display: "flex", gap: 6, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ffffff55", letterSpacing: 1 } }, "v0.7"), meta && /* @__PURE__ */ React.createElement("button", { onClick: async () => {
+      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement(Dust, null), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 10, right: 10, zIndex: 200, display: "flex", gap: 6, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ffffff55", letterSpacing: 1 } }, "v0.77"), meta && /* @__PURE__ */ React.createElement("button", { onClick: async () => {
         const sums = [];
         for (let i = 1; i <= SLOT_COUNT; i++) sums.push(await getSlotSummary(i));
         setSlotSummaries(sums);
