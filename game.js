@@ -5589,7 +5589,6 @@
         }
         const result = sRes;
         const cats = scoringCats;
-        setScoringDone(false);
         const tgt2 = eTgt();
         const ns = rScore + result.total;
         setRScore(ns);
@@ -5748,12 +5747,15 @@
             setTimeout(() => {
               setClutch(false);
               endRun(true, ns);
-            }, isBossClear ? 1800 : 800);
-          } else {
+            }, 1800);
+          } else if (isBossClear) {
             setTimeout(() => {
               setClutch(false);
               showOF(ns, tgt2, handsAfter);
-            }, isBossClear ? 1800 : handsAfter <= 0 ? 800 : 400);
+            }, 1800);
+          } else {
+            setClutch(false);
+            showOF(ns, tgt2, handsAfter);
           }
         } else if (handsAfter <= 0) {
           endRun(false, ns);
@@ -9465,13 +9467,13 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
           /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888", marginTop: 3, lineHeight: 1.3 } }, rw.desc)
         ))));
       })() : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap", justifyContent: "center" } }, (() => {
-        const firstEverRun2 = !meta || meta.stats.r === 0;
-        const forceMarket = firstEverRun2 && ante === 1 && blind === 0 && !seen.shop;
-        const forceScavenge = firstEverRun2 && ante === 1 && blind === 1 && !seen.scavenge;
-        const forceCamp = firstEverRun2 && ante === 2 && blind === 1 && !seen.camp;
-        const showMarket = !firstEverRun2 || forceMarket || !forceScavenge && !forceCamp;
-        const showScavenge = !firstEverRun2 || forceScavenge || !forceCamp && seen.scavenge;
-        const showCamp = !firstEverRun2 || forceCamp || seen.camp;
+        const firstEverRun = !meta || meta.stats.r === 0;
+        const forceMarket = firstEverRun && ante === 1 && blind === 0 && !seen.shop;
+        const forceScavenge = firstEverRun && ante === 1 && blind === 1 && !seen.scavenge;
+        const forceCamp = firstEverRun && ante === 2 && blind === 1 && !seen.camp;
+        const showMarket = !firstEverRun || forceMarket || !forceScavenge && !forceCamp;
+        const showScavenge = !firstEverRun || forceScavenge || !forceCamp && seen.scavenge;
+        const showCamp = !firstEverRun || forceCamp || seen.camp;
         return /* @__PURE__ */ React.createElement(React.Fragment, null, showMarket && /* @__PURE__ */ React.createElement("button", { onClick: () => {
           setOData(null);
           setSkipShop(false);
@@ -9575,8 +9577,8 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
           cursor: gold >= 3 ? "pointer" : "not-allowed",
           animation: forceCamp ? "breathe 2s ease-in-out infinite" : "none",
           boxShadow: forceCamp ? "0 0 20px #c084fc44" : "none"
-        } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 16 } }, "\u{1F3D5}"), /* @__PURE__ */ React.createElement("span", null, forceCamp ? "Make Camp \u2726" : "Camp"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, fontWeight: 400, opacity: 0.6 } }, gold >= 3 ? "3\u{1F41F}, rest + bonds" : "Need 3\u{1F41F}")));
-      })(), firstEverRun && ante === 1 && blind === 1 && !seen.scavenge && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#4ade80aa", textAlign: "center", maxWidth: 300, lineHeight: 1.5, marginTop: 6, animation: "fadeIn .6s ease-out" } }, "Scavenging finds rations without spending any. The colony spreads out and searches."), firstEverRun && ante === 2 && blind === 1 && !seen.camp && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#c084fcaa", textAlign: "center", maxWidth: 300, lineHeight: 1.5, marginTop: 6, animation: "fadeIn .6s ease-out" } }, "Camp costs 3\u{1F41F} but heals injuries, builds Nerve, and lets two cats bond by the fire.")))));
+        } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 16 } }, "\u{1F3D5}"), /* @__PURE__ */ React.createElement("span", null, forceCamp ? "Make Camp \u2726" : "Camp"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, fontWeight: 400, opacity: 0.6 } }, gold >= 3 ? "3\u{1F41F}, rest + bonds" : "Need 3\u{1F41F}")), firstEverRun && ante === 1 && blind === 1 && !seen.scavenge && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#4ade80aa", textAlign: "center", maxWidth: 300, lineHeight: 1.5, marginTop: 6, animation: "fadeIn .6s ease-out" } }, "Scavenging finds rations without spending any. The colony spreads out and searches."), firstEverRun && ante === 2 && blind === 1 && !seen.camp && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#c084fcaa", textAlign: "center", maxWidth: 300, lineHeight: 1.5, marginTop: 6, animation: "fadeIn .6s ease-out" } }, "Camp costs 3\u{1F41F} but heals injuries, builds Nerve, and lets two cats bond by the fire."));
+      })()))));
     }
     if (ph === "defeat" && defeatData) {
       const defMvp = [...allC].sort((a, b) => (b.stats?.bs || 0) - (a.stats?.bs || 0))[0];
