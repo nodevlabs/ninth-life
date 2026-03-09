@@ -1308,8 +1308,8 @@
       tag: "belonging",
       textFn: (_, ctx) => `The one you took in. The stranger. Left something at the entrance while everyone slept. A kill. The biggest anyone's seen. They're sitting beside it. Not eating. Waiting. You know what they're saying without words: I belong here now. Right?`,
       choices: [
-        { label: "Share it. Everyone eats tonight.", desc: "+4 Rations. +1 Nerve.", fx: { gold: 4, fervor: 1 } },
-        { label: "You eat first. You earned it.", desc: "Best cat +3 Power.", fx: { bestPower: 3 } }
+        { label: "Split it. Every mouth, every bowl.", desc: "+4 Rations. +1 Nerve.", fx: { gold: 4, fervor: 1 } },
+        { label: "You first. Don't look at me like that.", desc: "Best cat +3 Power.", fx: { bestPower: 3 } }
       ]
     },
     // ——— ARC 2: THE SICKNESS (3 events) ———
@@ -1326,9 +1326,9 @@
         return `${n} didn't eat this morning. By midday they're shaking. By evening two others won't look you in the eye. You've seen this before? No. Nobody's seen this before and survived. That's the point.`;
       },
       choices: [
-        { label: "Quarantine. It's the only way.", desc: `Cat hardened. Colony safe.`, fx: { targetScar: true, fervor: 1, chainSet: "sickness_quarantine" } },
-        { label: "We stay together. All of us.", desc: "All cats -1 Power. No one alone.", fx: { allPowerLoss: true, chainSet: "sickness_spread" } },
-        { label: "Burn the rations for medicine.", desc: "-4 Rations. Full heal.", fx: { gold: -4, fullHeal: true } }
+        { label: "Separate them. I know. I know. Do it.", desc: `Cat hardened. Colony safe.`, fx: { targetScar: true, fervor: 1, chainSet: "sickness_quarantine" } },
+        { label: "Nobody leaves. Not for this.", desc: "All cats -1 Power. No one alone.", fx: { allPowerLoss: true, chainSet: "sickness_spread" } },
+        { label: "Burn the food. I don't care. Save them.", desc: "-4 Rations. Full heal.", fx: { gold: -4, fullHeal: true } }
       ]
     },
     {
@@ -1344,8 +1344,8 @@
         return `${n} survived the quarantine. Different now. Quieter. But when the others hesitate, ${n} moves first. Every time. You don't get that from rest. You get it from being left alone in the dark and finding out you're enough.`;
       },
       choices: [
-        { label: "You didn't break. Remember that.", desc: "Cat gains Stubborn.", fx: { targetNamedTrait: "Stubborn" } },
-        { label: "The colony needs what you became.", desc: "Cat +3 Power.", fx: { targetPower: 3 } }
+        { label: "You're still here. That means something.", desc: "Cat gains Stubborn.", fx: { targetNamedTrait: "Stubborn" } },
+        { label: "Whatever you went through made you this. We need this.", desc: "Cat +3 Power.", fx: { targetPower: 3 } }
       ]
     },
     {
@@ -1362,8 +1362,8 @@
         return `${a} and ${b} slept side by side through the worst of it. When the fever broke, neither would move more than a tail's length from the other. The sickness took something from everyone. But it gave those two each other.`;
       },
       choices: [
-        { label: "Let it become what it is.", desc: "Both bond. +1 Power each.", fx: { pactBond: true } },
-        { label: "The memory hardens them.", desc: "Both +2 Power.", fx: { bothPower: 2 } }
+        { label: "Let it happen. Some things you can't force.", desc: "Both bond. +1 Power each.", fx: { pactBond: true } },
+        { label: "Remember it. Let it make you harder.", desc: "Both +2 Power.", fx: { bothPower: 2 } }
       ]
     },
     // ——— ARC 3: THE WALL (3 events) ———
@@ -1375,8 +1375,8 @@
       tag: "survival",
       textFn: (_, ctx) => `Someone started stacking stones while the others slept. By morning there's half a wall. Not enough to stop anything real. But enough to say something real: we're not leaving. Question is whether you finish it or take it apart for what it's worth.`,
       choices: [
-        { label: "Finish what they started.", desc: "Den safe next phase. -2 Rations.", fx: { eventDenSafe: true, gold: -2, chainSet: "wall_built" } },
-        { label: "Stones are worth more loose.", desc: "+3 Rations.", fx: { gold: 3, chainSet: "wall_refused" } }
+        { label: "They started this wall. We finish it.", desc: "Den safe next phase. -2 Rations.", fx: { eventDenSafe: true, gold: -2, chainSet: "wall_built" } },
+        { label: "Leave the stones. Take what's useful.", desc: "+3 Rations.", fx: { gold: 3, chainSet: "wall_refused" } }
       ]
     },
     {
@@ -1388,8 +1388,8 @@
       tag: "hope",
       textFn: (_, ctx) => `Something hit the wall last night. Hard enough to crack the second row. Hard enough to wake every one of your ${ctx.colony} cats. But it held. Claw marks on the other side, deep ones. On this side: nothing. Just a colony, alive, staring at something they built that actually worked.`,
       choices: [
-        { label: "Repair it. Build it higher.", desc: "Den safe again. All cats +1 Power.", fx: { eventDenSafe: true, allPower: 1 } },
-        { label: "The lesson matters more than the wall.", desc: "+3 Nerve. You can build things that last.", fx: { fervor: 3 } }
+        { label: "Higher. Thicker. It won't fall again.", desc: "Den safe again. All cats +1 Power.", fx: { eventDenSafe: true, allPower: 1 } },
+        { label: "We learned something. That's worth more than stone.", desc: "+3 Nerve. You can build things that last.", fx: { fervor: 3 } }
       ]
     },
     {
@@ -1405,8 +1405,8 @@
         return `The rain came sideways. ${n} was closest to the entrance. Took the worst of it. Everyone's thinking the same thing. The stones you took apart would have been a wall. ${n}'s shivering. Nobody's saying it. Everyone's saying it.`;
       },
       choices: [
-        { label: "We should have built it.", desc: "Cat hardened. +2 Nerve.", fx: { targetScar: true, fervor: 2 } },
-        { label: "We'll build something better.", desc: "-3 Rations. Den safe.", fx: { gold: -3, eventDenSafe: true } }
+        { label: "I told you. I told you we needed the wall.", desc: "Cat hardened. +2 Nerve.", fx: { targetScar: true, fervor: 2 } },
+        { label: "Clear the rubble. We're starting over.", desc: "-3 Rations. Den safe.", fx: { gold: -3, eventDenSafe: true } }
       ]
     },
     // ——— ARC 4: THE DEBT (2 events) ———
@@ -1419,8 +1419,8 @@
       tag: "sacrifice",
       textFn: (_, ctx) => `A voice from the dark. Not hostile. Worse. Businesslike. "I kept something alive for you once. Before you knew this place existed. Now I need something in return." You can't see what's speaking. You're not sure you want to.`,
       choices: [
-        { label: "Pay in blood. Get it over with.", desc: "Random cat hardened. +4 Rations. +2 Nerve.", fx: { debtBlood: true, chainSet: "debt_paid" } },
-        { label: "We owe nothing to the dark.", desc: "50/50: +3 Nerve or -1 hand next round.", fx: { debtRefuse: true, chainSet: "debt_refused" } }
+        { label: "Take what you need. Just make it quick.", desc: "Random cat hardened. +4 Rations. +2 Nerve.", fx: { debtBlood: true, chainSet: "debt_paid" } },
+        { label: "We don't pay. Not to the dark. Not to anything.", desc: "50/50: +3 Nerve or -1 hand next round.", fx: { debtRefuse: true, chainSet: "debt_refused" } }
       ]
     },
     {
@@ -1432,8 +1432,8 @@
       tag: "sacrifice",
       textFn: (_, ctx) => `It came back. The voice. Quieter now. "I asked nicely last time." Two of your youngest cats are shaking. They can feel it. Whatever's out there, it remembers you said no.`,
       choices: [
-        { label: "Fine. Take what you're owed.", desc: "Two youngest cats -2 Power. +6 Rations.", fx: { weakDmg: true, gold: 6 } },
-        { label: "We said no. We meant it.", desc: "+4 Nerve. Nothing is free.", fx: { fervor: 4 } }
+        { label: "Fine. Take it and go.", desc: "Two youngest cats -2 Power. +6 Rations.", fx: { weakDmg: true, gold: 6 } },
+        { label: "I said no. I don't repeat myself.", desc: "+4 Nerve. Nothing is free.", fx: { fervor: 4 } }
       ]
     },
     // ——— ARC 5: THE FIRE (2 events) ———
@@ -1445,8 +1445,8 @@
       tag: "hope",
       textFn: (_, ctx) => `Nobody knows who started it. Maybe lightning. Maybe something kinder. But there's a fire now, burning in a ring of stones, and every cat in the colony is sitting around it like they were born for this exact moment. Funny thing about fire. You don't realize how cold you were until you're warm.`,
       choices: [
-        { label: "Tend it. Guard it. Keep it alive.", desc: "+2 Nerve. +1 Shelter.", fx: { fervor: 2, eventDenBonus: true, chainSet: "fire_tended" } },
-        { label: "Cook everything you've got.", desc: "+5 Rations. Practical wins.", fx: { gold: 5, chainSet: "fire_taken" } }
+        { label: "Keep it burning. Whatever it takes.", desc: "+2 Nerve. +1 Shelter.", fx: { fervor: 2, eventDenBonus: true, chainSet: "fire_tended" } },
+        { label: "Cook it all. Practical wins tonight.", desc: "+5 Rations. Practical wins.", fx: { gold: 5, chainSet: "fire_taken" } }
       ]
     },
     {
@@ -1462,8 +1462,8 @@
         return n > 0 ? `The fire's still burning. Nobody feeds it anymore. it just goes. The bonded pairs sit closest. ${n} pair${n > 1 ? "s" : ""}, warming each other and the flame. Something about this feels older than any of you. Like you're remembering something you never lived.` : `The fire's still burning. No one feeds it. No one needs to. It just keeps going. Remind you of anyone?`;
       },
       choices: [
-        { label: "Tell stories around it.", desc: "Bonded cats +2 Power. +1 Nerve.", fx: { bondedPower: 2, fervor: 1 } },
-        { label: "Some silences say more.", desc: "+3 Nerve.", fx: { fervor: 3 } }
+        { label: "Sit. I'll tell you about the ones before us.", desc: "Bonded cats +2 Power. +1 Nerve.", fx: { bondedPower: 2, fervor: 1 } },
+        { label: "Shh. Listen to the fire.", desc: "+3 Nerve.", fx: { fervor: 3 } }
       ]
     },
     // ——— ARC 6: THE ELDER (2 events) ———
@@ -1480,8 +1480,8 @@
         return tp >= 5 ? `${n} has fought more hands than anyone and the others know it. They don't look at ${n} with fear. It's closer to reverence. ${n} doesn't notice. Too busy surviving to see what they've become.` : `${n} sits at the back. Says nothing. But when the younger cats argue, they all glance toward ${n} first. Authority isn't given. It's accumulated.`;
       },
       choices: [
-        { label: "Teach them what you know.", desc: "Cat +2 Power. Colony learns.", fx: { targetPower: 2, chainSet: "elder_met" } },
-        { label: "Rest. You've earned it.", desc: "Cat healed. +1 Shelter.", fx: { targetHeal: true, eventDenBonus: true } }
+        { label: "Sit. Watch. I need to show you something.", desc: "Cat +2 Power. Colony learns.", fx: { targetPower: 2, chainSet: "elder_met" } },
+        { label: "Lie down. The colony can wait one night.", desc: "Cat healed. +1 Shelter.", fx: { targetHeal: true, eventDenBonus: true } }
       ]
     },
     {
@@ -1496,8 +1496,8 @@
         return `The elder started scratching marks into the wall at sunset. By midnight it's a map. Not of places. of relationships. Who bonds with whom. Who fights. Who carries. ${traits.length} cats with names worth remembering. The elder knows every single one.`;
       },
       choices: [
-        { label: "Study the map.", desc: "+3 Nerve. Bonded cats +1 Power.", fx: { fervor: 3, bondedPower: 1 } },
-        { label: "Add your own marks.", desc: "Random plain cat gains trait. +2 Rations.", fx: { targetTrait: true, gold: 2 } }
+        { label: "These marks. Someone drew them before us.", desc: "+3 Nerve. Bonded cats +1 Power.", fx: { fervor: 3, bondedPower: 1 } },
+        { label: "Hand me the charcoal. Our turn.", desc: "Random plain cat gains trait. +2 Rations.", fx: { targetTrait: true, gold: 2 } }
       ]
     },
     // ——— ESTABLISHING (Night 1-2) ———
@@ -1512,9 +1512,9 @@
         return `A dead colony's pantry. Still stocked. Isn't that always the way. they had enough food, they just didn't have enough time. You've got ${c} mouths and enough here for maybe half of them to care.`;
       },
       choices: [
-        { label: "Dead colony, full pantry. Take it.", desc: "+4 Rations.", fx: { gold: 4 } },
-        { label: "Feed the one who needs it most.", desc: "Best cat +3 Power. -2 Rations.", fx: { bestPower: 3, gold: -2 } },
-        { label: "Burn it. The warmth matters more.", desc: "+3 Nerve. All cats +1 Power. -4 Rations.", fx: { fervor: 3, allPower: 1, gold: -4 } }
+        { label: "They didn't make it. Their rations did.", desc: "+4 Rations.", fx: { gold: 4 } },
+        { label: "You. Eat. Don't argue.", desc: "Best cat +3 Power. -2 Rations.", fx: { bestPower: 3, gold: -2 } },
+        { label: "Light it up. We need warmth more than food.", desc: "+3 Nerve. All cats +1 Power. -4 Rations.", fx: { fervor: 3, allPower: 1, gold: -4 } }
       ]
     },
     {
@@ -1530,8 +1530,8 @@
         return `${n} brought something back. Dropped it at the entrance without a word and sat down. ${sc > 0 ? `Not the first to bleed for this colony. Won't be the last. But ${n} didn't need to be asked.` : `The others don't know what to do with it. ${n} does. ${n}'s known since before you got here.`}`;
       },
       choices: [
-        { label: "You've earned this.", desc: "Cat +2 Power. Cat hardened.", fx: { targetPower: 2, targetScar: true } },
-        { label: "Everyone eats tonight.", desc: "+3 Rations.", fx: { gold: 3 } }
+        { label: "Look at you. Look what you became.", desc: "Cat +2 Power. Cat hardened.", fx: { targetPower: 2, targetScar: true } },
+        { label: "Tonight, nobody goes hungry.", desc: "+3 Rations.", fx: { gold: 3 } }
       ]
     },
     {
@@ -1542,8 +1542,8 @@
       tag: "memory",
       textFn: (_, ctx) => `Scratched into the stone above the entrance: a name. Not a cat's name. A colony's name. The one that was here before. They carved it deep. Like they wanted someone to see it, even knowing no one would. But you see it. You're seeing it right now.`,
       choices: [
-        { label: "Add ours below theirs.", desc: "+2 Nerve. We were here.", fx: { fervor: 2 } },
-        { label: "Study their marks. Learn what they knew.", desc: "Random plain cat gains trait.", fx: { targetTrait: true } }
+        { label: "Give me the stone. I want to write our names.", desc: "+2 Nerve. We were here.", fx: { fervor: 2 } },
+        { label: "They knew something. It's in the scratches.", desc: "Random plain cat gains trait.", fx: { targetTrait: true } }
       ]
     },
     {
@@ -1560,8 +1560,8 @@
         return sc ? `${n} is sitting alone at the entrance. Scar catching the firelight. Not watching for danger. Just watching. Like they're memorizing what the dark looks like from the winning side.` : `${n} is sitting alone, watching the dark. Not afraid. Just... present. The others give them space. Some silences are worth more than plans.`;
       },
       choices: [
-        { label: "Sit with them. Say nothing.", desc: "Cat +1 Power. +1 Nerve.", fx: { targetPower: 1, fervor: 1 } },
-        { label: "Let them have this.", desc: "Cat gains Loyal. -2 Rations.", fx: { targetNamedTrait: "Loyal", gold: -2 } }
+        { label: "Just sit. You don't have to talk.", desc: "Cat +1 Power. +1 Nerve.", fx: { targetPower: 1, fervor: 1 } },
+        { label: "Don't interrupt. This is theirs.", desc: "Cat gains Loyal. -2 Rations.", fx: { targetNamedTrait: "Loyal", gold: -2 } }
       ]
     },
     // ——— PRESSURE (Night 2-3) ———
@@ -2394,7 +2394,7 @@
       },
       choices: [
         { label: "Let them lead.", desc: "Kindred hand type +2 mult this run.", fx: { kindredBoost: true } },
-        { label: "Spread the knowledge.", desc: "Random Plain cat learns the dominant trait.", fx: { teachDominant: true } }
+        { label: "Teach the others. Everyone learns.", desc: "Random Plain cat learns the dominant trait.", fx: { teachDominant: true } }
       ]
     },
     {
@@ -2409,8 +2409,8 @@
         return `${h.length} of your colony bear marks. They don't talk about how they got them. But tonight, they sit together. Apart from the others. Understanding something the unhurt never will.`;
       },
       choices: [
-        { label: "Let them be.", desc: "All hardened cats +1 Power.", fx: { hardenedBoost: true } },
-        { label: "Put them to use.", desc: "+4 Rations. The hardened always find a way.", fx: { gold: 4 } }
+        { label: "Leave them alone. Scars know what they're doing.", desc: "All hardened cats +1 Power.", fx: { hardenedBoost: true } },
+        { label: "You're tough. Be useful about it.", desc: "+4 Rations. The hardened always find a way.", fx: { gold: 4 } }
       ]
     },
     {
@@ -2425,8 +2425,8 @@
         return `${Math.floor(bp)} bonded pairs. The colony is built on love. That's not weakness. That's architecture.`;
       },
       choices: [
-        { label: "Celebrate them.", desc: "All bonded cats +1 Power. +3 mood.", fx: { bondBoost: true } },
-        { label: "Stay focused.", desc: "+2 Nerve. Love doesn't win fights alone.", fx: { fervor: 2 } }
+        { label: "Look at them. Look at what love does.", desc: "All bonded cats +1 Power. +3 mood.", fx: { bondBoost: true } },
+        { label: "Eyes forward. Love doesn't win fights.", desc: "+2 Nerve. Love doesn't win fights alone.", fx: { fervor: 2 } }
       ]
     },
     // ═══════════════════════════════════════════════════
@@ -2441,8 +2441,8 @@
       tag: "memory",
       textFn: (_, ctx) => `The dark remembers debts paid. Something was left at the entrance. A gift. Or a receipt.`,
       choices: [
-        { label: "Accept it. We earned this.", desc: "Find a ward. +2 Rations.", fx: { gold: 5, fervor: 1 } },
-        { label: "Leave it. We paid, but we're not friends.", desc: "+4 Nerve.", fx: { fervor: 4 } }
+        { label: "We earned this. Take it.", desc: "Find a ward. +2 Rations.", fx: { gold: 5, fervor: 1 } },
+        { label: "Walk away. We paid enough.", desc: "+4 Nerve.", fx: { fervor: 4 } }
       ]
     },
     {
@@ -2458,8 +2458,8 @@
         return `${n} sifts through the ashes. Something hardened by the heat. Changed.`;
       },
       choices: [
-        { label: "Keep digging.", desc: "Cat gains Scrapper. Cat hardened.", fx: { targetNamedTrait: "Scrapper", targetScar: true } },
-        { label: "Let the ashes scatter.", desc: "+3 Rations.", fx: { gold: 3 } }
+        { label: "Deeper. There's something under the ash.", desc: "Cat gains Scrapper. Cat hardened.", fx: { targetNamedTrait: "Scrapper", targetScar: true } },
+        { label: "Leave it. Ashes don't owe us anything.", desc: "+3 Rations.", fx: { gold: 3 } }
       ]
     },
     {
@@ -2471,8 +2471,8 @@
       tag: "belonging",
       textFn: () => `The one you turned away and then let in. They brought food without being asked. They have a name now.`,
       choices: [
-        { label: "You're one of us.", desc: "All cats +1 Power. +2 Nerve.", fx: { allPower: 1, fervor: 2 } },
-        { label: "Prove it tonight.", desc: "Random cat gains rare trait. -3 Rations.", fx: { rareTrait: true, gold: -3 } }
+        { label: "You're one of us now. Act like it.", desc: "All cats +1 Power. +2 Nerve.", fx: { allPower: 1, fervor: 2 } },
+        { label: "Show me. Tonight. In the dark.", desc: "Random cat gains rare trait. -3 Rations.", fx: { rareTrait: true, gold: -3 } }
       ]
     },
     {
@@ -2490,8 +2490,8 @@
         return eh.storm_shelter ? "The supplies you burned kept everyone alive. But everyone is still here." : eh.storm_shield ? "The strongest took the worst of it. The youngest are untouched." : "Everyone took their share. The bruises are equal. So is the bond.";
       },
       choices: [
-        { label: "We survived. That's the lesson.", desc: "All cats +1 Power.", fx: { allPower: 1 } },
-        { label: "Never again. Prepare.", desc: "+1 Shelter. +2 Nerve. -3 Rations.", fx: { eventDenSafe: true, fervor: 2, gold: -3 } }
+        { label: "We're alive. That's the only lesson.", desc: "All cats +1 Power.", fx: { allPower: 1 } },
+        { label: "Build the walls. Dig the trenches. Never again.", desc: "+1 Shelter. +2 Nerve. -3 Rations.", fx: { eventDenSafe: true, fervor: 2, gold: -3 } }
       ]
     }
   ];
@@ -2628,9 +2628,9 @@
         return inj > 0 ? `You find warmth where there should be none. A fire pit, maintained by no one, burning fuel that doesn't exist. ${inj} of your cats are hurting. They press close. The First Colony's last gift. Or their last trap.` : `You find warmth where there should be none. A fire pit, maintained by no one, burning fuel that doesn't exist. The First Colony starved behind perfect walls. This fire is all that remains of them.`;
       },
       choices: [
-        { label: "Tend the flame", desc: "+3 Nerve. All cats heal.", fx: { fervor: 3, fullHeal: true } },
-        { label: "Take the coals", desc: "+6 Rations", fx: { gold: 6 } },
-        { label: "Let it burn out", desc: "Best cat gains Mythic trait", fx: { rareTrait: true, specificTrait: "Eternal" } }
+        { label: "Keep it burning", desc: "+3 Nerve. All cats heal.", fx: { fervor: 3, fullHeal: true } },
+        { label: "Pocket the coals. We'll need them", desc: "+6 Rations", fx: { gold: 6 } },
+        { label: "Let it go. See what rises", desc: "Best cat gains Mythic trait", fx: { rareTrait: true, specificTrait: "Eternal" } }
       ]
     },
     {
@@ -2645,9 +2645,9 @@
         return `A wall. Built perfectly. Every stone placed with intention. Behind it: nothing. The Second Colony defended something that was already gone. Your ${c} study the craftsmanship. The question is whether to build on ruin.`;
       },
       choices: [
-        { label: "Tear it down", desc: "+2 Hands next round", fx: { tempHands: 2 } },
-        { label: "Build upon it", desc: "Den is safe next phase", fx: { eventDenSafe: true } },
-        { label: "Study the stones", desc: "Random cat gains a trait", fx: { targetTrait: true } }
+        { label: "Pull it apart. Use the pieces", desc: "+2 Hands next round", fx: { tempHands: 2 } },
+        { label: "Build on top. Make it ours", desc: "Den is safe next phase", fx: { eventDenSafe: true } },
+        { label: "Read the stones. Someone left a message", desc: "Random cat gains a trait", fx: { targetTrait: true } }
       ]
     },
     {
@@ -2662,9 +2662,9 @@
         return bd > 0 ? `A nest. Woven from materials that don't grow here anymore. Inside: tiny bones, curled together. She tried to keep them warm. She tried so hard. Your ${bd} bonded cats understand. They look away first.` : `A nest. Woven from materials that don't grow here anymore. Inside: tiny bones, curled together. The Third Colony's leader loved every one of them. That was her mistake. And her gift.`;
       },
       choices: [
-        { label: "Grieve", desc: "All bonded cats +2 Power", fx: { bondedPower: 2 } },
-        { label: "Promise", desc: "+4 Nerve", fx: { fervor: 4 } },
-        { label: "Carry the bones", desc: "A kitten appears. P1. Phoenix trait.", fx: { addPhoenixKitten: true } }
+        { label: "Sit. Remember. Cry if you need to", desc: "All bonded cats +2 Power", fx: { bondedPower: 2 } },
+        { label: "Swear it. On their names", desc: "+4 Nerve", fx: { fervor: 4 } },
+        { label: "Bring them with us. They deserve that", desc: "A kitten appears. P1. Phoenix trait.", fx: { addPhoenixKitten: true } }
       ]
     },
     {
@@ -2679,9 +2679,9 @@
         return hs > 1e4 ? `Scratched into the floor: a number. Their best score. Their last score. The one that wasn't enough. You've scored higher. The number stares at you like a dare anyway.` : `Scratched into the floor: a number. Their best score. Their last score. The one that wasn't enough. The Eighth Colony came this close. One hand short. The number stares at you like a dare.`;
       },
       choices: [
-        { label: "Beat it", desc: "Next hand \u226550% of target? +6 Nerve. Else \u22123.", fx: { dareBet: true } },
-        { label: "Honor it", desc: "+5 Rations. Some things need witnessing.", fx: { gold: 5 } },
-        { label: "Erase it", desc: "Best cat gains Scrapper", fx: { targetScrapper: true } }
+        { label: "Watch this. Hold my rations", desc: "Next hand \u226550% of target? +6 Nerve. Else \u22123.", fx: { dareBet: true } },
+        { label: "Bow your head. Witness", desc: "+5 Rations. Some things need witnessing.", fx: { gold: 5 } },
+        { label: "Scratch it out. We write our own", desc: "Best cat gains Scrapper", fx: { targetScrapper: true } }
       ]
     },
     {
@@ -2697,8 +2697,8 @@
         return f > 0 ? `Every name. Every colony. Scratched, painted, burned into stone. Hundreds of names you will never know. Below them, space for ${c} more. And ${f} empty spaces where names should have been.` : `Every name. Every colony. Scratched, painted, burned into stone. Hundreds of names you will never know. And below them, space for exactly ${c} more. Your cats' names. There is exactly enough room.`;
       },
       choices: [
-        { label: "Write their names", desc: "All cats +1 Power", fx: { allPower: 1 } },
-        { label: "Leave it blank", desc: "+5 Nerve. Names are for the living.", fx: { fervor: 5 } }
+        { label: "Every name. Every single one", desc: "All cats +1 Power", fx: { allPower: 1 } },
+        { label: "No names. Names are for the living", desc: "+5 Nerve. Names are for the living.", fx: { fervor: 5 } }
       ]
     }
   ];
@@ -4310,12 +4310,12 @@
       let style = "plain";
       if (catIsKitten(cat2)) style = "kitten";
       else if (hasTier("mythic") || hasT("Eternal") || hasT("Phoenix")) style = "mythic";
-      else if (hasTier("legendary") && power >= 8) style = "noble";
+      else if (hasTier("legendary") && power >= 8) style = "regal";
       else if (tp >= 10) style = "elder";
       else if (hasT("Scrapper") || hasT("Alpha") || hasT("Guardian") || cat2.scarred) style = "alert";
       else if (hasT("Wild") || hasT("Chimera") || hasT("Feral") || hasT("Cursed")) style = "wild";
       else if (hasT("Devoted") || hasT("Loyal") || hasT("Scavenger")) style = "gentle";
-      else if (hasT("Seer") || hasTier("legendary")) style = "noble";
+      else if (hasT("Seer") || hasTier("legendary")) style = "regal";
       else if (allT.length > 0) style = "alert";
       return PORTRAIT_BASE + style + "-" + season + ".png";
     } catch (e) {
@@ -4447,7 +4447,7 @@
         lineHeight: 1,
         textShadow: "0 0 8px " + ng
       } }, cat2.power)),
-      (cat2.injured || cat2.scarred || cat2.bondedTo || (cat2.grudgedWith || []).length > 0 || cat2.parentIds?.length > 0 || cat2._hearthChild) && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 5, display: "flex", gap: 0, justifyContent: "center" } }, cat2._hearthChild && /* @__PURE__ */ React.createElement("div", { title: "Hearth Legend: returned to guide this colony. Cannot be saved back.", style: {
+      (cat2.injured || !sm && (cat2.scarred || cat2.bondedTo || (cat2.grudgedWith || []).length > 0 || cat2.parentIds?.length > 0 || cat2._hearthChild)) && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 5, display: "flex", gap: 0, justifyContent: "center" } }, cat2._hearthChild && !sm && /* @__PURE__ */ React.createElement("div", { title: "Hearth Legend: returned to guide this colony. Cannot be saved back.", style: {
         background: "linear-gradient(180deg,#fbbf2433,#fbbf2411)",
         padding: sm ? "2px 4px" : "3px 5px",
         fontSize: sm ? 9 : 11,
@@ -4455,7 +4455,7 @@
         lineHeight: 1,
         fontWeight: 700,
         borderBottom: "1px solid #fbbf2444"
-      } }, "\u{1F525}"), cat2.injured && /* @__PURE__ */ React.createElement("div", { title: "Injured: half power, \u22122 mult. Heals in 1-2 rounds.", style: {
+      } }, "\u{1F525}"), cat2.injured && /* @__PURE__ */ React.createElement("div", { title: "Injured: half power, \u22122 bonus. Heals in 1-2 rounds.", style: {
         background: "linear-gradient(180deg,#ef444433,#ef444411)",
         padding: sm ? "2px 4px" : "3px 5px",
         fontSize: sm ? 9 : 11,
@@ -4463,42 +4463,42 @@
         lineHeight: 1,
         fontWeight: 700,
         borderBottom: "1px solid #ef444444"
-      } }, "\u271A"), !cat2.injured && cat2.scarred && /* @__PURE__ */ React.createElement("div", { title: "Hardened: permanent \xD71.25 mult bonus. A badge of survival.", style: {
+      } }, "\u271A"), !cat2.injured && cat2.scarred && !sm && /* @__PURE__ */ React.createElement("div", { title: "Hardened: permanent \xD71.25 bonus. A badge of survival.", style: {
         background: "linear-gradient(180deg,#fbbf2433,#fbbf2411)",
-        padding: sm ? "2px 4px" : "3px 5px",
-        fontSize: sm ? 9 : 11,
+        padding: "3px 5px",
+        fontSize: 11,
         color: "#fbbf24",
         lineHeight: 1,
         fontWeight: 700,
         borderBottom: "1px solid #fbbf2444"
-      } }, "\u2694"), cat2.bondedTo && !cat2._mateDied && /* @__PURE__ */ React.createElement("div", { title: "Bonded: \xD71.5 bonus when played with partner.", style: {
+      } }, "\u2694"), cat2.bondedTo && !cat2._mateDied && !sm && /* @__PURE__ */ React.createElement("div", { title: "Bonded: \xD71.5 bonus when played with partner.", style: {
         background: "linear-gradient(180deg,#f472b633,#f472b611)",
-        padding: sm ? "2px 4px" : "3px 5px",
-        fontSize: sm ? 9 : 11,
+        padding: "3px 5px",
+        fontSize: 11,
         color: "#f472b6",
         lineHeight: 1,
         fontWeight: 700,
         borderBottom: "1px solid #f472b644"
-      } }, "\u2661"), cat2._mateDied && /* @__PURE__ */ React.createElement("div", { title: "Lost their partner. Carries two names now.", style: {
+      } }, "\u2661"), cat2._mateDied && !sm && /* @__PURE__ */ React.createElement("div", { title: "Lost their partner. Carries two names now.", style: {
         background: "linear-gradient(180deg,#ef444433,#ef444411)",
-        padding: sm ? "2px 4px" : "3px 5px",
-        fontSize: sm ? 9 : 11,
+        padding: "3px 5px",
+        fontSize: 11,
         color: "#ef4444",
         lineHeight: 1,
         fontWeight: 700,
         borderBottom: "1px solid #ef444444"
-      } }, "\u{1F494}"), (cat2.grudgedWith || []).length > 0 && /* @__PURE__ */ React.createElement("div", { title: "Grudge: \u22122 mult when played with rival.", style: {
+      } }, "\u{1F494}"), (cat2.grudgedWith || []).length > 0 && !sm && /* @__PURE__ */ React.createElement("div", { title: "Grudge: \u22122 bonus when played with rival.", style: {
         background: "linear-gradient(180deg,#fb923c33,#fb923c11)",
-        padding: sm ? "2px 4px" : "3px 5px",
-        fontSize: sm ? 9 : 11,
+        padding: "3px 5px",
+        fontSize: 11,
         color: "#fb923c",
         lineHeight: 1,
         fontWeight: 700,
         borderBottom: "1px solid #fb923c44"
-      } }, "\u26A1"), cat2.parentIds && cat2.parentIds.length > 0 && /* @__PURE__ */ React.createElement("div", { title: `Born in the den${cat2.stats?.par ? ", parents: " + cat2.stats.par : ""}`, style: {
+      } }, "\u26A1"), cat2.parentIds && cat2.parentIds.length > 0 && !sm && /* @__PURE__ */ React.createElement("div", { title: `Born in the den${cat2.stats?.par ? ", parents: " + cat2.stats.par : ""}`, style: {
         background: "linear-gradient(180deg,#c084fc33,#c084fc11)",
-        padding: sm ? "2px 4px" : "3px 5px",
-        fontSize: sm ? 9 : 11,
+        padding: "3px 5px",
+        fontSize: 11,
         color: "#c084fc",
         lineHeight: 1,
         fontWeight: 700,
@@ -4555,16 +4555,25 @@
         fontSize: xs ? 8 : sm ? 10 : 13,
         lineHeight: 1,
         zIndex: 1
-      } }, isWild ? "\u2726" : b.icon)), /* @__PURE__ */ React.createElement("div", { style: { background: "#0d1117", padding: sm ? "1px 4px 4px" : "2px 8px 5px", textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: {
-        fontSize: xs ? 7 : sm ? fn.length > 7 ? 8 : fn.length > 5 ? 9 : 10 : fn.length > 8 ? 10 : fn.length > 6 ? 11 : 13,
+      } }, isWild ? "\u2726" : b.icon)), !sm && /* @__PURE__ */ React.createElement("div", { style: { background: "#0d1117", padding: "2px 8px 5px", textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: {
+        fontSize: fn.length > 8 ? 10 : fn.length > 6 ? 11 : 13,
         fontWeight: 700,
         color: neon,
-        letterSpacing: xs ? 0 : sm ? 0 : fn.length > 7 ? 1 : 3,
+        letterSpacing: fn.length > 7 ? 1 : 3,
         textShadow: "0 0 6px " + ng,
         textTransform: "uppercase",
         lineHeight: 1.2,
         whiteSpace: "nowrap"
-      } }, fn, /* @__PURE__ */ React.createElement("span", { style: { fontSize: xs ? 7 : sm ? 9 : 11, fontWeight: 700, marginLeft: 2, color: cat2.sex === "M" ? "#60a5fa" : "#f472b6" } }, cat2.sex === "M" ? "\u2642" : "\u2640"))))
+      } }, fn, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, fontWeight: 700, marginLeft: 2, color: cat2.sex === "M" ? "#60a5fa" : "#f472b6" } }, cat2.sex === "M" ? "\u2642" : "\u2640"))), sm && /* @__PURE__ */ React.createElement("div", { style: { background: "#0d1117", padding: "1px 4px 3px", textAlign: "center", height: 12 } }, /* @__PURE__ */ React.createElement("div", { style: {
+        fontSize: 7,
+        fontWeight: 700,
+        color: neon + "aa",
+        letterSpacing: 0,
+        textTransform: "uppercase",
+        lineHeight: 1.2,
+        whiteSpace: "nowrap",
+        overflow: "hidden"
+      } }, fn)))
     );
   }
   const CC = React.memo(_CC);
@@ -5142,6 +5151,10 @@
           setRMaxF((m) => Math.max(m, nx));
           setFFlash("up");
           Audio.nerveUp();
+          if (ferv <= 1 && !seen.nerveExplain) {
+            setSeen((s2) => ({ ...s2, nerveExplain: true }));
+            setTimeout(() => toast("\u{1F525}", "Nerve went up! It multiplies ALL your scores. Clear rounds to build it higher.", "#fbbf24", 4500), 800);
+          }
         }
       }
       setTimeout(() => setFFlash(null), 400);
@@ -5875,7 +5888,7 @@
                 setTimeout(() => setInjuredFlash(null), 2500);
                 if (isFirstRun && !seen.injury) {
                   setSeen((s) => ({ ...s, injury: true }));
-                  setTimeout(() => toast("\u{1F4A1}", "Injured cats play at half power. Camp heals them.", "#ef4444", 5e3), 2e3);
+                  setTimeout(() => toast("\u{1F4A1}", "Injured cats score half. Leave them unplayed \u2014 they still help from the bench. Camp heals them.", "#ef4444", 6e3), 2e3);
                 }
                 if (victim._newEpithet) {
                   delete victim._newEpithet;
@@ -6545,6 +6558,7 @@
           setMeta(u);
           await saveS(u);
           setHearthPair(null);
+          toast("\u{1F3E0}", "Their children will find you in future runs.", "#fbbf24", 3500);
           savingRef.current = false;
         } else {
           setHearthPair(newPair);
@@ -6732,6 +6746,7 @@
       setFams((fs) => [...fs, clean]);
       setSFams((s) => s.filter((_, j) => j !== i));
       toast(f.icon, `${f.name} watches over you`, "#fbbf24");
+      if (fams.length === 0 && runCount <= 1) setTimeout(() => toast("\u{1F4A1}", "You'll earn more rations next round. Spend wisely but don't hoard.", "#fbbf24aa", 3500), 1500);
     }
     function buyScroll(i) {
       const s = sScrolls[i];
@@ -7235,12 +7250,12 @@
           if (ds < results.length) {
             denSound(results[ds]);
             const r = results[ds];
-            const delay = r.type === "death" ? 720 : r.type === "breed" ? 560 : r.type === "bond" || r.type === "reconcile_bond" ? 480 : r.type === "fight" ? 440 : r.type === "grudge" || r.type === "reconcile" ? 400 : 320;
+            const delay = r.type === "death" ? 2e3 : r.type === "breed" ? 560 : r.type === "bond" || r.type === "reconcile_bond" ? 480 : r.type === "fight" ? 440 : r.type === "grudge" || r.type === "reconcile" ? 400 : 320;
             denStRef.current = setTimeout(denAnim, delay);
           }
         };
         const first = results[0];
-        const firstDelay = first.type === "death" ? 720 : first.type === "breed" ? 560 : first.type === "bond" ? 480 : 400;
+        const firstDelay = first.type === "death" ? 2e3 : first.type === "breed" ? 560 : first.type === "bond" ? 480 : 400;
         denStRef.current = setTimeout(denAnim, firstDelay);
       }
     }
@@ -8411,7 +8426,7 @@
     if (ph === "firstIntro") {
       const pages = [
         // Page 0: THE HEARTH — emotional hook, the fire, the stakes
-        () => /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 56, animation: "float 3s ease-in-out infinite", filter: "drop-shadow(0 0 30px #fbbf2444)" } }, "\u{1F525}"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 20, fontWeight: 900, color: "#fbbf24", letterSpacing: 6, animation: "fadeIn .8s ease-out", textShadow: "0 0 30px #fbbf2433" } }, "THE LAST HEARTH"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#ffffffbb", textAlign: "center", maxWidth: 320, lineHeight: 2.2, animation: "fadeIn 1.2s ease-out" } }, "A fire still burns. Cats are gathering."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ffffff88", textAlign: "center", maxWidth: 300, lineHeight: 1.9, animation: "fadeIn 1.8s ease-out" } }, "Strays. Fighters. Survivors.", /* @__PURE__ */ React.createElement("br", null), "They need someone to remember their names."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#fbbf24cc", textAlign: "center", maxWidth: 320, lineHeight: 1.8, animation: "fadeIn 2.5s ease-out", marginTop: 8, fontWeight: 600 } }, "That's you.", /* @__PURE__ */ React.createElement("br", null), "Keep the fire burning.")),
+        () => /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 56, animation: "float 3s ease-in-out infinite", filter: "drop-shadow(0 0 30px #fbbf2444)" } }, "\u{1F525}"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 20, fontWeight: 900, color: "#fbbf24", letterSpacing: 6, animation: "fadeIn .8s ease-out", textShadow: "0 0 30px #fbbf2433" } }, "THE LAST HEARTH"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#ffffffbb", textAlign: "center", maxWidth: 320, lineHeight: 2.2, animation: "fadeIn 1.2s ease-out" } }, "A fire still burns. Cats are gathering."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ffffff88", textAlign: "center", maxWidth: 300, lineHeight: 1.9, animation: "fadeIn 1.8s ease-out" } }, "Strays. Fighters. Survivors.", /* @__PURE__ */ React.createElement("br", null), "They need someone to remember their names."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#fbbf24cc", textAlign: "center", maxWidth: 320, lineHeight: 1.8, animation: "fadeIn 2.5s ease-out", marginTop: 8, fontWeight: 600 } }, "That's you.", /* @__PURE__ */ React.createElement("br", null), "Keep the fire burning."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ffffff33", textAlign: "center", maxWidth: 280, lineHeight: 1.6, animation: "fadeIn 3s ease-out", marginTop: 4 } }, "Draft cats. Play them together. Score enough to survive.")),
         // Page 1: THE RULE — one rule, one truth, into the draft
         () => /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 10, justifyContent: "center", animation: "fadeIn .6s ease-out", marginBottom: 8 } }, ["Autumn", "Winter", "Spring", "Summer"].map((s) => {
           const b = BREEDS[s];
@@ -8745,8 +8760,8 @@
           border: `1.5px solid ${glowColor}15`,
           background: `linear-gradient(145deg,${glowColor}06,#ffffff02,${glowColor}04)`,
           boxShadow: `0 4px 30px ${glowColor}11`
-        } }, /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "16px 24px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: `${glowColor}66`, letterSpacing: 3, marginBottom: 4 } }, "TARGET"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isFirstEver ? 34 : 28, fontWeight: 900, color: glowColor, textShadow: `0 0 20px ${glowColor}33` } }, ncTgt.toLocaleString())), /* @__PURE__ */ React.createElement("div", { style: { width: 1, background: "#ffffff08" } }), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "16px 20px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#3b82f688", letterSpacing: 3, marginBottom: 4 } }, "HANDS"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isFirstEver ? 34 : 28, fontWeight: 900, color: "#3b82f6" } }, hLeft)), /* @__PURE__ */ React.createElement("div", { style: { width: 1, background: "#ffffff08" } }), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "16px 20px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef444488", letterSpacing: 3, marginBottom: 4 } }, "DISCARDS"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isFirstEver ? 34 : 28, fontWeight: 900, color: "#ef4444" } }, ncDiscs)));
-      })(), isFirstEver && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#4ade80bb", animation: "fadeIn 2s ease-out .8s both", marginTop: 12 } }, "Tap cats ", "\u2192", " Play Hand ", "\u2192", " Beat ", ncTgt.toLocaleString()), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff55", marginTop: 20, animation: `fadeIn 2s ease-out ${isFirstEver ? 1.2 : 0.6}s both` } }, "tap to begin")));
+        } }, /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "16px 24px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: `${glowColor}66`, letterSpacing: 3, marginBottom: 4 } }, "SCORE TARGET"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isFirstEver ? 34 : 28, fontWeight: 900, color: glowColor, textShadow: `0 0 20px ${glowColor}33` } }, ncTgt.toLocaleString())), /* @__PURE__ */ React.createElement("div", { style: { width: 1, background: "#ffffff08" } }), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "16px 20px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#3b82f688", letterSpacing: 3, marginBottom: 4 } }, "HANDS"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isFirstEver ? 34 : 28, fontWeight: 900, color: "#3b82f6" } }, hLeft)), /* @__PURE__ */ React.createElement("div", { style: { width: 1, background: "#ffffff08" } }), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "16px 20px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef444488", letterSpacing: 3, marginBottom: 4 } }, "DISCARDS"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: isFirstEver ? 34 : 28, fontWeight: 900, color: "#ef4444" } }, ncDiscs)));
+      })(), isFirstEver && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#4ade80bb", animation: "fadeIn 2s ease-out .8s both", marginTop: 12 } }, "Tap cats ", "\u2192", " Play ", "\u2192", " Score ", ncTgt.toLocaleString(), " to survive"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff55", marginTop: 20, animation: `fadeIn 2s ease-out ${isFirstEver ? 1.2 : 0.6}s both` } }, "tap to begin")));
     }
     if (ph === "colonyFormed" && colonyData) {
       const { chosen, strays, strayOffset } = colonyData;
@@ -8898,7 +8913,7 @@
         background: "linear-gradient(0deg,#d9770644,#fbbf2444)",
         animation: `breathe ${1.8 + i * 0.3}s ease-in-out ${i * 0.3}s infinite`,
         opacity: 0.3
-      } }))), meta && meta.cats.length >= 1 && meta.cats.length <= 4 && meta.stats.w <= 2 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf2477", fontStyle: "italic", letterSpacing: 2, animation: "fadeIn 3s ease-out" } }, meta.cats.length === 1 ? `${meta.cats[0].name.split(" ")[0]} watches from the warm side.` : meta.cats.length === 2 ? `${meta.cats[0].name.split(" ")[0]} and ${meta.cats[1].name.split(" ")[0]}. The Founders.` : `The Hearth burns. ${meta.cats.slice(0, 3).map((c) => c.name.split(" ")[0]).join(", ")} watch.`), /* @__PURE__ */ React.createElement("h1", { style: { fontSize: "clamp(36px,8vw,58px)", fontWeight: 700, letterSpacing: "clamp(8px,2vw,18px)", lineHeight: 1, background: (meta?.achv || []).includes("completionist") ? "linear-gradient(135deg,#c084fc,#fef08a,#4ade80,#67e8f9)" : "linear-gradient(180deg,#fef08a,#fbbf24,#b85c2c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: 0, textTransform: "uppercase", filter: "drop-shadow(0 0 30px #fbbf2418)" } }, "NINTH LIFE", meta?.ninthDawnCleared ? " \u{1F305}" : ""), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#999999bb", letterSpacing: 4, fontWeight: 300, lineHeight: 1.6, animation: "fadeIn 2.5s ease-out", textTransform: "uppercase" } }, "Cats are cards \xB7 Seasons are suits \xB7 Survive the dark"), (() => {
+      } }))), meta && meta.cats.length >= 1 && meta.cats.length <= 4 && meta.stats.w <= 2 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf2477", fontStyle: "italic", letterSpacing: 2, animation: "fadeIn 3s ease-out" } }, meta.cats.length === 1 ? `${meta.cats[0].name.split(" ")[0]} watches from the warm side.` : meta.cats.length === 2 ? `${meta.cats[0].name.split(" ")[0]} and ${meta.cats[1].name.split(" ")[0]}. The Founders.` : `The Hearth burns. ${meta.cats.slice(0, 3).map((c) => c.name.split(" ")[0]).join(", ")} watch.`), /* @__PURE__ */ React.createElement("h1", { style: { fontSize: "clamp(36px,8vw,58px)", fontWeight: 700, letterSpacing: "clamp(8px,2vw,18px)", lineHeight: 1, background: (meta?.achv || []).includes("completionist") ? "linear-gradient(135deg,#c084fc,#fef08a,#4ade80,#67e8f9)" : "linear-gradient(180deg,#fef08a,#fbbf24,#b85c2c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: 0, textTransform: "uppercase", filter: "drop-shadow(0 0 30px #fbbf2418)" } }, "NINTH LIFE", meta?.ninthDawnCleared ? " \u{1F305}" : ""), (!meta || meta.stats.r === 0) && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ffffff33", letterSpacing: 3, marginTop: -2 } }, "A cat colony survival game"), (!meta || meta.stats.r === 0) && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ffffff33", letterSpacing: 3, marginTop: -2 } }, "A cat colony survival game"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#999999bb", letterSpacing: 4, fontWeight: 300, lineHeight: 1.6, animation: "fadeIn 2.5s ease-out", textTransform: "uppercase" } }, "Cats are cards \xB7 Seasons are suits \xB7 Survive the dark"), (() => {
         const ch = getChapterTitle(meta);
         return ch ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fc88", letterSpacing: 4, animation: "fadeIn 3s ease-out" } }, "Chapter ", ch.num, " \xB7 ", ch.name) : null;
       })(), meta && meta.stats.r >= 1 && (() => {
@@ -9058,7 +9073,14 @@
           const tr = TRAITS.find((t) => t.name === c.trait.name) || c.trait;
           const perCat = calcHearthDust([c])[0].dust;
           return /* @__PURE__ */ React.createElement("div", { key: `h${i}`, style: { textAlign: "center", position: "relative" }, onClick: () => {
-            if (c.story) toast(BREEDS[c.breed]?.icon || "\u{1F431}", c.story, BREEDS[c.breed]?.color || "#fbbf24");
+            const legacyLines = [c.name];
+            if (c.epithet) legacyLines.push(c.epithet);
+            if (c.savedAt) legacyLines.push("Saved run #" + (c.savedAt || "?"));
+            if (c.stats?.bs) legacyLines.push("Best hand: " + c.stats.bs.toLocaleString());
+            if (c.stats?.tp) legacyLines.push(c.stats.tp + " hands played");
+            const childCount = (meta.cats || []).filter((x) => x._hearthParents && x._hearthParents.includes(c.name.split(" ")[0])).length;
+            if (childCount > 0) legacyLines.push(childCount + " descendant" + (childCount > 1 ? "s" : "") + " in draft pools");
+            toast(BREEDS[c.breed]?.icon || "\u{1F431}", legacyLines.join(" \xB7 "), BREEDS[c.breed]?.color || "#fbbf24", 4e3);
           } }, /* @__PURE__ */ React.createElement(CC, { cat: { ...c, id: `ht${i}`, trait: tr }, sm: true }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: "#c084fc", marginTop: 1, textShadow: "0 0 6px #c084fc44" } }, "+", perCat, "\u2726"), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
             e.stopPropagation();
             const pairCats = c.pairId ? meta.cats.filter((x) => x.pairId === c.pairId) : meta.cats.filter((x) => x.name === c.name && x.savedAt === c.savedAt);
@@ -9722,7 +9744,21 @@ ${deficit < defeatData.target * 0.1 ? "So close." : "The dark remembers."}
       return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", zIndex: 1, gap: 12, padding: 20, maxWidth: 500 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24aa", letterSpacing: 4, animation: "fadeIn .8s ease-out" } }, "COLONY #", (meta?.stats?.r || 0) + 1, " \xB7 NIGHT ", ante), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 36, fontWeight: 900, color: "#e8e6e3", letterSpacing: 2, animation: "fadeIn 1s ease-out" } }, defeatData.score.toLocaleString()), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 12, fontSize: 11, color: "#888", animation: "fadeIn 1.2s ease-out" } }, /* @__PURE__ */ React.createElement("span", null, handsPlayed, " hands"), /* @__PURE__ */ React.createElement("span", null, allC.length, " cats"), fallen.length > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444" } }, fallen.length, " lost")), runLog.length > 2 && (() => {
         const bestH = runLog.filter((e) => e.type === "hand").reduce((best, e) => (e.data?.score || 0) > (best?.data?.score || 0) ? e : best, null);
         return bestH ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#fbbf24", textAlign: "center", animation: "fadeIn 1.5s ease-out" } }, "\u2726 Best: ", bestH.data.cats, " ", bestH.data.type, " for ", bestH.data.score.toLocaleString()) : null;
-      })(), /* @__PURE__ */ React.createElement("div", { style: { width: 40, height: 1, background: "#ef444433", margin: "4px 0" } }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ef4444aa", fontStyle: "italic", textAlign: "center", maxWidth: 340, lineHeight: 1.7, animation: "fadeIn 1.8s ease-out" } }, defSentence), deficit > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef444477", animation: "fadeIn 2s ease-out" } }, deficit.toLocaleString(), " short of ", defeatData.target.toLocaleString()), fallen.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center", animation: "fadeIn 2.2s ease-out" } }, fallen.map((f, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { fontSize: 10, color: BREEDS[f.breed]?.color || "#888", opacity: 0.5 } }, f.name.split(" ")[0]))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, animation: "fadeIn 2.5s ease-out", marginTop: 4 } }, /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      })(), /* @__PURE__ */ React.createElement("div", { style: { width: 40, height: 1, background: "#ef444433", margin: "4px 0" } }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ef4444aa", fontStyle: "italic", textAlign: "center", maxWidth: 340, lineHeight: 1.7, animation: "fadeIn 1.8s ease-out" } }, defSentence), deficit > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef444477", animation: "fadeIn 2s ease-out" } }, deficit.toLocaleString(), " short of ", defeatData.target.toLocaleString()), fallen.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center", animation: "fadeIn 2.2s ease-out" } }, fallen.map((f, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { fontSize: 10, color: BREEDS[f.breed]?.color || "#888", opacity: 0.5 } }, f.name.split(" ")[0]))), runLog.length > 2 && /* @__PURE__ */ React.createElement("details", { style: { animation: "fadeIn 2.5s ease-out", maxWidth: 340, width: "100%" } }, /* @__PURE__ */ React.createElement("summary", { style: { fontSize: 10, color: "#666", cursor: "pointer", textAlign: "center", letterSpacing: 2 } }, "THE CHRONICLE"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 3, marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#ffffff04", border: "1px solid #ffffff08" } }, (() => {
+        const moments = [];
+        const bestH = runLog.filter((e) => e.type === "hand").reduce((best, e) => (e.data?.score || 0) > (best?.data?.score || 0) ? e : best, null);
+        if (bestH) moments.push({ text: `Best: ${bestH.data.cats} ${bestH.data.type} for ${bestH.data.score.toLocaleString()}`, color: "#fbbf24", icon: "\u2726" });
+        const firstDeath = runLog.find((e) => e.type === "death");
+        if (firstDeath) moments.push({ text: `${firstDeath.data?.name || "Someone"} fell. Night ${firstDeath.ante || "?"}.`, color: "#ef4444", icon: "\u{1F480}" });
+        const firstBond = runLog.find((e) => e.type === "bond" || e.type === "breed");
+        if (firstBond && firstBond.data) moments.push({ text: `${firstBond.data.c1 || firstBond.data.parent1 || "?"} and ${firstBond.data.c2 || firstBond.data.parent2 || "?"} found each other.`, color: "#f472b6", icon: "\u{1F495}" });
+        const firstEpithet = runLog.find((e) => e.type === "epithet");
+        if (firstEpithet) moments.push({ text: `${firstEpithet.data?.name || "Someone"} earned a title.`, color: "#fbbf24", icon: "\u{1F3F7}\uFE0F" });
+        if (fallen.length > 0) moments.push({ text: `${fallen.length} name${fallen.length > 1 ? "s" : ""} lost before the end.`, color: "#ef4444", icon: "\u{1F56F}\uFE0F" });
+        const survivors = allC.filter((c) => c.epithet);
+        if (survivors.length > 0) moments.push({ text: survivors.map((c) => c.name).join(", ") + ". Titles that outlived the colony.", color: "#fbbf24", icon: "\u2726" });
+        return moments.map((m, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", gap: 6, alignItems: "center", fontSize: 10, color: m.color, lineHeight: 1.4 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, opacity: 0.6, flexShrink: 0 } }, m.icon), /* @__PURE__ */ React.createElement("span", null, m.text)));
+      })())), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, animation: "fadeIn 2.5s ease-out", marginTop: 4 } }, /* @__PURE__ */ React.createElement("button", { onClick: () => {
         setDefeatData(null);
         setPh("gameOver");
       }, style: { ...BTN("linear-gradient(135deg,#ef4444,#dc2626)", "#fff"), padding: "10px 32px", fontSize: 14 } }, "Continue"), /* @__PURE__ */ React.createElement("button", { onClick: () => {
@@ -9876,6 +9912,7 @@ ${deficit < defeatData.target * 0.1 ? "So close." : "The dark remembers."}
           setMeta(u);
           await saveS(u);
           setHearthPair(null);
+          toast("\u{1F3E0}", "Their children will find you in future runs.", "#fbbf24", 3500);
         }, style: { ...BTN("#333", "#fb923c"), padding: "4px 12px", fontSize: 10, marginLeft: 8 } }, "Save alone")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 5, flexWrap: "wrap", justifyContent: "center", maxHeight: 300, overflowY: "auto" } }, availCands.filter((c) => !pickedIds.includes(c.id) && !pickedIds.includes(c.name)).slice(0, 12).map((c) => {
           const b = BREEDS[c.breed];
           const hVal = calcHearthDust([{ ...c, fromAnte: ante }])[0].dust;
@@ -9923,7 +9960,7 @@ The fire still burns.
       const nightText = NIGHT_FLAVOR[Math.min(ante - 1, 4)];
       const mob2 = vw < 500;
       const denCardW = mob2 ? Math.max(44, Math.min(64, Math.floor((vw - 40) / Math.max(6, Math.ceil(dAll.length / 3))))) : 80;
-      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", minHeight: "100vh", zIndex: 1, gap: 10, padding: mob2 ? "16px 12px" : "20px", maxWidth: 600, paddingTop: mob2 ? 40 : 60 } }, /* @__PURE__ */ React.createElement("h2", { style: { fontSize: mob2 ? 18 : 20, color: campMode ? "#fbbf24" : "#c084fc", letterSpacing: 4, margin: 0 } }, campMode ? "\u{1F3D5} CAMP" : "THE DEN"), campMode && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#fbbf24", fontWeight: 700 } }, gold, " \u{1F41F}"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: mob2 ? 11 : 12, color: "#ffffff55", fontStyle: "italic", textAlign: "center", maxWidth: 320, lineHeight: 1.6 } }, campMode ? "Pick 2 cats for the watch. The rest sleep by the fire." : nightText), campMode ? /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderRadius: 10, background: "#fbbf2408", border: "1px solid #fbbf2422", fontSize: 12, color: "#fbbf24cc", lineHeight: 1.7, textAlign: "center", maxWidth: 380, animation: "fadeIn .6s ease-out" } }, /* @__PURE__ */ React.createElement("b", null, "Pick 2 cats for the watch."), " Unbonded \u2642+\u2640 may bond. Grudged pairs may reconcile. Others gain +1 Power.") : !seen.den && /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderRadius: 10, background: "#c084fc08", border: "1px solid #c084fc22", fontSize: 12, color: "#c084fccc", lineHeight: 1.7, textAlign: "center", maxWidth: 380, animation: "fadeIn .6s ease-out" } }, /* @__PURE__ */ React.createElement("b", null, "Shelter:"), " safe. Pairs breed and bond. ", /* @__PURE__ */ React.createElement("b", null, "Wilds:"), " growth, training, and fights. Pick your shelter cats carefully.", /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6 } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setSeen((s) => ({ ...s, den: true })), style: { fontSize: 10, background: "none", border: "1px solid #c084fc33", borderRadius: 4, color: "#c084fc", cursor: "pointer", padding: "3px 10px" } }, "Got it"))), campMode ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 480 } }, den.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, justifyContent: "center", alignItems: "center", marginBottom: 8, padding: "8px 12px", borderRadius: 10, background: "#fbbf2408", border: "1px solid #fbbf2422" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf24", letterSpacing: 2, fontWeight: 700 } }, "\u{1F525} THE WATCH"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4 } }, den.map((c) => /* @__PURE__ */ React.createElement("div", { key: c.id, onClick: () => toggleDen(c), style: { cursor: "pointer", textAlign: "center" } }, /* @__PURE__ */ React.createElement(CC, { cat: c, sm: true, cw: denCardW, sel: true }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: BREEDS[c.breed]?.color || "#fbbf24", marginTop: 1, fontWeight: 700, lineHeight: 1 } }, c.name.split(" ")[0], " ", /* @__PURE__ */ React.createElement("span", { style: { color: c.sex === "M" ? "#60a5fa" : "#f472b6" } }, c.sex === "M" ? "\u2642" : "\u2640")))))), den.length < 2 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf2466", textAlign: "center", marginBottom: 6 } }, den.length === 0 ? "Tap 2 cats below" : "Pick 1 more"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center" } }, (() => {
+      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", minHeight: "100vh", zIndex: 1, gap: 10, padding: mob2 ? "16px 12px" : "20px", maxWidth: 600, paddingTop: mob2 ? 40 : 60 } }, /* @__PURE__ */ React.createElement("h2", { style: { fontSize: mob2 ? 18 : 20, color: campMode ? "#fbbf24" : "#c084fc", letterSpacing: 4, margin: 0 } }, campMode ? "\u{1F3D5} CAMP" : "THE DEN"), campMode && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#fbbf24", fontWeight: 700 } }, gold, " \u{1F41F}"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: mob2 ? 11 : 12, color: "#ffffff55", fontStyle: "italic", textAlign: "center", maxWidth: 320, lineHeight: 1.6 } }, campMode ? "Pick 2 cats for the watch. The rest sleep by the fire." : nightText), campMode ? /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderRadius: 10, background: "#fbbf2408", border: "1px solid #fbbf2422", fontSize: 12, color: "#fbbf24cc", lineHeight: 1.7, textAlign: "center", maxWidth: 380, animation: "fadeIn .6s ease-out" } }, /* @__PURE__ */ React.createElement("b", null, "Pick 2 cats for the watch."), " Unbonded \u2642+\u2640 may bond. Grudged pairs may reconcile. Others gain +1 Power.") : !seen.den && /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderRadius: 10, background: "#c084fc08", border: "1px solid #c084fc22", fontSize: 12, color: "#c084fccc", lineHeight: 1.7, textAlign: "center", maxWidth: 380, animation: "fadeIn .6s ease-out" } }, /* @__PURE__ */ React.createElement("b", null, "Shelter:"), " \u2642+\u2640 pairs breed kittens. Same-sex pairs bond instead. ", /* @__PURE__ */ React.createElement("b", null, "Wilds:"), " growth, training, and fights.", /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6 } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setSeen((s) => ({ ...s, den: true })), style: { fontSize: 10, background: "none", border: "1px solid #c084fc33", borderRadius: 4, color: "#c084fc", cursor: "pointer", padding: "3px 10px" } }, "Got it"))), campMode ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 480 } }, den.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, justifyContent: "center", alignItems: "center", marginBottom: 8, padding: "8px 12px", borderRadius: 10, background: "#fbbf2408", border: "1px solid #fbbf2422" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf24", letterSpacing: 2, fontWeight: 700 } }, "\u{1F525} THE WATCH"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4 } }, den.map((c) => /* @__PURE__ */ React.createElement("div", { key: c.id, onClick: () => toggleDen(c), style: { cursor: "pointer", textAlign: "center" } }, /* @__PURE__ */ React.createElement(CC, { cat: c, sm: true, cw: denCardW, sel: true }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: BREEDS[c.breed]?.color || "#fbbf24", marginTop: 1, fontWeight: 700, lineHeight: 1 } }, c.name.split(" ")[0], " ", /* @__PURE__ */ React.createElement("span", { style: { color: c.sex === "M" ? "#60a5fa" : "#f472b6" } }, c.sex === "M" ? "\u2642" : "\u2640")))))), den.length < 2 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf2466", textAlign: "center", marginBottom: 6 } }, den.length === 0 ? "Tap 2 cats below" : "Pick 1 more"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center" } }, (() => {
         const sOrder = { Autumn: 0, Winter: 1, Spring: 2, Summer: 3 };
         const available = dAll.filter((c) => !den.find((d) => d.id === c.id) && !c.injured);
         const sorted = [...available].sort((a, b) => (sOrder[a.breed] || 0) - (sOrder[b.breed] || 0) || b.power - a.power);
@@ -10172,7 +10209,7 @@ The fire still burns.
       const beats = [];
       denRes.forEach((r) => {
         if (r.type === "breed") beats.push({ pri: 0, el: /* @__PURE__ */ React.createElement("div", { key: beats.length, style: { width: "100%", padding: mob2 ? "8px 10px" : "10px 14px", borderRadius: 10, background: "linear-gradient(145deg,#1b2e1b,#0d0d1a)", border: "1px solid #4ade8044" } }, /* @__PURE__ */ React.createElement("div", { style: { fontStyle: "italic", color: "#4ade80bb", fontSize: 12, lineHeight: 1.5, marginBottom: 6 } }, cpk(flavorCache, `breed_${r.baby.id}`, DEN_BREED, (fn) => fn(n(r.c1), n(r.c2), n(r.baby)))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, alignItems: "center" } }, /* @__PURE__ */ React.createElement(CC, { cat: r.c1, sm: true }), /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80bb" } }, "+"), /* @__PURE__ */ React.createElement(CC, { cat: r.c2, sm: true }), /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80bb" } }, "="), /* @__PURE__ */ React.createElement(CC, { cat: r.baby, sm: true, hl: true }), r.twins && r.twin2 && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24bb" } }, "+"), /* @__PURE__ */ React.createElement(CC, { cat: r.twin2, sm: true, hl: true }))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888", marginTop: 3 } }, BREEDS[r.baby.breed].icon, " ", r.baby.name, " P", r.baby.power, " ", (r.baby.trait || PLAIN).icon, " ", (r.baby.trait || PLAIN).name, " ", r.baby.sex === "M" ? "\u2642" : "\u2640", (r.baby.trait || PLAIN).tier !== "common" && (r.baby.trait || PLAIN).name !== "Plain" && /* @__PURE__ */ React.createElement("span", { style: { color: traitTierLabel(r.baby.trait).color, fontWeight: 700 } }, " \u2605 ", traitTierLabel(r.baby.trait).label.toUpperCase()))) });
-        if (r.type === "death") beats.push({ pri: 1, el: /* @__PURE__ */ React.createElement("div", { key: beats.length, style: { width: "100%", padding: mob2 ? "8px 10px" : "10px 14px", borderRadius: 10, background: "linear-gradient(145deg,#2e1111,#0d0d1a)", border: "1px solid #ef4444bb" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef4444", letterSpacing: 3, fontWeight: 700, marginBottom: 4 } }, "\u{1F480} DEATH"), /* @__PURE__ */ React.createElement("div", { style: { fontStyle: "italic", color: "#ef4444bb", fontSize: 13, lineHeight: 1.5, marginBottom: 6 } }, cpk(flavorCache, `death_${r.victim.id}`, DEN_DEATH, (fn) => fn(n(r.c1), n(r.c2), n(r.victim)))), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "8px 12px", borderRadius: 8, background: "#ef444411", border: "1px solid #ef444422" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#ef4444", fontWeight: 700 } }, r.victim.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888", marginTop: 2 } }, "P", r.victim.power, " ", BREEDS[r.victim.breed]?.icon, " ", r.victim.breed, " ", (r.victim.trait || PLAIN).icon, " ", (r.victim.trait || PLAIN).name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444bb", marginTop: 2 } }, r.victim.stats?.tp > 0 ? `Played ${r.victim.stats.tp} hands. Best: ${r.victim.stats.bs?.toLocaleString()}.` : "Never got to play."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444", marginTop: 4, fontWeight: 700, letterSpacing: 2 } }, "Gone from the colony."))) });
+        if (r.type === "death") beats.push({ pri: 1, el: /* @__PURE__ */ React.createElement("div", { key: beats.length, style: { width: "100%", padding: mob2 ? "8px 10px" : "10px 14px", borderRadius: 10, background: "linear-gradient(145deg,#2e1111,#0d0d1a)", border: "1px solid #ef4444bb", animation: "fadeIn 1s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef4444", letterSpacing: 3, fontWeight: 700, marginBottom: 4 } }, "\u{1F480} DEATH"), /* @__PURE__ */ React.createElement("div", { style: { fontStyle: "italic", color: "#ef4444bb", fontSize: 13, lineHeight: 1.5, marginBottom: 6 } }, cpk(flavorCache, `death_${r.victim.id}`, DEN_DEATH, (fn) => fn(n(r.c1), n(r.c2), n(r.victim)))), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "8px 12px", borderRadius: 8, background: "#ef444411", border: "1px solid #ef444422" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#ef4444", fontWeight: 700 } }, r.victim.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888", marginTop: 2 } }, "P", r.victim.power, " ", BREEDS[r.victim.breed]?.icon, " ", r.victim.breed, " ", (r.victim.trait || PLAIN).icon, " ", (r.victim.trait || PLAIN).name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444bb", marginTop: 2 } }, r.victim.stats?.tp > 0 ? `Played ${r.victim.stats.tp} hands. Best: ${r.victim.stats.bs?.toLocaleString()}.` : "Never got to play."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444aa", marginTop: 4, fontStyle: "italic", lineHeight: 1.5 } }, getDeathMemorial(r.victim, ante)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444", marginTop: 4, fontWeight: 700, letterSpacing: 2 } }, "Gone from the colony."))) });
         if (r.type === "phoenix") beats.push({ pri: 0, el: /* @__PURE__ */ React.createElement("div", { key: beats.length, style: { width: "100%", padding: mob2 ? "8px 10px" : "10px 14px", borderRadius: 10, background: "linear-gradient(145deg,#2e2211,#0d0d1a)", border: "1px solid #fbbf2466" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#fbbf24", fontWeight: 700, marginBottom: 4 } }, "\u{1F525} ", n(r.risen), " RISES FROM THE ASHES!"), /* @__PURE__ */ React.createElement("div", { style: { fontStyle: "italic", color: "#fbbf24bb", fontSize: 11 } }, cpk(flavorCache, `phoenix_${r.risen.id}`, DEN_PHOENIX, (fn) => fn(r.c1.name, r.c2.name, r.risen.name))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf24", marginTop: 4 } }, "Now Eternal at P1. The fire changes everything.")) });
         if (r.type === "bond") beats.push({ pri: 2, el: /* @__PURE__ */ React.createElement("div", { key: beats.length, style: { fontSize: 11, color: "#f472b6", lineHeight: 1.4, padding: "4px 0" } }, "\u{1F495} ", n(r.c1), " & ", n(r.c2), " bonded ", /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ffffff55" } }, ": ", bondStr, " mult together")) });
         if (r.type === "reconcile_bond") beats.push({ pri: 2, el: /* @__PURE__ */ React.createElement("div", { key: beats.length, style: { fontSize: 11, color: "#f472b6", lineHeight: 1.4, padding: "4px 0" } }, "\u{1F495} ", n(r.c1), " & ", n(r.c2), " reconciled + bonded ", /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ffffff55" } }, ": ", bondStr, " mult together")) });
@@ -10595,7 +10632,7 @@ The fire still burns.
         sub = "Match the colored borders. Same-season cats score much higher together.";
       } else if (guide.step === 1) {
         const ht = evalH?.(selCats);
-        msg = `\u2728 ${ht?.name || "Hand"} ready! Hit Play \u25B6`;
+        msg = `\u2728 ${ht?.name || "Hand"}${ht?.ex ? " (" + ht.ex + ")" : ""} ready! Hit Play \u25B6`;
         sub = "Watch how your cats score. More same-season = bigger numbers.";
       } else if (guide.step === 2) {
         msg = "Each cat adds Power (score) + Trait (bonus).";
@@ -10613,6 +10650,7 @@ The fire still burns.
       }, style: { marginTop: 8, fontSize: 11, background: "#fbbf2422", border: "1px solid #fbbf2444", borderRadius: 6, color: "#fbbf24", cursor: "pointer", padding: "5px 16px", fontWeight: 700, letterSpacing: 1 } }, "Next \u2192") : /* @__PURE__ */ React.createElement("button", { onClick: () => {
         setGuide(null);
         setSeen((s) => ({ ...s, guided: true }));
+        setTimeout(() => toast("\u{1F4A1}", "Tip: Discard swaps cats for new draws. Tap it to try!", "#fbbf2488", 4e3), 2e3);
       }, style: { marginTop: 8, fontSize: 11, background: "#fbbf2422", border: "1px solid #fbbf2444", borderRadius: 6, color: "#fbbf24", cursor: "pointer", padding: "5px 16px", fontWeight: 700, letterSpacing: 1 } }, "Got it"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, justifyContent: "center", marginTop: 6 } }, [0, 1, 2, 3].map((i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { width: 6, height: 6, borderRadius: "50%", background: i === guide.step ? "#fbbf24" : i < guide.step ? "#fbbf2444" : "#333", transition: "all .15s" } }))));
     })(), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: mob ? "6px 12px" : "8px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, borderBottom: `1px solid ${isBoss ? "#ef444422" : "#ffffff0a"}` } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#888", letterSpacing: 2 } }, "NIGHT ", ante, "/", MX, !mob && /* @__PURE__ */ React.createElement("span", { style: { color: "#666" } }, " Round ", blind + 1, "/3")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: mob ? 13 : 14, fontWeight: 700, color: isBoss ? "#ef4444" : "#fbbf24" } }, blindN[blind]), !mob && /* @__PURE__ */ React.createElement(ProgressMap, { ante, blind, mx: MX })), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#888", letterSpacing: 2 } }, "SCORE"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: mob ? 16 : 18, fontWeight: 900 } }, /* @__PURE__ */ React.createElement("span", { style: { color: rScore >= tgt ? "#4ade80" : "#e8e6e3" } }, rScore.toLocaleString()), /* @__PURE__ */ React.createElement("span", { style: { color: "#666", fontSize: 12 } }, " / ", tgt.toLocaleString())), !mob && rScore < tgt && hLeft > 0 && (() => {
       const need = tgt - rScore;
@@ -10968,7 +11006,7 @@ The fire still burns.
       return /* @__PURE__ */ React.createElement("div", { onClick: () => setInspectCat(null), style: { position: "fixed", inset: 0, zIndex: 250, background: "#000000dd", display: "flex", alignItems: "center", justifyContent: "center", animation: "fadeIn .2s ease-out", cursor: "pointer" } }, /* @__PURE__ */ React.createElement("div", { onClick: (e) => e.stopPropagation(), style: { maxWidth: 340, width: "90%", maxHeight: "85vh", overflowY: "auto", padding: "20px 18px", borderRadius: 16, background: "linear-gradient(145deg,#0d1117,#0a0a14)", border: `2px solid ${b?.color || "#fbbf24"}33`, boxShadow: `0 8px 40px #00000088, 0 0 30px ${b?.color || "#fbbf24"}22`, animation: "scorePop .3s ease-out", cursor: "default" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 14, alignItems: "center", marginBottom: 14 } }, /* @__PURE__ */ React.createElement(CC, { cat: ic, cw: 80 }), /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 800, color: b?.color || "#e8e6e3", letterSpacing: 1 } }, n), ic.epithet && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#fbbf24", fontStyle: "italic" } }, ic.epithet), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#888", marginTop: 2 } }, b?.icon, " ", ic.breed, " \xB7 P", ic.power, " \xB7 ", ic.sex === "M" ? "\u2642 Male" : "\u2640 Female"), xp && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: xp.color, fontWeight: 700, marginTop: 2 } }, xp.icon, " ", xp.label))), /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 12px", borderRadius: 8, background: ic.trait?.name !== "Plain" ? "#ffffff06" : "#ffffff03", border: `1px solid ${ic.trait?.name !== "Plain" ? "#ffffff15" : "#ffffff08"}`, marginBottom: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: tierColor(ic.trait || PLAIN) } }, ic.trait?.icon || "", " ", ic.trait?.name || "Plain"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#999", lineHeight: 1.5, marginTop: 2 } }, TRAIT_DETAIL[ic.trait?.name] || ic.trait?.desc || "No special ability yet.")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1, padding: "6px 10px", borderRadius: 6, background: "#ffffff04", textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 900, color: "#e8e6e3" } }, ic.stats?.tp || 0), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#666", letterSpacing: 1 } }, "HANDS")), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, padding: "6px 10px", borderRadius: 6, background: "#ffffff04", textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 900, color: "#fbbf24" } }, (ic.stats?.bs || 0).toLocaleString()), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#666", letterSpacing: 1 } }, "BEST")), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, padding: "6px 10px", borderRadius: 6, background: "#ffffff04", textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 900, color: ic.injured ? "#ef4444" : ic.scarred ? "#fbbf24" : "#4ade80" } }, ic.injured ? "HURT" : ic.scarred ? "HARD" : "OK"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#666", letterSpacing: 1 } }, "STATUS"))), (mate || grudges.length > 0) && /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 12px", borderRadius: 8, background: "#ffffff04", marginBottom: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", letterSpacing: 2, marginBottom: 4 } }, "RELATIONSHIPS"), mate && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#f472b6" } }, "\u{1F495} Bonded to ", mate.name.split(" ")[0], " (", BREEDS[mate.breed]?.icon, " P", mate.power, ")"), grudges.map((g) => /* @__PURE__ */ React.createElement("div", { key: g.id, style: { fontSize: 11, color: "#fb923c" } }, "\u26A1 Grudge with ", g.name.split(" ")[0]))), timeline.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 12px", borderRadius: 8, background: "#ffffff04" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", letterSpacing: 2, marginBottom: 6 } }, "RECORD"), timeline.map((t, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", gap: 6, alignItems: "flex-start", fontSize: 11, color: t.color, lineHeight: 1.5, marginBottom: 2 } }, /* @__PURE__ */ React.createElement("span", { style: { flexShrink: 0, opacity: 0.6 } }, t.icon), /* @__PURE__ */ React.createElement("span", null, t.text)))), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", marginTop: 12 } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setInspectCat(null), style: { fontSize: 11, padding: "6px 20px", borderRadius: 6, border: "1px solid #ffffff22", background: "#ffffff08", color: "#888", cursor: "pointer" } }, "Close"))));
     })(), clutch && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle,#fbbf2422,transparent 60%)", pointerEvents: "none" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 32, fontWeight: 900, color: "#fbbf24", letterSpacing: 8, textShadow: "0 0 40px #fbbf24cc", animation: "clutchBurst .6s ease-out" } }, "THEY SHOULD HAVE STAYED DOWN")), /* @__PURE__ */ React.createElement("div", { style: { minHeight: 36, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 1, gap: 2 } }, preview ? (() => {
       if (blind === 2 && bossTraits.some((bt) => bt.fx.noStrength)) {
-        return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#fbbf24", letterSpacing: 2 } }, preview.type.name), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ef4444bb", fontStyle: "italic" } }, "\u{1F441}\uFE0F Watchful. it sees your hand"));
+        return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#fbbf24", letterSpacing: 2 } }, preview.type.name, runCount < 3 && preview.type.ex ? /* @__PURE__ */ React.createElement("span", { style: { fontSize: 9, color: "#fbbf24aa", fontWeight: 400, marginLeft: 3 } }, "(", preview.type.ex, ")") : null), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ef4444bb", fontStyle: "italic" } }, "\u{1F441}\uFE0F Watchful. it sees your hand"));
       }
       let baseC = preview.type.base.c + (preview.combo?.bonus?.c || 0);
       let baseM = preview.type.base.m + (preview.combo?.bonus?.m || 0);
@@ -10994,7 +11032,7 @@ The fire still burns.
       const pacePerHand = hLeft > 0 ? need / hLeft : need;
       const ratio = pacePerHand > 0 ? sig / pacePerHand : 99;
       const tier = ratio >= 3 ? { w: "Crushing", c: "#fbbf24", p: 100 } : ratio >= 1.8 ? { w: "Strong", c: "#4ade80", p: 80 } : ratio >= 1 ? { w: "Decent", c: "#e8e6e3", p: 55 } : ratio >= 0.5 ? { w: "Risky", c: "#fb923c", p: 35 } : { w: "Weak", c: "#ef4444", p: 15 };
-      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 15, fontWeight: 700, color: "#fbbf24", letterSpacing: 2 } }, preview.type.name), preview.combo && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, fontWeight: 700, color: "#c084fc", letterSpacing: 1 } }, "+ ", (meta?.stats?.dh || []).includes(preview.combo.name) ? preview.combo.name : "????"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: "#888" } }, baseC, "\xD7", baseM), selC.length <= 3 && selC.length >= 1 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fcaa" } }, "Focus \xD7", selC.length === 1 ? "1.8" : selC.length === 2 ? "1.4" : "1.2"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 14, fontWeight: 900, color: tier.c, letterSpacing: 1, textShadow: `0 0 8px ${tier.c}44` } }, tier.w)), (() => {
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 15, fontWeight: 700, color: "#fbbf24", letterSpacing: 2 } }, preview.type.name, runCount < 3 && preview.type.ex ? /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#fbbf24aa", fontWeight: 400, marginLeft: 4 } }, "(", preview.type.ex, ")") : null), preview.combo && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, fontWeight: 700, color: "#c084fc", letterSpacing: 1 } }, "+ ", (meta?.stats?.dh || []).includes(preview.combo.name) ? preview.combo.name : "????"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: "#888" } }, baseC, "\xD7", baseM), selC.length <= 3 && selC.length >= 1 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fcaa" } }, "Focus \xD7", selC.length === 1 ? "1.8" : selC.length === 2 ? "1.4" : "1.2"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 14, fontWeight: 900, color: tier.c, letterSpacing: 1, textShadow: `0 0 8px ${tier.c}44` } }, tier.w)), (() => {
         if (Math.random() > 0.2 || selC.length < 2) return null;
         const bondPair = selC.find((c) => c.bondedTo && selC.find((x) => x.id === c.bondedTo));
         const mate = bondPair ? selC.find((x) => x.id === bondPair.bondedTo) : null;
@@ -11131,7 +11169,7 @@ The fire still burns.
       const cost = recruitCost();
       const canRecruit = ph === "playing" && !autoPlay && gold >= cost && (draw.length > 0 || disc.length > 0);
       return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: recruitCat, disabled: !canRecruit, style: { ...BTN(canRecruit ? "#1a2e1a" : "#111", canRecruit ? "#4ade80" : "#444", canRecruit), border: `1px solid ${canRecruit ? "#4ade8044" : "#222"}`, minWidth: mob ? 56 : 50, padding: mob ? "10px 10px" : "8px 10px", fontSize: 10 } }, "+1 Cat"), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u{1F431}", "Recruit: draw an extra cat into your hand. Cost doubles each time (1\u21922\u21924\u21928\u{1F41F}). More cats = better hands. Unplayed cats with traits give passive bonuses.", "#4ade80", 5500), style: { fontSize: 10, color: cost === 0 ? "#4ade80" : gold >= cost ? "#fbbf24" : "#ef4444", marginTop: 2, cursor: "help" } }, cost === 0 ? "Free!" : cost + "\u{1F41F}"));
-    })() : null), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: discardH, disabled: !sel.size || sel.size > MAX_DISCARD || dLeft <= 0 || ph !== "playing" || cfx.noDisc, style: { ...BTN(sel.size && sel.size <= MAX_DISCARD && dLeft > 0 && ph === "playing" && !cfx.noDisc ? "#1a1a2e" : "#111", sel.size && sel.size <= MAX_DISCARD && dLeft > 0 && ph === "playing" && !cfx.noDisc ? "#ef4444" : "#444", sel.size > 0 && sel.size <= MAX_DISCARD && dLeft > 0 && ph === "playing" && !cfx.noDisc), border: `1px solid ${sel.size && sel.size <= MAX_DISCARD && dLeft > 0 && !cfx.noDisc ? "#ef444444" : "#222"}`, minWidth: mob ? 56 : 60, padding: mob ? "10px 10px" : "8px 14px" } }, "Discard", cfx.noDisc ? " \u{1F6AB}" : ""), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u267B\uFE0F", `Discard: swap up to ${MAX_DISCARD} selected cats for new draws. Free!`, "#ef4444"), style: { fontSize: 10, color: cfx.noDisc ? "#ef4444bb" : sel.size > MAX_DISCARD ? "#ef4444" : dLeft <= 0 ? "#ef4444" : "#888", marginTop: 2, cursor: "help" } }, cfx.noDisc ? "Disabled" : sel.size > MAX_DISCARD ? `Max ${MAX_DISCARD}` : `${dLeft} left`), sel.size > 0 && dLeft > 0 && !cfx.noDisc && ph === "playing" && (() => {
+    })() : null), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: discardH, disabled: !sel.size || sel.size > MAX_DISCARD || dLeft <= 0 || ph !== "playing" || cfx.noDisc, style: { ...BTN(sel.size && sel.size <= MAX_DISCARD && dLeft > 0 && ph === "playing" && !cfx.noDisc ? "#1a1a2e" : "#111", sel.size && sel.size <= MAX_DISCARD && dLeft > 0 && ph === "playing" && !cfx.noDisc ? "#ef4444" : "#444", sel.size > 0 && sel.size <= MAX_DISCARD && dLeft > 0 && ph === "playing" && !cfx.noDisc), border: `1px solid ${sel.size && sel.size <= MAX_DISCARD && dLeft > 0 && !cfx.noDisc ? "#ef444444" : "#222"}`, minWidth: mob ? 56 : 60, padding: mob ? "10px 10px" : "8px 14px" } }, "Discard", cfx.noDisc ? " \u{1F6AB}" : ""), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u267B\uFE0F", `Discard: swap up to ${MAX_DISCARD} selected cats for new draws. Free!`, "#ef4444"), style: { fontSize: 10, color: cfx.noDisc ? "#ef4444bb" : sel.size > MAX_DISCARD ? "#ef4444" : dLeft <= 0 ? "#ef4444" : "#888", marginTop: 2, cursor: "help" } }, cfx.noDisc ? "Disabled" : sel.size > MAX_DISCARD ? `Max ${MAX_DISCARD}` : `${dLeft} left`), dLeft > 0 && draw.length >= 1 && !cfx.fog && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, justifyContent: "center", marginTop: 2 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ffffff33" } }, "Next:"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, padding: "1px 5px", borderRadius: 3, background: BREEDS[draw[0].breed]?.color + "15", border: `1px solid ${BREEDS[draw[0].breed]?.color}22`, color: BREEDS[draw[0].breed]?.color || "#888" } }, BREEDS[draw[0].breed]?.icon, " P", draw[0].power)), sel.size > 0 && dLeft > 0 && !cfx.noDisc && ph === "playing" && (() => {
       const selCats2 = [...sel].map((i) => hand[i]).filter(Boolean);
       const hints = [];
       selCats2.forEach((c) => {
