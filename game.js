@@ -672,12 +672,12 @@
     { id: "c_double", name: "Double Down", icon: "\u{1F3B2}", desc: "Target \xD71.3", tier: 3, fx: { tgtMult: 1.3 } }
   ];
   const NIGHT_MODS = [
-    { id: "surge", name: "Resonance Surge", icon: "\u2728", desc: "Same-season cats score +4 extra chips", fx: { seasonChipsBonus: 4 } },
-    { id: "lone", name: "Lone Wolf", icon: "\u{1F43A}", desc: "Hands of 1-2 cats: \xD71.5 total score", fx: { loneWolfMult: 1.5 } },
-    { id: "full", name: "Full Moon", icon: "\u{1F315}", desc: "Hands of 4+ cats: +3 mult per cat", fx: { fullMoonMult: 3 } },
-    { id: "thin", name: "Thin Ice", icon: "\u{1F9CA}", desc: "Only 3 hands per blind (normally 4)", fx: { handMod: -1 } },
-    { id: "blood", name: "Blood Moon", icon: "\u{1FA78}", desc: "Hardened cats score \xD71.5 mult", fx: { bloodMoonMult: 1.5 } },
-    { id: "bonds", name: "Kindred Spirits", icon: "\u{1F495}", desc: "Bonded pairs in hand: +5 mult per pair", fx: { bondHandMult: 5 } }
+    { id: "surge", name: "Resonance Surge", icon: "\u2728", desc: "Same-season cats score +4 extra chips tonight", fx: { seasonChipsBonus: 4 } },
+    { id: "lone", name: "Lone Wolf", icon: "\u{1F43A}", desc: "Hands of 1-2 cats: \xD71.5 total score tonight", fx: { loneWolfMult: 1.5 } },
+    { id: "full", name: "Full Moon", icon: "\u{1F315}", desc: "Hands of 4+ cats: +3 mult per cat tonight", fx: { fullMoonMult: 3 } },
+    { id: "thin", name: "Thin Ice", icon: "\u{1F9CA}", desc: "Only 3 hands per blind tonight (normally 4)", fx: { handMod: -1 } },
+    { id: "blood", name: "Blood Moon", icon: "\u{1FA78}", desc: "Hardened cats score \xD71.5 mult tonight", fx: { bloodMoonMult: 1.5 } },
+    { id: "bonds", name: "Kindred Spirits", icon: "\u{1F495}", desc: "Bonded pairs in hand: +5 mult per pair tonight", fx: { bondHandMult: 5 } }
   ];
   const NERVE = [
     { name: "Still", xM: 1, color: "#666", glow: "transparent", desc: "" },
@@ -966,7 +966,7 @@
     },
     mourning: {
       key: "mourning",
-      test: (c) => c._mateDied && !c.epithet,
+      test: (c) => c._mateDied,
       titles: ["the Mourning", "the Bereft", "who Carries Two Names"],
       bonus: { mult: 3 },
       desc: "+3 mult (grief)",
@@ -5706,12 +5706,6 @@
         setSel(/* @__PURE__ */ new Set());
         setHLeft((h) => h - 1);
         setRecruitsThisHand(0);
-        setRunChips(0);
-        setRunMult(0);
-        setNewBest(null);
-        setScoringDone(false);
-        setSRes(null);
-        setSStep(-1);
         const handsAfter = hLeft - 1;
         if (ns >= tgt2) {
           setMood((m) => Math.min(100, m + 1));
@@ -5814,12 +5808,24 @@
               }
             }
           }
+          setRunChips(0);
+          setRunMult(0);
+          setNewBest(null);
+          setScoringDone(false);
+          setSRes(null);
+          setSStep(-1);
           setPh("playing");
         }
         advancingRef.current = false;
       } catch (e) {
         console.error("advanceFromScoring error:", e);
         advancingRef.current = false;
+        setRunChips(0);
+        setRunMult(0);
+        setNewBest(null);
+        setScoringDone(false);
+        setSRes(null);
+        setSStep(-1);
         toast("\u26A0", "Something went wrong. Try playing again.", "#ef4444");
         setPh("playing");
       }
@@ -6215,6 +6221,12 @@
       Audio.cardSelect();
     }
     function showOF(fs, tgt2, uh) {
+      setRunChips(0);
+      setRunMult(0);
+      setNewBest(null);
+      setScoringDone(false);
+      setSRes(null);
+      setSStep(-1);
       const excess = Math.max(0, fs - tgt2);
       const pct = tgt2 > 0 ? fs / tgt2 : 1;
       const baseR = cfx.famine ? 0 : Math.floor(Math.min(6, 2 + Math.max(0, pct - 1) * 5));
@@ -6228,6 +6240,12 @@
     }
     function endRun(won, finalScore) {
       try {
+        setRunChips(0);
+        setRunMult(0);
+        setNewBest(null);
+        setScoringDone(false);
+        setSRes(null);
+        setSStep(-1);
         try {
           clearRunSave();
           setSavedRun(null);
@@ -6942,6 +6960,10 @@
         return null;
       }).filter(Boolean);
       setDenNews(news);
+      if (!seen.inspectHint && results.some((r) => r.type === "bond" || r.type === "fight" || r.type === "death")) {
+        setSeen((s) => ({ ...s, inspectHint: true }));
+        setTimeout(() => toast("\u{1F446}", "Tap a cat card to see their full story", "#888", 4e3), 2500);
+      }
       results.forEach((r) => {
         const addStory = (catId, moment) => {
           [setHand, setDraw, setDisc].forEach((s) => {
@@ -8034,7 +8056,7 @@
         const top = outcomeText[0];
         toast(top.icon || "\u{1F4DC}", top.text, top.color || "#fbbf24");
       }
-      const missed = colEvent.choices.filter((ch, ci) => ci !== idx && ch.fx.gold && ch.fx.gold < 0 && gold < Math.abs(ch.fx.gold));
+      const missed = colEvent.choices.filter((ch, ci) => ci !== idx && ch.fx.gold && ch.fx.gold <= -3 && gold < Math.abs(ch.fx.gold));
       if (missed.length > 0) {
         const mc = missed[0];
         const injuredCat = all.find((c) => c.injured);
@@ -8144,7 +8166,7 @@
       toast("\u2726", upgVoice[u.id] || "Something the Hearth cats knew. Something they left for you.", "#c084fc");
     }
     const selC = React.useMemo(() => [...sel].map((i) => hand[i]).filter(Boolean), [sel, hand]);
-    const preview = React.useMemo(() => sel.size > 0 ? evalH(selC) : null, [sel.size, selC]);
+    const preview = React.useMemo(() => sel.size >= 2 ? evalH(selC) : null, [sel.size, selC]);
     const tgt = eTgt();
     const isBoss = blind === 2;
     const blindN = ["Dusk", "Midnight", boss?.name || "The Boss"];
@@ -8873,7 +8895,19 @@
       }, style: { fontSize: 12, padding: "8px 20px", borderRadius: 6, border: "1px solid #fbbf2466", background: "#fbbf2418", color: "#fbbf24", cursor: "pointer", fontWeight: 700, minHeight: 36 } }, "Start fresh"))), meta && canUnlockNinthDawn(meta) && !meta.ninthDawnCleared && /* @__PURE__ */ React.createElement("button", { onClick: () => {
         Audio.init();
         startNinthDawn();
-      }, style: { ...BTN("linear-gradient(135deg,#fbbf24,#fef08a)", "#0a0a1a"), padding: "10px 36px", fontSize: 13, letterSpacing: 4, textTransform: "uppercase", boxShadow: "0 0 20px #fbbf2444", animation: "float 3s ease-in-out infinite" } }, "\u300C THE NINTH DAWN \u300D"), meta?.ninthDawnCleared && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf2466", fontStyle: "italic" } }, "\u{1F305} The dawn holds."), showLongDark && !isFirstRun && /* @__PURE__ */ React.createElement("button", { onClick: () => setLongDark((v) => !v), style: { padding: "6px 16px", fontSize: 10, border: `1px solid ${longDark ? "#818cf8" : "#ffffff22"}`, borderRadius: 6, cursor: "pointer", background: longDark ? "#818cf822" : "transparent", color: longDark ? "#818cf8" : "#666", letterSpacing: 1, marginTop: 2 } }, longDark ? "\u{1F311} THE LONG DARK: 9 nights" : "\u{1F311} The Long Dark"), longDark && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#818cf8aa", fontStyle: "italic" } }, "Nine nights. Nine colonies. The full weight of the dark."), showHeat && (meta.heat || 0) > 0 && HEAT_FLAVOR[meta.heat] && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444bb", fontStyle: "italic" } }, HEAT_FLAVOR[meta.heat]), (meta?.relics || []).length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center" } }, (meta.relics || []).sort().map((h) => {
+      }, style: { ...BTN("linear-gradient(135deg,#fbbf24,#fef08a)", "#0a0a1a"), padding: "10px 36px", fontSize: 13, letterSpacing: 4, textTransform: "uppercase", boxShadow: "0 0 20px #fbbf2444", animation: "float 3s ease-in-out infinite" } }, "\u300C THE NINTH DAWN \u300D"), meta?.ninthDawnCleared && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf2466", fontStyle: "italic" } }, "\u{1F305} The dawn holds."), showLongDark && !isFirstRun && /* @__PURE__ */ React.createElement("button", { onClick: () => setLongDark((v) => !v), style: { padding: "6px 16px", fontSize: 10, border: `1px solid ${longDark ? "#818cf8" : "#ffffff22"}`, borderRadius: 6, cursor: "pointer", background: longDark ? "#818cf822" : "transparent", color: longDark ? "#818cf8" : "#666", letterSpacing: 1, marginTop: 2 } }, longDark ? "\u{1F311} THE LONG DARK: 9 nights" : "\u{1F311} The Long Dark"), longDark && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#818cf8aa", fontStyle: "italic" } }, "Nine nights. Nine colonies. The full weight of the dark."), showHeat && (meta.heat || 0) > 0 && HEAT_FLAVOR[meta.heat] && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444bb", fontStyle: "italic" } }, HEAT_FLAVOR[meta.heat]), showHeat && (meta.heat || 0) > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef444488", lineHeight: 1.6, textAlign: "center", maxWidth: 280 } }, "Targets +", Math.round(meta.heat * 15), "%", meta.heat >= 1 ? " \xB7 Bosses +1 curse" : "", meta.heat >= 2 ? " \xB7 -1 discard" : "", meta.heat >= 3 ? " \xB7 Shop +1\u{1F41F} \xB7 Den fiercer" : "", meta.heat >= 4 ? " \xB7 -1 hand" : "", meta.heat >= 5 ? " \xB7 Start with Hexed cat" : "", " \xB7 ", "+", meta.heat * 25, "% stardust"), showHeat && (meta.heat || 0) > 0 && (() => {
+        const h = meta.heat;
+        const fx = getHeatFx(h);
+        const mods = [];
+        mods.push(`Targets +${Math.round((fx.targets - 1) * 100)}%`);
+        if (fx.extraCurse) mods.push(`+${fx.extraCurse} boss curse`);
+        if (fx.discMod) mods.push(`${fx.discMod} discard`);
+        if (fx.shopCost) mods.push(`+${fx.shopCost}\u{1F41F} shop cost`);
+        if (fx.handMod) mods.push(`${fx.handMod} hand`);
+        if (fx.hexStart) mods.push("start with Cursed cat");
+        mods.push(`+${Math.round((fx.dustMult - 1) * 100)}% stardust`);
+        return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef444466", letterSpacing: 1 } }, mods.join(" \xB7 "));
+      })(), (meta?.relics || []).length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center" } }, (meta.relics || []).sort().map((h) => {
         const r = HEAT_RELICS[h];
         return r ? /* @__PURE__ */ React.createElement("div", { key: h, style: { padding: "3px 8px", borderRadius: 5, background: "#fbbf2408", border: "1px solid #fbbf2422", fontSize: 10, color: "#fbbf24" }, title: `${r.name}: ${r.desc}
 "${r.flavor}"` }, r.icon, " ", r.name) : null;
@@ -9753,7 +9787,7 @@ The fire still burns.
       const nightText = NIGHT_FLAVOR[Math.min(ante - 1, 4)];
       const mob2 = vw < 500;
       const denCardW = mob2 ? Math.max(44, Math.min(64, Math.floor((vw - 40) / Math.max(6, Math.ceil(dAll.length / 3))))) : 80;
-      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", minHeight: "100vh", zIndex: 1, gap: 10, padding: mob2 ? "16px 12px" : "20px", maxWidth: 600, paddingTop: mob2 ? 40 : 60 } }, /* @__PURE__ */ React.createElement("h2", { style: { fontSize: mob2 ? 18 : 20, color: campMode ? "#fbbf24" : "#c084fc", letterSpacing: 4, margin: 0 } }, campMode ? "\u{1F3D5} CAMP" : "THE DEN"), campMode && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#fbbf24", fontWeight: 700 } }, gold, " \u{1F41F}"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: mob2 ? 11 : 12, color: "#ffffff55", fontStyle: "italic", textAlign: "center", maxWidth: 320, lineHeight: 1.6 } }, campMode ? "Pick 2 cats for the watch. The rest sleep by the fire." : nightText), campMode ? /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderRadius: 10, background: "#fbbf2408", border: "1px solid #fbbf2422", fontSize: 12, color: "#fbbf24cc", lineHeight: 1.7, textAlign: "center", maxWidth: 380, animation: "fadeIn .6s ease-out" } }, /* @__PURE__ */ React.createElement("b", null, "Pick 2 cats for the watch."), " Unbonded \u2642+\u2640 may bond. Grudged pairs may reconcile. Others gain +1 Power.") : !seen.den && /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderRadius: 10, background: "#c084fc08", border: "1px solid #c084fc22", fontSize: 12, color: "#c084fccc", lineHeight: 1.7, textAlign: "center", maxWidth: 380, animation: "fadeIn .6s ease-out" } }, /* @__PURE__ */ React.createElement("b", null, "Shelter a \u2642 + \u2640 pair to breed safely."), " Everyone else enters the wilds. they train, bond, or fight.", /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6 } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setSeen((s) => ({ ...s, den: true })), style: { fontSize: 10, background: "none", border: "1px solid #c084fc33", borderRadius: 4, color: "#c084fc", cursor: "pointer", padding: "3px 10px" } }, "Got it"))), campMode ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 480 } }, den.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, justifyContent: "center", alignItems: "center", marginBottom: 8, padding: "8px 12px", borderRadius: 10, background: "#fbbf2408", border: "1px solid #fbbf2422" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf24", letterSpacing: 2, fontWeight: 700 } }, "\u{1F525} THE WATCH"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4 } }, den.map((c) => /* @__PURE__ */ React.createElement("div", { key: c.id, onClick: () => toggleDen(c), style: { cursor: "pointer", textAlign: "center" } }, /* @__PURE__ */ React.createElement(CC, { cat: c, sm: true, cw: denCardW, sel: true }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: BREEDS[c.breed]?.color || "#fbbf24", marginTop: 1, fontWeight: 700, lineHeight: 1 } }, c.name.split(" ")[0]))))), den.length < 2 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf2466", textAlign: "center", marginBottom: 6 } }, den.length === 0 ? "Tap 2 cats below" : "Pick 1 more"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center" } }, (() => {
+      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", minHeight: "100vh", zIndex: 1, gap: 10, padding: mob2 ? "16px 12px" : "20px", maxWidth: 600, paddingTop: mob2 ? 40 : 60 } }, /* @__PURE__ */ React.createElement("h2", { style: { fontSize: mob2 ? 18 : 20, color: campMode ? "#fbbf24" : "#c084fc", letterSpacing: 4, margin: 0 } }, campMode ? "\u{1F3D5} CAMP" : "THE DEN"), campMode && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#fbbf24", fontWeight: 700 } }, gold, " \u{1F41F}"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: mob2 ? 11 : 12, color: "#ffffff55", fontStyle: "italic", textAlign: "center", maxWidth: 320, lineHeight: 1.6 } }, campMode ? "Pick 2 cats for the watch. The rest sleep by the fire." : nightText), campMode ? /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderRadius: 10, background: "#fbbf2408", border: "1px solid #fbbf2422", fontSize: 12, color: "#fbbf24cc", lineHeight: 1.7, textAlign: "center", maxWidth: 380, animation: "fadeIn .6s ease-out" } }, /* @__PURE__ */ React.createElement("b", null, "Pick 2 cats for the watch."), " Unbonded \u2642+\u2640 may bond. Grudged pairs may reconcile. Others gain +1 Power.") : !seen.den && /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderRadius: 10, background: "#c084fc08", border: "1px solid #c084fc22", fontSize: 12, color: "#c084fccc", lineHeight: 1.7, textAlign: "center", maxWidth: 380, animation: "fadeIn .6s ease-out" } }, /* @__PURE__ */ React.createElement("b", null, "Shelter:"), " safe. Pairs breed and bond. ", /* @__PURE__ */ React.createElement("b", null, "Wilds:"), " growth, training, and fights. Pick your shelter cats carefully.", /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6 } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setSeen((s) => ({ ...s, den: true })), style: { fontSize: 10, background: "none", border: "1px solid #c084fc33", borderRadius: 4, color: "#c084fc", cursor: "pointer", padding: "3px 10px" } }, "Got it"))), campMode ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 480 } }, den.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, justifyContent: "center", alignItems: "center", marginBottom: 8, padding: "8px 12px", borderRadius: 10, background: "#fbbf2408", border: "1px solid #fbbf2422" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf24", letterSpacing: 2, fontWeight: 700 } }, "\u{1F525} THE WATCH"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4 } }, den.map((c) => /* @__PURE__ */ React.createElement("div", { key: c.id, onClick: () => toggleDen(c), style: { cursor: "pointer", textAlign: "center" } }, /* @__PURE__ */ React.createElement(CC, { cat: c, sm: true, cw: denCardW, sel: true }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: BREEDS[c.breed]?.color || "#fbbf24", marginTop: 1, fontWeight: 700, lineHeight: 1 } }, c.name.split(" ")[0]))))), den.length < 2 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf2466", textAlign: "center", marginBottom: 6 } }, den.length === 0 ? "Tap 2 cats below" : "Pick 1 more"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center" } }, (() => {
         const sOrder = { Autumn: 0, Winter: 1, Spring: 2, Summer: 3 };
         const available = dAll.filter((c) => !den.find((d) => d.id === c.id) && !c.injured);
         const sorted = [...available].sort((a, b) => (sOrder[a.breed] || 0) - (sOrder[b.breed] || 0) || b.power - a.power);
@@ -10812,7 +10846,7 @@ The fire still burns.
       const pacePerHand = hLeft > 0 ? need / hLeft : need;
       const ratio = pacePerHand > 0 ? sig / pacePerHand : 99;
       const tier = ratio >= 3 ? { w: "Crushing", c: "#fbbf24", p: 100 } : ratio >= 1.8 ? { w: "Strong", c: "#4ade80", p: 80 } : ratio >= 1 ? { w: "Decent", c: "#e8e6e3", p: 55 } : ratio >= 0.5 ? { w: "Risky", c: "#fb923c", p: 35 } : { w: "Weak", c: "#ef4444", p: 15 };
-      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 15, fontWeight: 700, color: "#fbbf24", letterSpacing: 2 } }, preview.type.name), preview.combo && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, fontWeight: 700, color: "#c084fc", letterSpacing: 1 } }, "+ ", (meta?.stats?.dh || []).includes(preview.combo.name) ? preview.combo.name : "????"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: "#888" } }, baseC, "\xD7", baseM), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 14, fontWeight: 900, color: tier.c, letterSpacing: 1, textShadow: `0 0 8px ${tier.c}44` } }, tier.w)), (() => {
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 15, fontWeight: 700, color: "#fbbf24", letterSpacing: 2 } }, preview.type.name), preview.combo && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, fontWeight: 700, color: "#c084fc", letterSpacing: 1 } }, "+ ", (meta?.stats?.dh || []).includes(preview.combo.name) ? preview.combo.name : "????"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: "#888" } }, baseC, "\xD7", baseM), selC.length <= 3 && selC.length >= 1 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fcaa" } }, "Focus \xD7", selC.length === 1 ? "1.8" : selC.length === 2 ? "1.4" : "1.2"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 14, fontWeight: 900, color: tier.c, letterSpacing: 1, textShadow: `0 0 8px ${tier.c}44` } }, tier.w)), (() => {
         if (Math.random() > 0.2 || selC.length < 2) return null;
         const bondPair = selC.find((c) => c.bondedTo && selC.find((x) => x.id === c.bondedTo));
         const mate = bondPair ? selC.find((x) => x.id === bondPair.bondedTo) : null;
@@ -11005,7 +11039,7 @@ The fire still burns.
     })), /* @__PURE__ */ React.createElement("div", { style: { borderTop: "1px solid #ffffff0a", marginTop: 4, paddingTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", letterSpacing: 1, marginBottom: 2 } }, "TRAITS"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(140px,1fr))", gap: 1 } }, TRAITS.map((t) => {
       const tl = traitTierLabel(t);
       return /* @__PURE__ */ React.createElement("div", { key: t.name, style: { fontSize: 10, color: tl.color } }, t.icon, " ", /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 600 } }, t.name), " ", /* @__PURE__ */ React.createElement("span", { style: { opacity: 0.6, fontSize: 10 } }, "(", tl.label, ")"), " ", t.desc);
-    }))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingTop: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u2694 Scarred: \xD71.25 mult"), /* @__PURE__ */ React.createElement("span", null, "\u{1FA79} Injured: Half power, \u22122 mult (heals in 2 rounds)"), /* @__PURE__ */ React.createElement("span", null, "\u{1F525} Nerve: \xD71.0 to \xD72.2 (every clear +1, boss +hands remaining)")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F495} Bonded pair: \xD7", getMB().bondBoost ? "1.75" : "1.5", " mult (from den shelter)"), /* @__PURE__ */ React.createElement("span", null, "\u26A1 Grudge: Always \u2212", (getMB().grudgeWisdom || 0) > 0 ? "1" : "2", " mult when grudged cats play together"), /* @__PURE__ */ React.createElement("span", null, "\u{1FA91} Bench: Unplayed hand cats give passive bonuses (traits or power as chips)")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F4E3} Recruit: Pay \u{1F41F} to draw extra cats (1\u21922\u21924\u21928\u{1F41F}). More cards = better combos + bench"), /* @__PURE__ */ React.createElement("span", null, "\u{1F3F7}\uFE0F Epithets: Cats earn titles from events (scars, bonds, boss clears). Shown in Hearth")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 6, fontSize: 10, color: "#666", flexWrap: "wrap" } }, Object.keys(DEVOTION_MILESTONES).map((k) => /* @__PURE__ */ React.createElement("span", { key: k, style: { color: BREEDS[k]?.color || "#888" } }, BREEDS[k]?.icon, " ", k, ": Play ", k, " cats to unlock devotion bonuses"))))), showAbandon && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 8, left: 8, zIndex: 200, display: "flex", gap: 4, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ffffff55", marginRight: 2 } }, "v0.7"), abandonConfirm ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    }))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingTop: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u2694 Scarred: \xD71.25 mult"), /* @__PURE__ */ React.createElement("span", null, "\u{1FA79} Injured: Half power, \u22122 mult (heals in 2 rounds)"), /* @__PURE__ */ React.createElement("span", null, "\u{1F525} Nerve: \xD71.0 to \xD72.2 (every clear +1, boss +hands remaining)")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F495} Bonded pair: \xD7", getMB().bondBoost ? "1.75" : "1.5", " mult (from den shelter)"), /* @__PURE__ */ React.createElement("span", null, "\u26A1 Grudge: Always \u2212", (getMB().grudgeWisdom || 0) > 0 ? "1" : "2", " mult when grudged cats play together"), /* @__PURE__ */ React.createElement("span", null, "\u{1FA91} Bench: Unplayed hand cats give passive bonuses (traits or power as chips)")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F4E3} Recruit: Pay \u{1F41F} to draw extra cats (1\u21922\u21924\u21928\u{1F41F}). More cards = better combos + bench"), /* @__PURE__ */ React.createElement("span", null, "\u{1F3F7}\uFE0F Epithets: Cats earn titles from events (scars, bonds, boss clears). Shown in Hearth")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 6, fontSize: 10, color: "#666", flexWrap: "wrap" } }, Object.keys(DEVOTION_MILESTONES).map((k) => /* @__PURE__ */ React.createElement("span", { key: k, style: { color: BREEDS[k]?.color || "#888" } }, BREEDS[k]?.icon, " ", k, ": Play ", k, " cats to unlock devotion bonuses"))))), showAbandon && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 8, left: 8, zIndex: 200, display: "flex", gap: 4, alignItems: "center" } }, abandonConfirm ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setAbandonConfirm(false);
       setPh("title");
       setTab("play");
