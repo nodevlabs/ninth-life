@@ -4788,6 +4788,7 @@
     const flavorCache = useRef({});
     const advancingRef = useRef(false);
     const actionLock = useRef(false);
+    const goldRef = useRef(5);
     const injuredThisBlind = useRef(false);
     const fcSeenRef = useRef({});
     const [ferv, setFerv] = useState(0);
@@ -5122,6 +5123,7 @@
       return t;
     };
     const allC = React.useMemo(() => [...hand, ...draw, ...disc], [hand, draw, disc]);
+    goldRef.current = gold;
     function logEvent(type, data) {
       setRunLog((l) => [...l, { type, data, ante, blind, t: Date.now() }]);
     }
@@ -5868,11 +5870,10 @@
           const thunderCat = cats.sort((a, b) => b.power - a.power)[0];
           if (thunderCat) assignEpithet(thunderCat, { thunder: true });
         }
+        const catMods = {};
         cats.forEach((c) => {
           if (catHas(c, "Eternal") && !c.injured) {
-            [setHand, setDraw, setDisc].forEach((s) => {
-              s((arr) => arr.map((x) => x.id === c.id ? { ...x, injured: true, injuryTimer: 1 } : x));
-            });
+            catMods[c.id] = { ...(catMods[c.id] || {}), injured: true, injuryTimer: 1 };
             if (c.stats.tp >= 2) toast("\u2728", `${c.name.split(" ")[0]} is exhausted. The Eternal burns bright, then rests.`, "#c084fc88", 2500);
           }
           const wasKitten = catIsKitten(c);
@@ -5895,16 +5896,15 @@
             assignEpithet(c);
             Audio.kittenGrow();
             if (c.epithetKey === "grownUp") {
-              [setHand, setDraw, setDisc].forEach((s) => {
-                s((arr) => arr.map((x) => x.id === c.id ? { ...x, power: c.power, epithet: c.epithet, epithetKey: c.epithetKey, _grewUp: true } : x));
-              });
+              catMods[c.id] = { ...(catMods[c.id] || {}), power: c.power, epithet: c.epithet, epithetKey: c.epithetKey, _grewUp: true };
               setDenNews((n) => [...n, { icon: "\u{1F3F7}\uFE0F", text: `${fn} earned: "${c.epithet}" (+2 Power)`, color: "#fbbf24" }]);
             }
           }
         });
+        const applyCatMods = (c) => catMods[c.id] ? { ...c, ...catMods[c.id] } : c;
         const pIds = new Set(cats.map((c) => c.id));
-        const rem = hand.filter((c) => !pIds.has(c.id));
-        const nDisc = [...disc, ...cats];
+        const rem = hand.filter((c) => !pIds.has(c.id)).map(applyCatMods);
+        const nDisc = [...disc, ...cats.map(applyCatMods)];
         const target = hs();
         const need = target - rem.length;
         if (need > 0) {
@@ -6409,10 +6409,11 @@
     function recruitCat() {
       if (ph !== "playing") return;
       const cost = recruitCost();
-      if (gold < cost) return;
+      if (goldRef.current < cost) return;
       if (draw.length === 0 && disc.length === 0) return;
       if (actionLock.current) return;
       actionLock.current = true;
+      goldRef.current -= cost;
       requestAnimationFrame(() => {
         actionLock.current = false;
       });
@@ -6453,7 +6454,10 @@
       const gR = cfx.famine ? 0 : baseR + bossBonus;
       const excessGold = 0;
       const interest = Math.min(5, Math.floor(gold / 5));
-      setGold(gold + gR + interest);
+      setGold((g) => {
+        const curInterest = Math.min(5, Math.floor(g / 5));
+        return g + gR + curInterest;
+      });
       setOData({ excess, uh, gR, fs, tgt: tgt2, interest, excessGold, pct: Math.round(pct * 100) });
       setPh("overflow");
     }
@@ -6786,24 +6790,19 @@
         setCurses([]);
         setCfx({});
       }
-      [setHand, setDraw, setDisc].forEach((setter) => {
-        setter((arr) => arr.map((c) => {
-          if (!c.injured) return c;
-          const timer = (c.injuryTimer || 2) - 1;
-          const fastHeal = catHas(c, "Scrapper");
-          if (timer <= 0 || fastHeal) {
-            return { ...c, injured: false, injuryTimer: 0 };
-          }
-          return { ...c, injuryTimer: timer };
-        }));
-      });
+      const healCat = (c) => {
+        if (!c.injured) return c;
+        const timer = (c.injuryTimer || 2) - 1;
+        const fastHeal = catHas(c, "Scrapper");
+        if (timer <= 0 || fastHeal) return { ...c, injured: false, injuryTimer: 0 };
+        return { ...c, injuryTimer: timer };
+      };
       const all = shuf([...hand, ...draw, ...disc].map((c) => {
-        if (pendingRenames.current[c.id]) {
-          const parts = c.name.split(" ");
-          parts[0] = pendingRenames.current[c.id].split(" ")[0];
-          return { ...c, name: pendingRenames.current[c.id] };
+        let nc = healCat(c);
+        if (pendingRenames.current[nc.id]) {
+          return { ...nc, name: pendingRenames.current[nc.id] };
         }
-        return c;
+        return nc;
       }));
       pendingRenames.current = {};
       setHand(all.slice(0, BH));
@@ -6887,7 +6886,8 @@
     const famPrice = (f) => f?._starter ? 2 : 4 + ante + (getHeatFx(meta?.heat).shopCost || 0);
     function buyCat(i) {
       const p = sCats[i]._price || 3;
-      if (gold < p) return;
+      if (goldRef.current < p) return;
+      goldRef.current -= p;
       Audio.buy();
       setGold((g) => g - p);
       const c = { ...sCats[i] };
@@ -6909,7 +6909,8 @@
     function buyFam(i) {
       const f = sFams[i];
       const fp = famPrice(f);
-      if (gold < fp || fams.length >= MF) return;
+      if (goldRef.current < fp || fams.length >= MF) return;
+      goldRef.current -= fp;
       Audio.buy();
       setGold((g) => g - fp);
       const clean = { ...f };
@@ -6921,7 +6922,8 @@
     }
     function buyScroll(i) {
       const s = sScrolls[i];
-      if (!s || gold < s.price) return;
+      if (!s || goldRef.current < s.price) return;
+      goldRef.current -= s.price;
       Audio.buy();
       setGold((g) => g - s.price);
       setHtLevels((prev) => ({ ...prev, [s.name]: (prev[s.name] || 1) + 1, [s.name + "_xp"]: 0 }));
@@ -6930,7 +6932,8 @@
     }
     function reroll() {
       const rc = 2 + ante + rerollCount;
-      if (gold < rc) return;
+      if (goldRef.current < rc) return;
+      goldRef.current -= rc;
       setGold((g) => g - rc);
       setRerollCount((c) => c + 1);
       genShop();
@@ -7015,13 +7018,20 @@
       return s + (fx.shelter || 0);
     }, 0);
     const MAX_ISOLATE = campMode ? 2 : 3 + (getMB().shelter || 0) + shelterFromWards + (eventDenBonus || 0);
+    const denRef = useRef(den);
+    denRef.current = den;
     const toggleDen = (c) => {
-      setDen((d) => {
-        if (d.find((x) => x.id === c.id)) return d.filter((x) => x.id !== c.id);
-        if (d.length >= MAX_ISOLATE) return d;
-        if (d.some((x) => x.id === c.id)) return d;
-        return [...d, c];
-      });
+      const cur = denRef.current;
+      if (cur.find((x) => x.id === c.id)) {
+        const next = cur.filter((x) => x.id !== c.id);
+        denRef.current = next;
+        setDen(next);
+        return;
+      }
+      if (cur.length >= MAX_ISOLATE) return;
+      const next = [...cur, c];
+      denRef.current = next;
+      setDen(next);
     };
     function endNight() {
       const dAll = [...hand, ...draw, ...disc];
@@ -7496,6 +7506,10 @@
       Audio.eventReveal();
     }
     function chooseEvent(idx) {
+      if (!colEvent || !colEvent.choices || !colEvent.choices[idx]) return;
+      if (actionLock.current) return;
+      actionLock.current = true;
+      requestAnimationFrame(() => { actionLock.current = false; });
       const fx = colEvent.choices[idx].fx;
       const targets = colTargets;
       const all = [...hand, ...draw, ...disc];
@@ -9696,6 +9710,9 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
         }
         const choices = bossRewardChoices.length > 0 ? bossRewardChoices : pickBossRewards(ante, []);
         function claimReward(rw) {
+          if (actionLock.current) return;
+          actionLock.current = true;
+          requestAnimationFrame(() => { actionLock.current = false; });
           const all = [...hand, ...draw, ...disc];
           if (rw.type === "gold") setGold((g) => g + rw.value);
           if (rw.type === "gold_nerve") {
@@ -10668,7 +10685,8 @@ The fire still burns.
           setSellConfirm(null);
         }, style: { fontSize: 12, padding: "8px 20px", borderRadius: 6, border: "1px solid #c084fc66", background: "#c084fc18", color: "#c084fc", cursor: "pointer", fontWeight: 700, minHeight: 36 } }, "Let go")));
       })()), shopTab !== "colony" && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "center", gap: 8, marginTop: 8 } }, /* @__PURE__ */ React.createElement("button", { onClick: reroll, disabled: gold < rc, style: { ...BTN("#1a1a2e", "#fbbf24", gold >= rc), border: `1px solid ${gold >= rc ? "#fbbf2444" : "#222"}`, fontSize: 11 }, title: "Rerolls cats, wards, and scrolls. Cost increases each time." }, "Reroll All (", rc, "\u{1F41F}", rerollCount > 0 ? " \u2191" : "", ")"), ante >= 3 && /* @__PURE__ */ React.createElement("button", { onClick: () => {
-        if (gold < 6) return;
+        if (goldRef.current < 6) return;
+        goldRef.current -= 6;
         Audio.buy();
         setGold((g) => g - 6);
         const ac2 = [...hand, ...draw, ...disc];
