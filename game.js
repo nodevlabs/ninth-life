@@ -782,7 +782,7 @@
     { id: "surge", name: "Resonance Surge", icon: "\u2728", desc: "Same-season cats score +4 extra chips tonight", fx: { seasonChipsBonus: 4 } },
     { id: "lone", name: "Lone Wolf", icon: "\u{1F43A}", desc: "Hands of 1-2 cats: \xD71.5 total score tonight", fx: { loneWolfMult: 1.5 } },
     { id: "full", name: "Full Moon", icon: "\u{1F315}", desc: "Hands of 4+ cats: +3 bonus per cat tonight", fx: { fullMoonMult: 3 } },
-    { id: "thin", name: "Thin Ice", icon: "\u{1F9CA}", desc: "Only 3 hands per blind tonight (normally 4)", fx: { handMod: -1 } },
+    { id: "thin", name: "Thin Ice", icon: "\u{1F9CA}", desc: "One fewer hand per blind tonight", fx: { handMod: -1 } },
     { id: "blood", name: "Blood Moon", icon: "\u{1FA78}", desc: "Hardened cats score \xD71.5 tonight", fx: { bloodMoonMult: 1.5 } },
     { id: "bonds", name: "Kindred Spirits", icon: "\u{1F495}", desc: "Bonded pairs played together: +5 bonus per pair tonight", fx: { bondHandMult: 5 } }
   ];
@@ -3689,6 +3689,14 @@
       chips += bonus;
       bd.push({ label: `\u2600\uFE0F Wildfire +${bonus}C`, chips: bonus, mult: 0, type: "devotion" });
     }
+    if (devFx.powerBoost) {
+      let pbTotal = 0;
+      cats.forEach((c) => {
+        const pb = devFx.powerBoost[c.breed] || 0;
+        if (pb > 0) { chips += pb * 5; pbTotal += pb * 5; }
+      });
+      if (pbTotal > 0) bd.push({ label: `\u{1F451} Devotion Power +${pbTotal}C`, chips: pbTotal, mult: 0, type: "devotion" });
+    }
     const powers = cats.map((c) => c.power);
     const maxP = Math.max(...powers);
     const minP = Math.min(...powers);
@@ -4031,6 +4039,12 @@
           }
         }
       });
+    }
+    const focusScale = [0, 1.5, 1.3, 1.2, 1.1];
+    if (cats.length >= 1 && cats.length <= 4) {
+      const fm = focusScale[cats.length];
+      mult = Math.round(mult * fm);
+      bd.push({ label: `\u{1F3AF} Focus \xD7${fm}`, chips: 0, mult: 0, xMult: fm, type: "focus", allCats: true });
     }
     const fv = NERVE[fLvl];
     if (fv.xM > 1) {
@@ -4711,7 +4725,7 @@
   }
   function _FM({ level, prev }) {
     const fv = NERVE[level] || NERVE[0], pct = level / NERVE_MAX * 100, mx = level === NERVE_MAX, ch = prev !== null && prev !== level, up = ch && level > prev, dn = ch && level < prev;
-    return /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: "0 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6 } }, /* @__PURE__ */ React.createElement("span", { title: "NERVE multiplies ALL scores.\nGain: +1 per Dusk/Midnight clear.\nBoss: +hands remaining (faster clear = more nerve).\nNo decay. No loss.\nAt NINTH LIFE (max): \xD72.2 to ALL scores.", style: { fontSize: 12, fontWeight: 700, color: fv.color, letterSpacing: 2, textShadow: mx ? `0 0 14px ${fv.glow}` : level > 5 ? `0 0 6px ${fv.color}44` : "none", animation: mx ? "fp 1s ease-in-out infinite" : up ? "fpp .4s ease-out" : dn ? "shake .3s ease" : "none", cursor: "help" } }, mx ? "\u2726 " : "", fv.name, mx ? " \u2726" : ""), /* @__PURE__ */ React.createElement("span", { style: { fontSize: fv.xM > 1 ? 13 : 11, color: fv.color, fontWeight: 900, opacity: fv.xM > 1 ? 1 : 0.3, letterSpacing: fv.xM > 1 ? 1 : 0, textShadow: fv.xM > 1.3 ? `0 0 8px ${fv.color}44` : "none" } }, fv.xM > 1 ? `\xD7${fv.xM}` : "\xD71"), ch && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, fontWeight: 700, animation: "countUp .4s ease-out", color: up ? "#4ade80" : "#ef4444" } }, up ? "\u25B2" : "\u25BC")), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#666" } }, level, "/", NERVE_MAX)), /* @__PURE__ */ React.createElement("div", { style: { height: 8, background: "#1a1a2e", borderRadius: 4, overflow: "hidden", border: "1px solid #ffffff08" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${pct}%`, borderRadius: 4, background: mx ? "linear-gradient(90deg,#b85c2c,#f59e0b,#fef08a,#ffffffcc)" : `linear-gradient(90deg,#b8956a,${fv.color})`, transition: "width .5s cubic-bezier(.34,1.56,.64,1)", boxShadow: level > 5 ? `0 0 8px ${fv.color}44` : "none", animation: level > 8 ? `nervePulse ${Math.max(0.6, 2 - level * 0.1)}s ease-in-out infinite` : "none" } })), level === 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", marginTop: 2, textAlign: "center" } }, "Clear blinds to build Nerve. Faster boss clears give more."));
+    return /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: "0 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6 } }, /* @__PURE__ */ React.createElement("span", { title: "NERVE multiplies ALL scores.\nGain: +unused hands when you clear a blind.\nFaster clears = more nerve.\nAt NINTH LIFE (max): \xD72.3 to ALL scores.", style: { fontSize: 12, fontWeight: 700, color: fv.color, letterSpacing: 2, textShadow: mx ? `0 0 14px ${fv.glow}` : level > 5 ? `0 0 6px ${fv.color}44` : "none", animation: mx ? "fp 1s ease-in-out infinite" : up ? "fpp .4s ease-out" : dn ? "shake .3s ease" : "none", cursor: "help" } }, mx ? "\u2726 " : "", fv.name, mx ? " \u2726" : ""), /* @__PURE__ */ React.createElement("span", { style: { fontSize: fv.xM > 1 ? 13 : 11, color: fv.color, fontWeight: 900, opacity: fv.xM > 1 ? 1 : 0.3, letterSpacing: fv.xM > 1 ? 1 : 0, textShadow: fv.xM > 1.3 ? `0 0 8px ${fv.color}44` : "none" } }, fv.xM > 1 ? `\xD7${fv.xM}` : "\xD71"), ch && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, fontWeight: 700, animation: "countUp .4s ease-out", color: up ? "#4ade80" : "#ef4444" } }, up ? "\u25B2" : "\u25BC")), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#666" } }, level, "/", NERVE_MAX)), /* @__PURE__ */ React.createElement("div", { style: { height: 8, background: "#1a1a2e", borderRadius: 4, overflow: "hidden", border: "1px solid #ffffff08" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${pct}%`, borderRadius: 4, background: mx ? "linear-gradient(90deg,#b85c2c,#f59e0b,#fef08a,#ffffffcc)" : `linear-gradient(90deg,#b8956a,${fv.color})`, transition: "width .5s cubic-bezier(.34,1.56,.64,1)", boxShadow: level > 5 ? `0 0 8px ${fv.color}44` : "none", animation: level > 8 ? `nervePulse ${Math.max(0.6, 2 - level * 0.1)}s ease-in-out infinite` : "none" } })), level === 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", marginTop: 2, textAlign: "center" } }, "Clear blinds to build Nerve. Fewer hands used = more Nerve gained."));
   }
   const FM = React.memo(_FM);
   function AnimatedScore({ value, style }) {
@@ -4790,6 +4804,7 @@
     const actionLock = useRef(false);
     const goldRef = useRef(5);
     const injuredThisBlind = useRef(false);
+    const undoRef = useRef(null);
     const fcSeenRef = useRef({});
     const [ferv, setFerv] = useState(0);
     const [pFerv, setPFerv] = useState(null);
@@ -5259,8 +5274,8 @@
       const totalScore = cs + s;
       const handsAfter = ch - 1;
       if (totalScore >= ct) {
-        let gain = 1;
-        if (blind === 2) gain = Math.max(0, handsAfter);
+        const devNerve = getAllDevotionFx(devotion).nerveBoost || 0;
+        const gain = Math.max(0, handsAfter) + (handsAfter > 0 ? devNerve : 0);
         if (gain > 0) {
           const nx = Math.min(NERVE_MAX, ferv + gain);
           setFerv(nx);
@@ -5269,7 +5284,7 @@
           Audio.nerveUp();
           if (ferv <= 1 && !seen.nerveExplain) {
             setSeen((s2) => ({ ...s2, nerveExplain: true }));
-            setTimeout(() => toast("\u{1F525}", "Nerve went up! It multiplies ALL your scores. Clear rounds to build it higher.", "#fbbf24", 4500), 800);
+            setTimeout(() => toast("\u{1F525}", "Nerve up! Clear with fewer hands to build it faster.", "#fbbf24", 4500), 800);
           }
         }
       }
@@ -5487,7 +5502,7 @@
       setLastHandType(null);
       setEventHistory({});
       const hfx = getHeatFx(meta?.heat);
-      setHLeft(4 + mb.hands + (hfx.handMod || 0));
+      setHLeft(3 + mb.hands + (hfx.handMod || 0));
       setDLeft(3 + mb.discards + (hfx.discMod || 0));
       setGold(3 + mb.gold);
       const startNerve = (mb.fervor || 0) + ((meta?.relics || []).includes(5) ? 1 : 0);
@@ -5669,7 +5684,8 @@
       setDefeatData(null);
       setRerollCount(0);
       setBloodMemMsg(null);
-      const bh = 4 + mb.hands + (hfx.handMod || 0) + (sr.runBonus?.hands || 0);
+      const resumeBase = (sr.blind || 0) === 2 ? 4 : 3;
+      const bh = resumeBase + mb.hands + (hfx.handMod || 0) + (sr.runBonus?.hands || 0);
       const bd = 3 + mb.discards + (hfx.discMod || 0);
       setHLeft(bh);
       setDLeft(bd);
@@ -6097,6 +6113,7 @@
       if (!sel.size || hLeft <= 0) return;
       if (actionLock.current) return;
       actionLock.current = true;
+      undoRef.current = null;
       Audio.cardPlay();
       setDenNews([]);
       if (guide && guide.step <= 1) setGuide((g) => ({ ...g, step: 2 }));
@@ -6292,7 +6309,8 @@
         toast("\u267B\uFE0F", `Max ${MAX_DISCARD} cards per discard`, "#ef4444");
         return;
       }
-      if (actionLock.current) return;
+      undoRef.current = { hand: [...hand], draw: [...draw], disc: [...disc], sel: new Set(sel), dLeft, gold, ferv, mood, hLeft };
+      if (actionLock.current) { undoRef.current = null; return; }
       actionLock.current = true;
       requestAnimationFrame(() => {
         actionLock.current = false;
@@ -6393,6 +6411,22 @@
       if (discDelta > 0) setDLeft((v) => v + discDelta);
       Audio.cardSelect();
     }
+    function undoDiscard() {
+      if (!undoRef.current) return;
+      const u = undoRef.current;
+      setHand(u.hand);
+      setDraw(u.draw);
+      setDisc(u.disc);
+      setSel(u.sel);
+      setDLeft(u.dLeft);
+      setHLeft(u.hLeft);
+      setGold(u.gold);
+      goldRef.current = u.gold;
+      setFerv(u.ferv);
+      setMood(u.mood);
+      undoRef.current = null;
+      toast("\u21A9\uFE0F", "Discard undone", "#888", 1500);
+    }
     const [recruitsThisHand, setRecruitsThisHand] = useState(0);
     const [freeRecruitsUsed, setFreeRecruitsUsed] = useState(0);
     const devFxRef = useRef({});
@@ -6423,6 +6457,7 @@
       if (actionLock.current) return;
       actionLock.current = true;
       goldRef.current -= cost;
+      undoRef.current = null;
       requestAnimationFrame(() => {
         actionLock.current = false;
       });
@@ -6769,7 +6804,8 @@
       const hfx2 = getHeatFx(meta?.heat);
       const bossHandBonus = nb === 2 && mb.bossHand ? mb.bossHand : 0;
       const dFx = getAllDevotionFx(devotion);
-      setHLeft(4 + mb.hands + runBonus.hands + tempMods.hands + (hfx2.handMod || 0) + bossHandBonus + dFx.hands + (nb === 2 ? 0 : nightMod?.fx?.handMod || 0));
+      const baseHands = nb === 2 ? 4 : 3;
+      setHLeft(baseHands + mb.hands + runBonus.hands + tempMods.hands + (hfx2.handMod || 0) + bossHandBonus + dFx.hands + (nb === 2 ? 0 : nightMod?.fx?.handMod || 0));
       setDLeft(3 + mb.discards + tempMods.discs + (hfx2.discMod || 0) + dFx.discards);
       setTempMods((m) => ({ hands: 0, discs: 0, freeRecruits: 0, nerveLock: 0, kindredMult: m.kindredMult || 0 }));
       if (nb === 0) {
@@ -6790,7 +6826,8 @@
       }
       if (nb === 2) {
         const hfxC = getHeatFx(meta?.heat);
-        const c = genCurses(na, hfxC.extraCurse || 0);
+        const devCurseReduce = getAllDevotionFx(devotion).curseReduce || 0;
+        const c = genCurses(na, Math.max(0, (hfxC.extraCurse || 0) - devCurseReduce));
         setCurses(c);
         const fx = buildCfx(c);
         setCfx(fx);
@@ -6799,10 +6836,11 @@
         setCurses([]);
         setCfx({});
       }
+      const devFastHeal = getAllDevotionFx(devotion).fastHeal || false;
       const healCat = (c) => {
         if (!c.injured) return c;
         const timer = (c.injuryTimer || 2) - 1;
-        const fastHeal = catHas(c, "Scrapper");
+        const fastHeal = catHas(c, "Scrapper") || devFastHeal;
         if (timer <= 0 || fastHeal) return { ...c, injured: false, injuryTimer: 0 };
         return { ...c, injuryTimer: timer };
       };
@@ -6824,6 +6862,10 @@
       if (nb === 2) {
         setPh("bossIntro");
         Audio.bossIntro();
+        if (eventHistory._lastTag === "scarKeeper" || eventHistory.storm_mapped) {
+          const curseNames = curses.map((c) => c.name).join(", ");
+          if (curseNames) setTimeout(() => toast("\u{1F5FA}\uFE0F", `The map reveals: ${curseNames}`, "#c084fc", 4e3), 1500);
+        }
       } else {
         if (nb === 0) {
           const wSeasons = ["Autumn", "Winter", "Spring", "Summer"];
@@ -8703,7 +8745,7 @@
       const companions = hearthCats.map((c) => {
         const breed = c.breed || "Autumn";
         const tr = c.trait || PLAIN;
-        return { ...gC({ breed, trait: tr, sex: c.sex || "M" }), name: c.name || "Ghost", power: c.power || 3, scarred: !!c.scarred, epithet: c.epithet || null, epithetKey: c.epithetKey || null, _hearthChild: true, stats: { tp: 0, bs: 0 } };
+        return { ...gC({ breed, trait: tr, sex: c.sex || "M" }), name: c.name || "Ghost", power: Math.min(15, (c.power || 3) + (getMB().heirloom || 0)), scarred: !!c.scarred, epithet: c.epithet || null, epithetKey: c.epithetKey || null, _hearthChild: true, stats: { tp: 0, bs: 0 } };
       }).slice(0, 6);
       const colNum = (meta?.stats?.r || 0) + 1;
       const colLine = colNum === 2 ? "New names around the same fire." : colNum <= 4 ? "The fire still burns. So do you." : (meta?.stats?.w || 0) === 0 ? "The fire doesn't ask how many times you've tried." : (meta?.stats?.w || 0) >= 5 ? "The dark knows your name by now." : "New colony. Same question. Different answer.";
@@ -10039,10 +10081,7 @@ Score: ${defeatData.score.toLocaleString()} / ${defeatData.target.toLocaleString
 MVP: ${defMvp ? defMvp.name : "?"} (${bestHandScore.toLocaleString()} best hand)
 ${deficit < defeatData.target * 0.1 ? "So close." : "The dark remembers."}
 \u2192 https://greatgamesgonewild.github.io/ninth-life/`;
-      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", zIndex: 1, gap: 12, padding: 20, maxWidth: 500 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24aa", letterSpacing: 4, animation: "fadeIn .8s ease-out" } }, "COLONY #", (meta?.stats?.r || 0) + 1, " \xB7 NIGHT ", ante), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 36, fontWeight: 900, color: "#e8e6e3", letterSpacing: 2, animation: "fadeIn 1s ease-out" } }, defeatData.score.toLocaleString()), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 12, fontSize: 11, color: "#888", animation: "fadeIn 1.2s ease-out" } }, /* @__PURE__ */ React.createElement("span", null, handsPlayed, " hands"), /* @__PURE__ */ React.createElement("span", null, allC.length, " cats"), fallen.length > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444" } }, fallen.length, " lost")), runLog.length > 2 && (() => {
-        const bestH = runLog.filter((e) => e.type === "hand").reduce((best, e) => (e.data?.score || 0) > (best?.data?.score || 0) ? e : best, null);
-        return bestH ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#fbbf24", textAlign: "center", animation: "fadeIn 1.5s ease-out" } }, "\u2726 Best: ", bestH.data.cats, " ", bestH.data.type, " for ", bestH.data.score.toLocaleString()) : null;
-      })(), /* @__PURE__ */ React.createElement("div", { style: { width: 40, height: 1, background: "#ef444433", margin: "4px 0" } }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ef4444aa", fontStyle: "italic", textAlign: "center", maxWidth: 340, lineHeight: 1.7, animation: "fadeIn 1.8s ease-out" } }, defSentence), deficit > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef444477", animation: "fadeIn 2s ease-out" } }, deficit.toLocaleString(), " short of ", defeatData.target.toLocaleString()), fallen.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center", animation: "fadeIn 2.2s ease-out" } }, fallen.map((f, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { fontSize: 10, color: BREEDS[f.breed]?.color || "#888", opacity: 0.5 } }, f.name.split(" ")[0]))), runLog.length > 2 && /* @__PURE__ */ React.createElement("details", { style: { animation: "fadeIn 2.5s ease-out", maxWidth: 340, width: "100%" } }, /* @__PURE__ */ React.createElement("summary", { style: { fontSize: 10, color: "#666", cursor: "pointer", textAlign: "center", letterSpacing: 2 } }, "THE CHRONICLE"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 3, marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#ffffff04", border: "1px solid #ffffff08" } }, (() => {
+      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", zIndex: 1, gap: 12, padding: 20, maxWidth: 500 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24aa", letterSpacing: 4, animation: "fadeIn .8s ease-out" } }, "COLONY #", (meta?.stats?.r || 0) + 1, " \xB7 NIGHT ", ante), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 36, fontWeight: 900, color: "#e8e6e3", letterSpacing: 2, animation: "fadeIn 1s ease-out" } }, defeatData.score.toLocaleString()), defeatData.target > 0 && /* @__PURE__ */ React.createElement("div", { style: { width: Math.min(280, vw - 60), height: 6, background: "#1a1a2e", borderRadius: 3, overflow: "hidden", border: "1px solid #ffffff08", animation: "fadeIn 1.2s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${Math.min(100, defeatData.score / defeatData.target * 100)}%`, borderRadius: 3, background: defeatData.score >= defeatData.target * 0.9 ? "linear-gradient(90deg,#fbbf24,#ef4444)" : "linear-gradient(90deg,#ef4444,#ef444488)", transition: "width 1s ease-out" } })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", animation: "fadeIn 1.2s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#3b82f6" } }, handsPlayed), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "HANDS")), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#c084fc" } }, bestHandScore.toLocaleString()), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "BEST HAND")), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: NERVE[rMaxF].color } }, NERVE[rMaxF].name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "NERVE")), fallen.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ef444422", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#ef4444" } }, fallen.length), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "LOST"))), /* @__PURE__ */ React.createElement("div", { style: { width: 40, height: 1, background: "#ef444433", margin: "2px 0" } }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ef4444aa", fontStyle: "italic", textAlign: "center", maxWidth: 340, lineHeight: 1.7, animation: "fadeIn 1.8s ease-out" } }, defSentence), deficit > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: deficit < defeatData.target * 0.15 ? "#fbbf2488" : "#ef444466", animation: "fadeIn 2s ease-out" } }, deficit < defeatData.target * 0.15 ? `Only ${deficit.toLocaleString()} short. That's one good hand.` : `${deficit.toLocaleString()} short of ${defeatData.target.toLocaleString()}`), fallen.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center", animation: "fadeIn 2.2s ease-out" } }, fallen.map((f, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { fontSize: 10, color: BREEDS[f.breed]?.color || "#888", opacity: 0.5 } }, f.name.split(" ")[0]))), runLog.length > 2 && /* @__PURE__ */ React.createElement("details", { style: { animation: "fadeIn 2.5s ease-out", maxWidth: 340, width: "100%" } }, /* @__PURE__ */ React.createElement("summary", { style: { fontSize: 10, color: "#666", cursor: "pointer", textAlign: "center", letterSpacing: 2 } }, "THE CHRONICLE"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 3, marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#ffffff04", border: "1px solid #ffffff08" } }, (() => {
         const moments = [];
         const bestH = runLog.filter((e) => e.type === "hand").reduce((best, e) => (e.data?.score || 0) > (best?.data?.score || 0) ? e : best, null);
         if (bestH) moments.push({ text: `Best: ${bestH.data.cats} ${bestH.data.type} for ${bestH.data.score.toLocaleString()}`, color: "#fbbf24", icon: "\u2726" });
@@ -11296,6 +11335,15 @@ The fire still burns.
       fontWeight: 600,
       animation: `fadeIn .4s ease-out ${i * 0.15}s both`
     } }, a.icon, " ", a.text)))), deckView && /* @__PURE__ */ React.createElement("div", { onClick: () => setDeckView(false), style: { position: "fixed", inset: 0, zIndex: 140, display: "flex", alignItems: "center", justifyContent: "center", background: "#000000cc", padding: 16 } }, /* @__PURE__ */ React.createElement("div", { onClick: (e) => e.stopPropagation(), style: { background: "linear-gradient(145deg,#1a1a2e,#0d0d1a)", border: "1px solid #ffffff11", borderRadius: 14, padding: "16px 20px", maxWidth: 480, width: "100%", maxHeight: "80vh", overflowY: "auto", animation: "fadeIn .15s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#888", letterSpacing: 3 } }, "COLONY \xB7 ", allC.length, " CATS"), /* @__PURE__ */ React.createElement("button", { onClick: () => setDeckView(false), style: { background: "none", border: "none", color: "#666", fontSize: 16, cursor: "pointer" } }, "\u2715")), (() => {
+      const byCounts = {};
+      allC.forEach((c) => { byCounts[c.breed] = (byCounts[c.breed] || 0) + 1; });
+      const traitCounts = {};
+      allC.forEach((c) => { const tn = (c.trait || PLAIN).name; if (tn !== "Plain") traitCounts[tn] = (traitCounts[tn] || 0) + 1; });
+      const injCount = allC.filter((c) => c.injured).length;
+      const scarCount = allC.filter((c) => c.scarred).length;
+      const bondCount = Math.floor(allC.filter((c) => c.bondedTo).length / 2);
+      return /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 2, height: 6, borderRadius: 3, overflow: "hidden", marginBottom: 6 } }, BK.map((b) => /* @__PURE__ */ React.createElement("div", { key: b, style: { flex: byCounts[b] || 0, background: BREEDS[b]?.color || "#888", transition: "flex .3s" }, title: `${b}: ${byCounts[b] || 0}` }))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", fontSize: 10 } }, BK.map((b) => /* @__PURE__ */ React.createElement("span", { key: b, style: { color: BREEDS[b]?.color || "#888" } }, BREEDS[b]?.icon, " ", byCounts[b] || 0)), scarCount > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u2694", scarCount), bondCount > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#f472b6" } }, "\u{1F495}", bondCount), injCount > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444" } }, "\u{1FA79}", injCount)), Object.keys(traitCounts).length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", fontSize: 9, color: "#888", marginTop: 4 } }, Object.entries(traitCounts).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([t, n]) => /* @__PURE__ */ React.createElement("span", { key: t }, t, ":", n))));
+    })(), (() => {
       const sections = [
         { label: "IN HAND", cats: hand, color: "#4ade80" },
         { label: "DRAW PILE", cats: draw, color: "#fbbf24" },
@@ -11365,7 +11413,8 @@ The fire still burns.
       const bondPairCount = selC.filter((c) => c.bondedTo && selC.find((x) => x.id === c.bondedTo)).length / 2;
       const ubActive = getMB().bondBoost || 0;
       const bondPairXM = bondPairCount >= 2 ? ubActive ? 1.75 * 1.4 : 1.5 * 1.25 : bondPairCount >= 1 ? ubActive ? 1.75 : 1.5 : 1;
-      const sig = (baseC + catPow + 0) * (baseM + traitCount * 2) * Math.max(1, NERVE[ferv].xM) * scarredXM * bondPairXM;
+      const focusPreview = selC.length >= 1 && selC.length <= 4 ? [0, 1.5, 1.3, 1.2, 1.1][selC.length] : 1;
+      const sig = (baseC + catPow + 0) * (baseM + traitCount * 2) * Math.max(1, NERVE[ferv].xM) * scarredXM * bondPairXM * focusPreview;
       const tgt2 = eTgt();
       const need = Math.max(0, tgt2 - rScore);
       const pacePerHand = hLeft > 0 ? need / hLeft : need;
@@ -11374,7 +11423,7 @@ The fire still burns.
       return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 15, fontWeight: 700, color: "#fbbf24", letterSpacing: 2 } }, preview.type.name, runCount < 3 && preview.type.ex ? /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#fbbf24aa", fontWeight: 400, marginLeft: 4 } }, "(", preview.type.ex, ")") : null), preview.combo && (() => {
         const known = (meta?.stats?.dh || []).includes(preview.combo.name);
         return /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, fontWeight: 700, color: "#c084fc", letterSpacing: 1 } }, "+ ", known ? preview.combo.name : "????", known && preview.combo.ex ? /* @__PURE__ */ React.createElement("span", { style: { fontSize: 9, color: "#c084fc88", fontWeight: 400, marginLeft: 4 } }, "(", preview.combo.ex, ")") : null);
-      })(), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: "#888" } }, baseC, "\xD7", baseM), selC.length <= 3 && selC.length >= 1 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fcaa" } }, "Focus \xD7", selC.length === 1 ? "1.8" : selC.length === 2 ? "1.4" : "1.2"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 14, fontWeight: 900, color: tier.c, letterSpacing: 1, textShadow: `0 0 8px ${tier.c}44` } }, tier.w)), (() => {
+      })(), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: "#888" } }, baseC, "\xD7", baseM), selC.length <= 4 && selC.length >= 1 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fcaa" } }, "Focus \xD7", selC.length === 1 ? "1.5" : selC.length === 2 ? "1.3" : selC.length === 3 ? "1.2" : "1.1"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 14, fontWeight: 900, color: tier.c, letterSpacing: 1, textShadow: `0 0 8px ${tier.c}44` } }, tier.w)), (() => {
         if (Math.random() > 0.2 || selC.length < 2) return null;
         const bondPair = selC.find((c) => c.bondedTo && selC.find((x) => x.id === c.bondedTo));
         const mate = bondPair ? selC.find((x) => x.id === bondPair.bondedTo) : null;
@@ -11526,7 +11575,7 @@ The fire still burns.
         else if (catHas(c, "Scavenger")) hints.push({ icon: "\u{1F33E}", text: "+2\u{1F41F}", color: "#4ade80" });
       });
       return hints.length > 0 ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80", marginTop: 1 } }, hints.slice(0, 2).map((h, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { color: h.color } }, h.icon, h.text, " "))) : null;
-    })()), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, sel.size >= 2 && ph === "playing" && !autoPlay && runCount >= 3 && (() => {
+    })(), undoRef.current && ph === "playing" && !isDailyRun && /* @__PURE__ */ React.createElement("button", { onClick: undoDiscard, style: { fontSize: 9, padding: "2px 8px", borderRadius: 4, border: "1px solid #ffffff15", background: "#ffffff06", color: "#888", cursor: "pointer", marginTop: 2 } }, "\u21A9 Undo")), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, sel.size >= 2 && ph === "playing" && !autoPlay && runCount >= 3 && (() => {
       const cats = [...sel].map((i) => hand[i]).filter(Boolean);
       if (cats.length < 1) return null;
       const preview2 = calcScore(cats, fams, ferv, cfx, { gold, deckSize: allC.length, discSize: disc.length, handSize: hs(), beatingPace: rScore >= tgt, bossTraitFx: [], scarMult: getMB().scarMult || 0, grudgeWisdom: getMB().grudgeWisdom || 0, hasMastery: !!getMB().xp, bondBoost: getMB().bondBoost || 0, comboBoost: getMB().comboBoost || 0, doubleBench: getMB().doubleBench || 0, kindredMult: tempMods.kindredMult || 0, weatherSeason: weather?.season || null, nightModFx: nightMod?.fx || {}, lastHandIds, lastHandLost, lastHandType, htLevels, devotion, bench: hand.filter((c) => !cats.find((x) => x.id === c.id)) });
@@ -11567,7 +11616,7 @@ The fire still burns.
     })), /* @__PURE__ */ React.createElement("div", { style: { borderTop: "1px solid #ffffff0a", marginTop: 4, paddingTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", letterSpacing: 1, marginBottom: 2 } }, "TRAITS"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(140px,1fr))", gap: 1 } }, TRAITS.map((t) => {
       const tl = traitTierLabel(t);
       return /* @__PURE__ */ React.createElement("div", { key: t.name, style: { fontSize: 10, color: tl.color } }, t.icon, " ", /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 600 } }, t.name), " ", /* @__PURE__ */ React.createElement("span", { style: { opacity: 0.6, fontSize: 10 } }, "(", tl.label, ")"), " ", t.desc);
-    }))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingTop: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u2694 Scarred: \xD71.25 mult"), /* @__PURE__ */ React.createElement("span", null, "\u{1FA79} Injured: Half power, \u22122 mult (heals in 2 rounds)"), /* @__PURE__ */ React.createElement("span", null, "\u{1F525} Nerve: \xD71.0 to \xD72.2 (every clear +1, boss +hands remaining)")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F495} Bonded pair: \xD7", getMB().bondBoost ? "1.75" : "1.5", " mult (from den shelter)"), /* @__PURE__ */ React.createElement("span", null, "\u26A1 Grudge: Always \u2212", (getMB().grudgeWisdom || 0) > 0 ? "1" : "2", " mult when grudged cats play together"), /* @__PURE__ */ React.createElement("span", null, "\u{1FA91} Bench: Unplayed hand cats give passive bonuses (traits or power as chips)")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F4E3} Recruit: Pay \u{1F41F} to draw extra cats (1\u21922\u21924\u21928\u{1F41F}). More cards = better combos + bench"), /* @__PURE__ */ React.createElement("span", null, "\u{1F3F7}\uFE0F Epithets: Cats earn titles from events (scars, bonds, boss clears). Shown in Hearth")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 6, fontSize: 10, color: "#666", flexWrap: "wrap" } }, Object.keys(DEVOTION_MILESTONES).map((k) => /* @__PURE__ */ React.createElement("span", { key: k, style: { color: BREEDS[k]?.color || "#888" } }, BREEDS[k]?.icon, " ", k, ": Play ", k, " cats to unlock devotion bonuses"))))), showAbandon && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 8, left: 8, zIndex: 200, display: "flex", gap: 4, alignItems: "center" } }, abandonConfirm ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    }))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingTop: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u2694 Scarred: \xD71.25 mult"), /* @__PURE__ */ React.createElement("span", null, "\u{1FA79} Injured: Half power, \u22122 mult (heals in 2 rounds)"), /* @__PURE__ */ React.createElement("span", null, "\u{1F525} Nerve: \xD71.0 to \xD72.3 (clear with unused hands to build)")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F495} Bonded pair: \xD7", getMB().bondBoost ? "1.75" : "1.5", " mult (from den shelter)"), /* @__PURE__ */ React.createElement("span", null, "\u26A1 Grudge: Always \u2212", (getMB().grudgeWisdom || 0) > 0 ? "1" : "2", " mult when grudged cats play together"), /* @__PURE__ */ React.createElement("span", null, "\u{1FA91} Bench: Unplayed hand cats give passive bonuses (traits or power as chips)")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F4E3} Recruit: Pay \u{1F41F} to draw extra cats (1\u21922\u21924\u21928\u{1F41F}). More cards = better combos + bench"), /* @__PURE__ */ React.createElement("span", null, "\u{1F3F7}\uFE0F Epithets: Cats earn titles from events (scars, bonds, boss clears). Shown in Hearth")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 6, fontSize: 10, color: "#666", flexWrap: "wrap" } }, Object.keys(DEVOTION_MILESTONES).map((k) => /* @__PURE__ */ React.createElement("span", { key: k, style: { color: BREEDS[k]?.color || "#888" } }, BREEDS[k]?.icon, " ", k, ": Play ", k, " cats to unlock devotion bonuses"))))), showAbandon && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 8, left: 8, zIndex: 200, display: "flex", gap: 4, alignItems: "center" } }, abandonConfirm ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setAbandonConfirm(false);
       setPh("title");
       setTab("play");
