@@ -4895,6 +4895,21 @@
     const [savedRun, setSavedRun] = useState(null);
     const [reshuf, setReshuf] = useState(false);
     const [tab, setTab] = useState("play");
+    const [demoStep, setDemoStep] = useState(0);
+    const [dailyPlayers, setDailyPlayers] = useState(null);
+    const [miniBoard, setMiniBoard] = useState(null);
+    const [lbTab, setLbTab] = useState("daily");
+    const [lbData, setLbData] = useState(null);
+    const [lbLoading, setLbLoading] = useState(false);
+    const [handleInput, setHandleInput] = useState(() => getHandle());
+    useEffect(() => {
+      if (ph !== "title") return;
+      const t = setInterval(() => setDemoStep((s) => (s + 1) % 11), 700);
+      return () => clearInterval(t);
+    }, [ph]);
+    useEffect(() => {
+      fetchDaily().then((d) => { if (d.total > 0) setDailyPlayers(d.total); setMiniBoard(d); }).catch(() => {});
+    }, []);
     const [longDark, setLongDark] = useState(false);
     const [guide, setGuide] = useState(null);
     const [autoPlay, setAutoPlay] = useState(null);
@@ -8665,55 +8680,33 @@
     const showAbandon = inGamePhases.includes(ph);
     if (ph === "coldOpen") {
       const coldLines = [
-        "Eight colonies fell to the dark. Each died its own way.",
+        "Eight colonies fell to the dark.",
         "This is the ninth. There will not be a tenth.",
-        "You are what's left. The one who remembers."
+        "You are what's left."
       ];
-      const advance = () => {
-        if (introStep >= coldLines.length - 1) {
-          setIntroStep(0);
-          setPh("firstIntro");
-        } else {
-          setIntroStep((s) => s + 1);
-        }
-      };
-      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { onClick: advance, style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", zIndex: 1, gap: 0, padding: 20, cursor: "pointer" } }, coldLines.slice(0, introStep + 1).map((line, i) => {
-        const isLast = i === introStep;
-        const isFinal = i === coldLines.length - 1;
+      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { onClick: () => { setIntroStep(0); setPh("firstIntro"); }, style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", zIndex: 1, gap: 12, padding: 20, cursor: "pointer" } }, coldLines.map((line, i) => {
         return /* @__PURE__ */ React.createElement("div", { key: i, style: {
-          fontSize: isFinal ? 16 : i === 1 ? 18 : 15,
-          color: i === 1 ? "#fbbf24" : isLast ? "#e8e6e3cc" : "#e8e6e355",
+          fontSize: i === 1 ? 18 : 15,
+          color: i === 1 ? "#fbbf24" : "#e8e6e3cc",
           fontWeight: i === 1 ? 700 : 400,
-          fontStyle: isFinal ? "normal" : "italic",
+          fontStyle: i === 2 ? "normal" : "italic",
           textAlign: "center",
           maxWidth: 340,
           lineHeight: 1.8,
-          marginBottom: isFinal ? 0 : 8,
-          animation: isLast ? "fadeIn 1.2s ease-out" : "none",
+          animation: `fadeIn 1s ease-out ${i * 0.8}s both`,
           letterSpacing: i === 1 ? 3 : 1,
           textShadow: i === 1 ? "0 0 30px #fbbf2444" : "none"
         } }, line);
-      }), introStep >= coldLines.length - 1 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ffffff66", letterSpacing: 3, marginTop: 24, animation: "fadeIn 2s ease-out 1s both" } }, "tap to continue")));
+      }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ffffff44", letterSpacing: 3, marginTop: 24, animation: "fadeIn 1.5s ease-out 2.5s both" } }, "tap to continue")));
     }
     if (ph === "firstIntro") {
-      const pages = [
-        // Page 0: THE HEARTH — emotional hook, the fire, the stakes
-        () => /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 56, animation: "float 3s ease-in-out infinite", filter: "drop-shadow(0 0 30px #fbbf2444)" } }, "\u{1F525}"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 20, fontWeight: 900, color: "#fbbf24", letterSpacing: 6, animation: "fadeIn .8s ease-out", textShadow: "0 0 30px #fbbf2433" } }, "THE LAST HEARTH"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#ffffffbb", textAlign: "center", maxWidth: 320, lineHeight: 2.2, animation: "fadeIn 1.2s ease-out" } }, "A fire still burns. Cats are gathering."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ffffff88", textAlign: "center", maxWidth: 300, lineHeight: 1.9, animation: "fadeIn 1.8s ease-out" } }, "Strays. Fighters. Survivors.", /* @__PURE__ */ React.createElement("br", null), "They need someone to remember their names."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#fbbf24cc", textAlign: "center", maxWidth: 320, lineHeight: 1.8, animation: "fadeIn 2.5s ease-out", marginTop: 8, fontWeight: 600 } }, "That's you.", /* @__PURE__ */ React.createElement("br", null), "Keep the fire burning."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ffffff55", textAlign: "center", maxWidth: 280, lineHeight: 1.6, animation: "fadeIn 3s ease-out", marginTop: 4 } }, "Draft cats. Play them together. Score enough to survive.")),
-        // Page 1: THE RULE — one rule, one truth, into the draft
-        () => /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 10, justifyContent: "center", animation: "fadeIn .6s ease-out", marginBottom: 8 } }, ["Autumn", "Winter", "Spring", "Summer"].map((s) => {
-          const b = BREEDS[s];
-          return /* @__PURE__ */ React.createElement("div", { key: s, style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "6px 10px", borderRadius: 8, background: `${b.color}11`, border: `1px solid ${b.color}22` } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 18 } }, b.icon), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: b.color, fontWeight: 700 } }, b.name));
-        })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 16, fontWeight: 700, color: "#4ade80", letterSpacing: 3, animation: "fadeIn .8s ease-out", textShadow: "0 0 20px #4ade8033" } }, "ONE RULE"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 15, color: "#ffffffcc", textAlign: "center", maxWidth: 320, lineHeight: 2, animation: "fadeIn 1.2s ease-out" } }, "Same-season cats score better together.", /* @__PURE__ */ React.createElement("br", null), "Match the colors. That's the game."), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 12, justifyContent: "center", animation: "fadeIn 1.5s ease-out", marginTop: 4 } }, BK.map((b) => /* @__PURE__ */ React.createElement("div", { key: b, style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 20 } }, BREEDS[b].icon), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: BREEDS[b].color, fontWeight: 700 } }, b)))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#ffffff55", textAlign: "center", maxWidth: 320, lineHeight: 1.7, animation: "fadeIn 1.8s ease-out", marginTop: 4 } }, "Pick cats \u2192 play them \u2192 beat the target score.", /* @__PURE__ */ React.createElement("br", null), "The rest, the dark will teach you."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#fbbf2466", fontStyle: "italic", textAlign: "center", maxWidth: 300, lineHeight: 1.8, animation: "fadeIn 2.5s ease-out 0.5s both", marginTop: 12, padding: "10px 16px", borderRadius: 10, background: "#ffffff04", border: "1px solid #ffffff08" } }, "Three cats need a name. Choose well."))
-      ];
-      const isLast = introStep >= pages.length - 1;
-      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", zIndex: 1, gap: 20, padding: 20, maxWidth: 420 }, onClick: () => {
-        if (isLast) {
-          setIntroStep(0);
-          setPh("draft");
-        } else {
-          setIntroStep(introStep + 1);
-        }
-      } }, pages[introStep](), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 8 } }, pages.map((_, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { width: 8, height: 8, borderRadius: "50%", background: i === introStep ? "#fbbf24" : i < introStep ? "#fbbf2444" : "#333", transition: "all .15s" } }))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#ffffff44", animation: "fadeIn 2s ease-out", letterSpacing: 2 } }, isLast ? "tap to begin" : "tap to continue")));
+      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", zIndex: 1, gap: 14, padding: 20, maxWidth: 420 }, onClick: () => {
+        setIntroStep(0);
+        setPh("draft");
+      } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 48, animation: "float 3s ease-in-out infinite", filter: "drop-shadow(0 0 20px #fbbf2444)" } }, "\u{1F525}"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, justifyContent: "center", animation: "fadeIn .6s ease-out" } }, ["Autumn", "Winter", "Spring", "Summer"].map((s) => {
+        const b = BREEDS[s];
+        return /* @__PURE__ */ React.createElement("div", { key: s, style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 8px", borderRadius: 6, background: `${b.color}11`, border: `1px solid ${b.color}22` } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 16 } }, b.icon), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 9, color: b.color, fontWeight: 700 } }, b.name));
+      })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 15, color: "#ffffffcc", textAlign: "center", maxWidth: 300, lineHeight: 1.8, animation: "fadeIn .8s ease-out" } }, "Same-season cats score better together.", /* @__PURE__ */ React.createElement("br", null), "Match the colors. Beat the target. Survive."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#ffffff44", textAlign: "center", maxWidth: 280, lineHeight: 1.6, animation: "fadeIn 1.2s ease-out" } }, "Pick cats \u2192 play them \u2192 beat the score. The rest, the dark will teach you."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#ffffff44", letterSpacing: 3, marginTop: 12, animation: "fadeIn 1.5s ease-out 0.5s both" } }, "tap to draft your colony")));
     }
     if (ph === "naming" && namingCat) {
       const b = BREEDS[namingCat.breed];
@@ -9111,7 +9104,7 @@
       })()), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#888", letterSpacing: 4, animation: "fadeIn .6s ease-out .2s both" } }, "THE COLONY"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 15, color: "#d97706bb", fontStyle: "italic", textAlign: "center", lineHeight: 1.6, maxWidth: 360, animation: "fadeIn .8s ease-out .15s both" } }, colonyThesis), bloodMemMsg && /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 16px", borderRadius: 8, background: "linear-gradient(135deg,#7a665208,#ef444408)", border: "1px solid #c084fc22", animation: "fadeIn 1s ease-out .3s both", textAlign: "center", maxWidth: 380 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fc", fontStyle: "italic", lineHeight: 1.6 } }, "\u{1FA78} ", /* @__PURE__ */ React.createElement("b", null, bloodMemMsg.heir.split(" ")[0]), " carries something old. ", bloodMemMsg.trait.icon, " ", /* @__PURE__ */ React.createElement("span", { style: { color: "#e8e6e3" } }, bloodMemMsg.trait.name), ". inherited from ", /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, bloodMemMsg.ancestor), " of the Hearth.", bloodMemMsg.scarred && /* @__PURE__ */ React.createElement("span", { style: { color: "#d97706" } }, " The scar came with it."))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 20, justifyContent: "center", animation: "fadeIn 1s ease-out .25s both" } }, /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 32, fontWeight: 900, color: "#fbbf24", letterSpacing: 2, animation: "comboBurst .6s ease-out .35s both" } }, 14), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", letterSpacing: 2 } }, "SOULS")), /* @__PURE__ */ React.createElement("div", { style: { width: 1, height: 40, background: "#ffffff0a" } }), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 32, fontWeight: 900, color: "#ef4444", letterSpacing: 2, animation: "comboBurst .6s ease-out .45s both" } }, MX), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", letterSpacing: 2 } }, "NIGHTS"))), strayOffset && strayOffset !== 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: strayOffset > 0 ? "#4ade80aa" : "#fb923caa", fontStyle: "italic", textAlign: "center", animation: "fadeIn 1s ease-out .6s both", maxWidth: 340, lineHeight: 1.5 } }, strayOffset >= 2 ? "Weak cats attract strong strays. They had to be. your chosen carry less." : strayOffset === 1 ? "Weak cats attract strong strays. Something to prove." : strayOffset === -1 ? "Strong cats attract weak strays. They followed the light, not the fight." : "Strong cats attract weak strays. Your chosen burn bright. the rest just watched."), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", marginTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80", letterSpacing: 2, marginBottom: 6, textAlign: "center" } }, "CHOSEN. YOUR EDGE"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 10, justifyContent: "center", animation: "fadeIn .6s ease-out .6s both" } }, chosen.map((c) => /* @__PURE__ */ React.createElement("div", { key: c.id, style: { textAlign: "center", cursor: "pointer" }, onClick: () => setTraitTip(c) }, /* @__PURE__ */ React.createElement(CC, { cat: c, hl: true }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: BREEDS[c.breed]?.color, marginTop: 2, fontWeight: 700 } }, c.name.split(" ")[0]), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888" } }, c.trait.name !== "Plain" ? c.trait.icon + " " + c.trait.name : "plain"))))), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", marginTop: 6 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888", letterSpacing: 2, marginBottom: 6, textAlign: "center" } }, "THE ONES WHO WERE ALREADY HERE"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, justifyContent: "center", animation: "fadeIn 1s ease-out .9s both" } }, BK.map((b) => {
         const ct = (colonyCounts[b] || 0) - chosen.filter((c) => c.breed === b).length;
         return ct > 0 ? /* @__PURE__ */ React.createElement("div", { key: b, style: { display: "flex", alignItems: "center", gap: 3, padding: "4px 10px", borderRadius: 6, background: BREEDS[b].bg, border: `1px solid ${BREEDS[b].color}22` } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 14 } }, BREEDS[b].icon), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: BREEDS[b].color } }, ct)) : null;
-      }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 3, padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff0a" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#666" } }, "15 strays \xB7 all Plain"))))), !isFirstRun2 && colStep === 0 && /* @__PURE__ */ React.createElement("button", { onClick: () => setColStep(1), style: { background: "linear-gradient(135deg,#fbbf24,#f59e0b)", color: "#0a0a1a", border: "none", borderRadius: 10, padding: "12px 36px", fontSize: 14, fontWeight: 700, cursor: "pointer", letterSpacing: 3, marginTop: 8, boxShadow: "0 0 30px #fbbf2433", textTransform: "uppercase", animation: "fadeIn 1.5s ease-out 1s both" } }, "Continue"), (isFirstRun2 || colStep >= 1) && /* @__PURE__ */ React.createElement(React.Fragment, null, hearthDust > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, background: "#c084fc0a", border: "1px solid #c084fc22", animation: "fadeIn 1.5s ease-out 1.4s both" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 14 } }, "\u{1F3E0}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: "#c084fc" } }, "The Hearth radiates ", /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700 } }, "+", hearthDust, "\u2726"))), /* @__PURE__ */ React.createElement("button", { onClick: enterNight, style: { background: "linear-gradient(135deg,#fbbf24,#f59e0b)", color: "#0a0a1a", border: "none", borderRadius: 10, padding: "14px 44px", fontSize: 17, fontWeight: 900, cursor: "pointer", letterSpacing: 4, marginTop: 8, boxShadow: "0 0 40px #fbbf2433", textTransform: "uppercase", zIndex: 2, animation: "fadeIn 2s ease-out 1s both" } }, "Enter the Night"))));
+      }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 3, padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff0a" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#666" } }, "15 strays \xB7 all Plain"))))), !isFirstRun2 && false && /* @__PURE__ */ React.createElement("button", { onClick: () => setColStep(1), style: { background: "linear-gradient(135deg,#fbbf24,#f59e0b)", color: "#0a0a1a", border: "none", borderRadius: 10, padding: "12px 36px", fontSize: 14, fontWeight: 700, cursor: "pointer", letterSpacing: 3, marginTop: 8, boxShadow: "0 0 30px #fbbf2433", textTransform: "uppercase", animation: "fadeIn 1.5s ease-out 1s both" } }, "Continue"), (isFirstRun2 || true) && /* @__PURE__ */ React.createElement(React.Fragment, null, hearthDust > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, background: "#c084fc0a", border: "1px solid #c084fc22", animation: "fadeIn 1.5s ease-out 1.4s both" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 14 } }, "\u{1F3E0}"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: "#c084fc" } }, "The Hearth radiates ", /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700 } }, "+", hearthDust, "\u2726"))), /* @__PURE__ */ React.createElement("button", { onClick: enterNight, style: { background: "linear-gradient(135deg,#fbbf24,#f59e0b)", color: "#0a0a1a", border: "none", borderRadius: 10, padding: "14px 44px", fontSize: 17, fontWeight: 900, cursor: "pointer", letterSpacing: 4, marginTop: 8, boxShadow: "0 0 40px #fbbf2433", textTransform: "uppercase", zIndex: 2, animation: "fadeIn 2s ease-out 1s both" } }, "Enter the Night"))));
     }
     if (ph === "title") {
       const mb = getMB(), hc = meta && meta.cats.length > 0, sd = meta ? meta.dust : 0;
@@ -9129,7 +9122,6 @@
       if (meta && meta.stats.w >= 1) availTabs.push("rankings");
       const safeTab = availTabs.includes(tab) ? tab : "play";
       return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement(Dust, null), /* @__PURE__ */ React.createElement("style", null, CSS), (() => {
-        const [demoStep, setDemoStep] = useState(0);
         const demoSeq = [
           { c: 120, m: 2, label: "Clowder" },
           { c: 180, m: 4, label: "+Echo" },
@@ -9137,11 +9129,6 @@
           { c: 180, m: 9, label: "\xD71.5 Nerve" },
           { c: 180, m: 9, label: "= 1,620", final: true }
         ];
-        useEffect(() => {
-          if (ph !== "title") return;
-          const t = setInterval(() => setDemoStep((s) => (s + 1) % (demoSeq.length + 6)), 700);
-          return () => clearInterval(t);
-        }, [ph]);
         const d = demoStep < demoSeq.length ? demoSeq[demoStep] : null;
         if (!d || meta?.stats?.r > 0) return null;
         return /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", bottom: mob ? 110 : 90, left: "50%", transform: "translateX(-50%)", zIndex: 5, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, opacity: 0.3, pointerEvents: "none" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 12, alignItems: "baseline" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 16, color: "#3b82f6", fontWeight: 900, animation: "countUp .3s ease-out" }, key: demoStep }, d.final ? "" : d.c + "C"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: d.final ? 18 : 10, color: d.final ? "#fbbf24" : "#666", fontWeight: d.final ? 900 : 400, animation: d.final ? "comboBurst .5s ease-out" : "none" }, key: "m" + demoStep }, d.final ? d.label : "\xD7 " + d.m + "M")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#fbbf2466", letterSpacing: 2 } }, d.label));
@@ -9216,11 +9203,7 @@
         background: "linear-gradient(0deg,#d9770644,#fbbf2444)",
         animation: `breathe ${1.8 + i * 0.3}s ease-in-out ${i * 0.3}s infinite`,
         opacity: 0.3
-      } }))), meta && meta.cats.length >= 1 && meta.cats.length <= 4 && meta.stats.w <= 2 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf2477", fontStyle: "italic", letterSpacing: 2, animation: "fadeIn 3s ease-out" } }, meta.cats.length === 1 ? `${meta.cats[0].name.split(" ")[0]} watches from the warm side.` : meta.cats.length === 2 ? `${meta.cats[0].name.split(" ")[0]} and ${meta.cats[1].name.split(" ")[0]}. The Founders.` : `The Hearth burns. ${meta.cats.slice(0, 3).map((c) => c.name.split(" ")[0]).join(", ")} watch.`), /* @__PURE__ */ React.createElement("h1", { style: { fontSize: "clamp(36px,8vw,58px)", fontWeight: 700, letterSpacing: "clamp(8px,2vw,18px)", lineHeight: 1, background: (meta?.achv || []).includes("completionist") ? "linear-gradient(135deg,#c084fc,#fef08a,#4ade80,#67e8f9)" : "linear-gradient(180deg,#fef08a,#fbbf24,#b85c2c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: 0, textTransform: "uppercase", filter: "drop-shadow(0 0 30px #fbbf2418)" } }, "NINTH LIFE", meta?.ninthDawnCleared ? " \u{1F305}" : ""), (!meta || meta.stats.r === 0) && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ffffff55", letterSpacing: 3, marginTop: -2 } }, "A cat colony survival game"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#999999bb", letterSpacing: 4, fontWeight: 300, lineHeight: 1.6, animation: "fadeIn 2.5s ease-out", textTransform: "uppercase" } }, "Cats are cards \xB7 Seasons are suits \xB7 Survive the dark"), (() => {
-        const [dailyPlayers, setDailyPlayers] = useState(null);
-        useEffect(() => { fetchDaily().then((d) => { if (d.total > 0) setDailyPlayers(d.total); }).catch(() => {}); }, []);
-        return dailyPlayers > 0 ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff33", letterSpacing: 2, animation: "fadeIn 3s ease-out" } }, dailyPlayers, " colon", dailyPlayers === 1 ? "y" : "ies", " entered the dark today") : null;
-      })(), (() => {
+      } }))), meta && meta.cats.length >= 1 && meta.cats.length <= 4 && meta.stats.w <= 2 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf2477", fontStyle: "italic", letterSpacing: 2, animation: "fadeIn 3s ease-out" } }, meta.cats.length === 1 ? `${meta.cats[0].name.split(" ")[0]} watches from the warm side.` : meta.cats.length === 2 ? `${meta.cats[0].name.split(" ")[0]} and ${meta.cats[1].name.split(" ")[0]}. The Founders.` : `The Hearth burns. ${meta.cats.slice(0, 3).map((c) => c.name.split(" ")[0]).join(", ")} watch.`), /* @__PURE__ */ React.createElement("h1", { style: { fontSize: "clamp(36px,8vw,58px)", fontWeight: 700, letterSpacing: "clamp(8px,2vw,18px)", lineHeight: 1, background: (meta?.achv || []).includes("completionist") ? "linear-gradient(135deg,#c084fc,#fef08a,#4ade80,#67e8f9)" : "linear-gradient(180deg,#fef08a,#fbbf24,#b85c2c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: 0, textTransform: "uppercase", filter: "drop-shadow(0 0 30px #fbbf2418)" } }, "NINTH LIFE", meta?.ninthDawnCleared ? " \u{1F305}" : ""), (!meta || meta.stats.r === 0) && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ffffff55", letterSpacing: 3, marginTop: -2 } }, "A cat colony survival game"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#999999bb", letterSpacing: 4, fontWeight: 300, lineHeight: 1.6, animation: "fadeIn 2.5s ease-out", textTransform: "uppercase" } }, "Cats are cards \xB7 Seasons are suits \xB7 Survive the dark"), dailyPlayers > 0 ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff33", letterSpacing: 2, animation: "fadeIn 3s ease-out" } }, dailyPlayers, " colon", dailyPlayers === 1 ? "y" : "ies", " entered the dark today") : null, (() => {
         const ch = getChapterTitle(meta);
         return ch ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fc88", letterSpacing: 4, animation: "fadeIn 3s ease-out" } }, "Chapter ", ch.num, " \xB7 ", ch.name) : null;
       })(), meta && meta.stats.r >= 1 && (() => {
@@ -9512,10 +9495,6 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
           return /* @__PURE__ */ React.createElement("div", { key: b.id, style: { padding: "10px 14px", borderRadius: 10, background: met ? "#ef444408" : "#ffffff04", border: `1px solid ${w > 0 ? "#ef444433" : "#ffffff0a"}`, display: "flex", gap: 12, alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 28, filter: met ? "none" : "grayscale(1) brightness(0.3)" } }, b.icon), /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: w > 0 ? "#ef4444" : "#666", fontWeight: 700 } }, met ? b.name : "???"), met && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef444488", fontStyle: "italic", lineHeight: 1.4 } }, b.lore), met && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888", marginTop: 2 } }, w, "W / ", l, "L")));
         }) : /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderRadius: 10, background: "#ffffff04", border: "1px solid #ffffff08", textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#666" } }, "3 more bosses hidden"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#444" } }, "Win 3 runs or reach Heat 3 to reveal"))), defeated >= 5 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef444444", fontStyle: "italic", textAlign: "center", lineHeight: 1.6 } }, "Five patterns. Five colonies. You've seen how they died."));
       })()), safeTab === "rankings" && meta && (() => {
-        const [lbTab, setLbTab] = useState("daily");
-        const [lbData, setLbData] = useState(null);
-        const [lbLoading, setLbLoading] = useState(false);
-        const [handleInput, setHandleInput] = useState(getHandle());
         const loadBoard = (t) => {
           setLbTab(t);
           setLbLoading(true);
@@ -9527,9 +9506,7 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
             setLbLoading(false);
           });
         };
-        useEffect(() => {
-          loadBoard("daily");
-        }, []);
+        if (!lbData && !lbLoading) loadBoard("daily");
         const dd = getDailyData();
         const todayStr = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
         const myScore = dd.lastDate === todayStr ? dd.score : 0;
@@ -10183,11 +10160,6 @@ ${deficit < defeatData.target * 0.1 ? "So close." : "The dark remembers."}
           toast("\u{1F4CB}", shareText, "#888", 5e3);
         }
       }, style: { background: "none", border: "1px solid #ffffff12", borderRadius: 6, fontSize: 10, color: "#666", cursor: "pointer", padding: "4px 12px", animation: "fadeIn 3s ease-out" } }, "Share run"), defeatData.daily && (() => {
-        const [miniBoard, setMiniBoard] = useState(null);
-        useEffect(() => {
-          fetchDaily().then((d) => setMiniBoard(d)).catch(() => {
-          });
-        }, []);
         if (!miniBoard || !miniBoard.board || miniBoard.board.length === 0) return null;
         const myHandle = getHandle();
         return /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 340, animation: "fadeIn 3s ease-out", marginTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#67e8f966", letterSpacing: 3, textAlign: "center", marginBottom: 4 } }, "TODAY'S RANKINGS"), miniBoard.board.slice(0, 5).map((e, i) => {
