@@ -4183,7 +4183,7 @@
   const runKey = (s) => `nl_r${s}`;
   const bakKey = (k) => k + "_bak";
   const SK_SLOT = "nl_slot";
-  const dSave = () => ({ cats: [], dust: 0, ups: {}, stats: { r: 0, w: 0, ba: 0, hs: 0, mf: 0, mh: 0, td: 0, disc: [], dh: [], bossRecord: {}, grudgesResolved: 0, kittensTotal: 0, handTypePlays: {} }, heat: 0, achv: [], relics: [], v: 17 });
+  const dSave = () => ({ cats: [], dust: 0, ups: {}, stats: { r: 0, w: 0, ba: 0, hs: 0, mf: 0, mh: 0, td: 0, disc: [], dh: [], bossRecord: {}, grudgesResolved: 0, kittensTotal: 0, handTypePlays: {} }, heat: 0, achv: [], relics: [], codex: [], v: 17 });
   function validateSave(d) {
     if (!d || typeof d !== "object") return dSave();
     if (!Array.isArray(d.cats)) d.cats = [];
@@ -5528,7 +5528,7 @@
       setDraftPicked([]);
       setDraftRejects([]);
       setDraftReady(false);
-      setTimeout(() => setDraftReady(true), 1e3);
+      setTimeout(() => setDraftReady(true), 500);
       setDraftWaves([ensureVisualDiversity(allDraft.slice(waveSize, waveSize * 2)), ensureVisualDiversity(allDraft.slice(waveSize * 2, waveSize * 3))]);
       setDisc([]);
       setSel(/* @__PURE__ */ new Set());
@@ -5780,7 +5780,7 @@
         const np = draftWaves[waveIdx] || Array.from({ length: 3 + (getMB().draftSize || 0) }, () => gC({ trait: pickDraftTrait() }));
         setDraftPool(np);
         setDraftReady(false);
-        setTimeout(() => setDraftReady(true), 1e3);
+        setTimeout(() => setDraftReady(true), 500);
         if (np[0]?._draftWave === "hearth" && np.some((c) => c._hearthParents)) {
           setTimeout(() => toast("\u{1F3E0}", "The bloodline continues. Their parents walked this path before them.", "#fbbf24", 3500), 400);
         }
@@ -5811,7 +5811,13 @@
       setDraftPicked([]);
       setDraftBase([]);
       logEvent("draft", { picked: picked.map((c) => c.name.split(" ")[0]).join(", "), rejects: draftRejects.length });
-      setPh("colonyFormed");
+      if (!meta || meta.stats.r === 0) {
+        setNightCard({ ante: 1, blind: 0 });
+        setPh("nightCard");
+        try { Audio.nightTransition(); } catch(e) {}
+      } else {
+        setPh("colonyFormed");
+      }
       setTraitTip(null);
       setColStep(0);
     }
@@ -5873,7 +5879,15 @@
           setMeta((m) => {
             const hp = { ...m.stats.handTypePlays || {} };
             hp[result.ht] = (hp[result.ht] || 0) + 1;
-            return { ...m, stats: { ...m.stats, handTypePlays: hp } };
+            const codex = [...m.codex || []];
+            let codexNew = 0;
+            cats.forEach((c) => {
+              const tn = (c.trait || PLAIN).name;
+              const key = `${c.breed}-${tn}`;
+              if (!codex.includes(key)) { codex.push(key); codexNew++; }
+            });
+            if (codexNew > 0) setTimeout(() => toast("\u{1F4D6}", `Codex: ${codexNew} new entr${codexNew === 1 ? "y" : "ies"} discovered! (${codex.length} total)`, "#c084fc", 2500), 400);
+            return { ...m, stats: { ...m.stats, handTypePlays: hp }, codex };
           });
         }
         setDevotion((prev) => {
@@ -6931,6 +6945,9 @@
         setNightCard({ ante: na, blind: nb });
         setPh("nightCard");
         Audio.nightTransition();
+        if (meta && meta.stats.r >= 2 && nb < 2) {
+          setTimeout(() => { _setPh((p) => { if (p === "nightCard") { setNightCard(null); return "playing"; } return p; }); }, 2e3);
+        }
       }
     }
     function genShop() {
@@ -7280,8 +7297,24 @@
           const vk = r.victim._bornNight;
           const mate = vb ? [...hand, ...draw, ...disc].find((x) => x.id === vb) : null;
           const mn = mate?.name.split(" ")[0];
-          const lastWords = vb && mn ? pk([`Tell ${mn} I didn't leave on purpose.`, `${mn} will understand. ${mn} always understood.`]) : vs ? pk(["I knew this was coming. The scar told me.", "Not surprised. Just tired."]) : vk ? pk(["I never got to play a hand.", "Born in the dark. Stayed in the dark."]) : (r.victim.stats?.tp || 0) > 8 ? pk([`${vn} played ${r.victim.stats.tp} hands. That's a life.`, `${vn} scored ${(r.victim.stats?.bs || 0).toLocaleString()} once. The colony won't forget.`]) : pk([`${vn} is gone.`, `The colony is one name lighter.`]);
-          toast("\u{1F480}", lastWords, "#ef4444", 3500);
+          const deathChoice = Math.random() < 0.5 || (r.victim.stats?.tp || 0) > 3;
+          if (deathChoice) {
+            const carrier = mate || [...hand, ...draw, ...disc].filter((x) => x.id !== r.victim.id).sort((a, b) => (b.stats?.tp || 0) - (a.stats?.tp || 0))[0];
+            if (carrier) {
+              const cn = carrier.name.split(" ")[0];
+              carrier.power = Math.min(15, carrier.power + 1);
+              [setHand, setDraw, setDisc].forEach((s) => {
+                s((arr) => arr.map((x) => x.id === carrier.id ? { ...x, power: Math.min(15, x.power + 1), story: [...(x.story || []).slice(-3), `Carries ${vn}'s name`] } : x));
+              });
+              toast("\u{1F56F}\uFE0F", `${cn} carries ${vn}'s name now. +1 Power.`, "#fbbf24", 3500);
+            } else {
+              toast("\u{1F480}", `${vn} is gone. No one left to carry the name.`, "#ef4444", 3500);
+            }
+          } else {
+            const dustGain = (r.victim.stats?.tp || 0) >= 5 ? 2 : 1;
+            if (meta) setMeta((m) => ({ ...m, dust: (m.dust || 0) + dustGain }));
+            toast("\u2726", `${vn} returns to stardust. +${dustGain}\u2726`, "#c084fc", 3500);
+          }
           if (r.victim.bondedTo) {
             [setHand, setDraw, setDisc].forEach((s) => {
               s((arr) => arr.map((x) => {
@@ -9222,7 +9255,7 @@
             transition: "all .15s"
           }, title: `${a.name}: ${a.desc}` });
         })));
-      })(), hasRun && meta && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 12, alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { color: "#c084fc", fontSize: 13, fontWeight: 700 } }, "\u2726 ", sd, " Stardust"), sd > 0 && !showUpgrades && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fc88" } }, "earned from the Hearth"), sd > 0 && showUpgrades && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fc88", cursor: "pointer" }, onClick: () => setTab("\u2726 upgrades") }, "spend on upgrades \u25B8"), meta.cats.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fcbb" } }, "\u{1F3E0} +", calcTotalHearthDust(meta.cats, getMB().dustBonus || 0, getHeatFx(meta?.heat).dustMult || 1).total, "/run")), showHeat && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 2, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ef4444" } }, "Heat ", meta.heat), meta.heat > 0 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#4ade80" } }, "+", meta.heat * 25, "% hearth")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, alignItems: "center" } }, Array.from({ length: (meta.stats.mh || meta.heat || 1) + 1 }).map((_, h) => {
+      })(), hasRun && meta && (meta.codex || []).length > 0 && /* @__PURE__ */ React.createElement("div", { onClick: () => { const cx = meta.codex || []; const tot = BK.length * (TRAITS.length + 1); const pct = Math.round(cx.length / tot * 100); const byBreed = BK.map((b) => ({ b, n: cx.filter((k) => k.startsWith(b)).length })); toast("\u{1F4D6}", `Codex: ${cx.length}/${tot} (${pct}%). ` + byBreed.map((x) => `${BREEDS[x.b].icon}${x.n}`).join(" "), "#c084fc", 4e3); }, style: { display: "flex", alignItems: "center", gap: 6, cursor: "pointer", animation: "fadeIn 2.5s ease-out" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fc88", letterSpacing: 2 } }, "\u{1F4D6} CODEX ", (meta.codex || []).length, "/", BK.length * (TRAITS.length + 1)), /* @__PURE__ */ React.createElement("div", { style: { width: 40, height: 3, background: "#1a1a2e", borderRadius: 2, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${(meta.codex || []).length / (BK.length * (TRAITS.length + 1)) * 100}%`, background: "#c084fc", borderRadius: 2 } }))), hasRun && meta && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 12, alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { color: "#c084fc", fontSize: 13, fontWeight: 700 } }, "\u2726 ", sd, " Stardust"), sd > 0 && !showUpgrades && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fc88" } }, "earned from the Hearth"), sd > 0 && showUpgrades && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fc88", cursor: "pointer" }, onClick: () => setTab("\u2726 upgrades") }, "spend on upgrades \u25B8"), meta.cats.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fcbb" } }, "\u{1F3E0} +", calcTotalHearthDust(meta.cats, getMB().dustBonus || 0, getHeatFx(meta?.heat).dustMult || 1).total, "/run")), showHeat && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 2, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ef4444" } }, "Heat ", meta.heat), meta.heat > 0 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#4ade80" } }, "+", meta.heat * 25, "% hearth")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, alignItems: "center" } }, Array.from({ length: (meta.stats.mh || meta.heat || 1) + 1 }).map((_, h) => {
         const isActive = h === meta.heat;
         return /* @__PURE__ */ React.createElement(
           "button",
@@ -9287,7 +9320,7 @@
           if (!meta?.stats?.r) {
             setGuide({ step: 0, msg: "" });
             startGame();
-            setPh("coldOpen");
+            setPh("firstIntro");
           } else {
             startGame();
           }
