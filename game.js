@@ -1171,7 +1171,9 @@
     if (bonded) return `${fn} was bonded. The mate will look for them tomorrow. And the day after. And the day after that.`;
     if (scarred) return `${fn} was hardened in Night ${Math.max(1, ante - 1)}. Survived that. Didn't survive this.`;
     if (tp >= 3) return `${fn} was finding their rhythm. ${tp} hands played. A story just getting started.`;
+    if (tp === 0 && cat2.origin) return `${fn} never played a single hand. ${cat2.origin.replace(/\.$/, "")}. That's all they were.`;
     if (tp === 0) return `${fn} never played a single hand. Never got the chance. Remember them anyway.`;
+    if (cat2.origin) return `${fn}. ${cat2.origin.replace(/\.$/, "")}. The dark didn't care.`;
     return `${fn}. Say the name. That's all you can do now.`;
   }
   const CAT_REACTIONS = {
@@ -2874,6 +2876,21 @@
     "VIII. WHAT BURNS LONGER",
     "IX. THE LAST NAME"
   ];
+  const NIGHT_PLACES = ["The Threshold", "The Hollow", "The Scar", "The Maw", "The Forgetting", "The Fraying", "The Eclipse", "The Ember", "The Remembering"];
+  const LORE_FRAGMENTS = [
+    "You found marks on the wall. Three tallies. Someone counted the days.",
+    "An old collar. The name was 'Ash.' It meant something once.",
+    "Claw marks in a circle. A colony that tried to hold the dark at bay.",
+    "A pile of fish bones, carefully stacked. Someone was saving.",
+    "Two sets of tracks, side by side. They walked together until they didn't.",
+    "A den, perfectly built. Never used. The builders didn't make it this far.",
+    "Scratched into stone: 'We were seven.' Nothing else.",
+    "A single whisker caught in the wall. Still warm. Impossible.",
+    "The ground here is softer. Something grew once. Something chose to stop.",
+    "You smell smoke. Old smoke. From a fire that burned for someone else.",
+    "A pattern in the dust. Someone was counting cats. They stopped at twelve.",
+    "Tooth marks on a root. Someone gnawed through hunger. Someone didn't."
+  ];
   const WHISPER_OVERFLOW = {
     crush: [
       // scored 200%+ of target
@@ -3090,6 +3107,12 @@
     return b;
   };
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  const CAT_ORIGINS = {
+    Autumn: ["Found shivering in a collapsed tunnel.", "Watched from the treeline for three days.", "Came from a colony that didn't survive harvest.", "Remembers things the others have forgotten."],
+    Summer: ["Walked out of the dark like it owed them money.", "Still warm. Whatever happened before, this one ran.", "Born in the longest day. Burns like it.", "The loud one. Showed up yelling."],
+    Winter: ["Was already here when the colony arrived.", "Born in the deep cold. The cold never left.", "Watched the dark with something like patience.", "The cold didn't bother them. Nothing did."],
+    Spring: ["Followed the youngest kitten in. Stayed.", "Groomed everyone on arrival. Nobody refused.", "Born when the world thawed. Carried that warmth.", "The gentle one. Gentle things survive too."]
+  };
   function gC(o = {}) {
     const br = o.breed || pk(BK);
     const defaultTrait = o.trait || pickTrait(false) || PLAIN;
@@ -3104,6 +3127,7 @@
       parentBreeds: o.parentBreeds || null,
       parentIds: o.parentIds || null,
       quirk: o.quirk || pk(QUIRKS[o.breed || br] || QUIRKS.Autumn),
+      origin: o.origin || pk(CAT_ORIGINS[br] || CAT_ORIGINS.Autumn),
       scarred: o.scarred || false,
       injured: o.injured || false,
       bondedTo: o.bondedTo || null,
@@ -5812,6 +5836,9 @@
       setDraftBase([]);
       logEvent("draft", { picked: picked.map((c) => c.name.split(" ")[0]).join(", "), rejects: draftRejects.length });
       if (!meta || meta.stats.r === 0) {
+        setColonyData(null);
+        setWeather({ season: pk(["Autumn", "Winter", "Spring", "Summer"]), night: 1 });
+        setNightMod(null);
         setNightCard({ ante: 1, blind: 0 });
         setPh("nightCard");
         try { Audio.nightTransition(); } catch(e) {}
@@ -5904,6 +5931,9 @@
                 const icon = breed === "Mixed" ? "\u{1F308}" : BREEDS[breed]?.icon || "\u2726";
                 const color = breed === "Mixed" ? "#e8e6e3" : BREEDS[breed]?.color || "#fbbf24";
                 setDenNews((n) => [...n, { icon, text: `${m.name}: ${m.desc}`, color }]);
+                if (m.at === 10 && BREEDS[breed]?.lore) {
+                  setTimeout(() => toast(icon, BREEDS[breed].lore, color + "aa", 4e3), 1200);
+                }
               }
             });
           });
@@ -7302,7 +7332,6 @@
             const carrier = mate || [...hand, ...draw, ...disc].filter((x) => x.id !== r.victim.id).sort((a, b) => (b.stats?.tp || 0) - (a.stats?.tp || 0))[0];
             if (carrier) {
               const cn = carrier.name.split(" ")[0];
-              carrier.power = Math.min(15, carrier.power + 1);
               [setHand, setDraw, setDisc].forEach((s) => {
                 s((arr) => arr.map((x) => x.id === carrier.id ? { ...x, power: Math.min(15, x.power + 1), story: [...(x.story || []).slice(-3), `Carries ${vn}'s name`] } : x));
               });
@@ -7573,6 +7602,19 @@
       }
     }
     function fireEvent() {
+      if (Math.random() < 0.12 && ante >= 2) {
+        const knownFrags = meta?.loreFragments || [];
+        const newFrag = LORE_FRAGMENTS.find((f) => !knownFrags.includes(f));
+        if (newFrag) {
+          setTimeout(() => toast("\u{1F4DC}", newFrag, "#d9770688", 4e3), 800);
+          if (meta) setMeta((m) => ({ ...m, loreFragments: [...(m.loreFragments || []), newFrag] }));
+        }
+      }
+      if (Math.random() < 0.15 && (meta?.allFallen || []).length > 0) {
+        const ghost = pk(meta.allFallen);
+        const haunts = [`You found claw marks on the wall. They look like ${ghost.name}'s.`, `A stray pauses at the entrance. It has ${ghost.name}'s eyes.`, `The wind carries a sound. Almost a name. Almost ${ghost.name}.`, `Something in the way the light falls. ${ghost.name} used to stand here.`];
+        setTimeout(() => toast("\u{1F47B}", pk(haunts), "#ffffff44", 3500), 1500);
+      }
       const all = [...hand, ...draw, ...disc];
       const eventSource = isNinthDawn ? [...COLONY_EVENTS, ...NINTH_DAWN_EVENTS] : COLONY_EVENTS;
       const mandatory = eventSource.find((e) => e.mandatory && (!e.minNight || ante >= (longDark && e.minNight === 5 ? MX : e.minNight)) && (!e.maxNight || ante <= (longDark && e.maxNight === 5 ? MX : e.maxNight)) && !eventHistory["_seen_" + e.id]);
@@ -8674,7 +8716,8 @@
       const dur = 12 + i * 3;
       const delay = i * 2.5;
       const size = 1 + Math.random() * 1.5;
-      const col = isBoss ? "#ef444415" : ferv >= 12 ? "#fbbf2412" : "#ffffff08";
+      const col = isBoss ? "#ef444415" : ferv >= 12 ? "#fbbf2412" : ante >= 5 ? "#ef444410" : ante >= 4 ? "#fb923c0d" : ante >= 3 ? "#fbbf240a" : "#ffffff08";
+      const nightSpeed = Math.max(6, dur - ante * 1.5);
       return /* @__PURE__ */ React.createElement("div", { key: i, style: {
         position: "absolute",
         left: `${left}%`,
@@ -8683,7 +8726,7 @@
         height: size,
         borderRadius: "50%",
         background: col,
-        animation: `driftParticle ${dur}s linear ${delay}s infinite`
+        animation: `driftParticle ${nightSpeed}s linear ${delay}s infinite`
       } });
     }), Array.from({ length: 4 }).map((_, i) => {
       const left2 = 15 + i * 22;
@@ -8742,6 +8785,10 @@
       })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 15, color: "#ffffffcc", textAlign: "center", maxWidth: 300, lineHeight: 1.8, animation: "fadeIn .8s ease-out" } }, "Same-season cats score better together.", /* @__PURE__ */ React.createElement("br", null), "Match the colors. Beat the target. Survive."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#ffffff44", textAlign: "center", maxWidth: 280, lineHeight: 1.6, animation: "fadeIn 1.2s ease-out" } }, "Pick cats \u2192 play them \u2192 beat the score. The rest, the dark will teach you."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#ffffff44", letterSpacing: 3, marginTop: 12, animation: "fadeIn 1.5s ease-out 0.5s both" } }, "tap to draft your colony")));
     }
     if (ph === "naming" && namingCat) {
+      if (meta && meta.stats.r === 1 && !seen.namingFrame) {
+        setSeen((s) => ({ ...s, namingFrame: true }));
+        setTimeout(() => toast("\u{1F56F}\uFE0F", "Names have power here. The dark forgets everything. Names are how you fight back.", "#fbbf24", 5e3), 600);
+      }
       const b = BREEDS[namingCat.breed];
       const defaultName = namingCat.name.split(" ")[0];
       const tr = namingCat.trait || PLAIN;
@@ -8977,7 +9024,7 @@
         animation: "comboBurst .6s ease-out",
         textShadow: `0 0 80px ${glowColor}55, 0 0 40px ${glowColor}33`,
         marginBottom: 2
-      } }, blindNames[nightCard.blind].toUpperCase()), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12, marginBottom: 16, marginTop: 6 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 60, height: 1, background: `linear-gradient(90deg,transparent,${glowColor}33)` } }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ffffff55", letterSpacing: 8 } }, "NIGHT ", nightCard.ante), /* @__PURE__ */ React.createElement("div", { style: { width: 60, height: 1, background: `linear-gradient(90deg,${glowColor}33,transparent)` } })), weather && nightCard.blind === 0 && !isFirstRun && /* @__PURE__ */ React.createElement("div", { style: { padding: "6px 14px", borderRadius: 8, background: BREEDS[weather.season]?.color + "0a", border: `1px solid ${BREEDS[weather.season]?.color}22`, animation: "fadeIn 1s ease-out .3s both", marginBottom: 8 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: BREEDS[weather.season]?.color || "#fbbf24", textAlign: "center", lineHeight: 1.5 } }, BREEDS[weather.season]?.icon, " ", /* @__PURE__ */ React.createElement("b", null, weather.season === "Autumn" ? "Falling Leaves" : weather.season === "Winter" ? "Cold Snap" : weather.season === "Spring" ? "Fresh Growth" : "Long Light"), ": ", weather.season, " cats +2 Power tonight")), nightMod && nightCard.blind === 0 && /* @__PURE__ */ React.createElement("div", { style: { padding: "6px 14px", borderRadius: 8, background: "#c084fc0a", border: "1px solid #c084fc22", animation: "fadeIn 1.2s ease-out .5s both", marginBottom: 8 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#c084fc", textAlign: "center", lineHeight: 1.5 } }, nightMod.icon, " ", /* @__PURE__ */ React.createElement("b", null, nightMod.name), ": ", nightMod.desc)), isBoss2 && boss && /* @__PURE__ */ React.createElement("div", { style: {
+      } }, blindNames[nightCard.blind].toUpperCase()), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12, marginBottom: 16, marginTop: 6 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 60, height: 1, background: `linear-gradient(90deg,transparent,${glowColor}33)` } }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ffffff55", letterSpacing: 8 } }, "NIGHT ", nightCard.ante), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#ffffff33", letterSpacing: 4, marginTop: -6 } }, NIGHT_PLACES[Math.min(nightCard.ante - 1, NIGHT_PLACES.length - 1)]), /* @__PURE__ */ React.createElement("div", { style: { width: 60, height: 1, background: `linear-gradient(90deg,${glowColor}33,transparent)` } })), weather && nightCard.blind === 0 && !isFirstRun && /* @__PURE__ */ React.createElement("div", { style: { padding: "6px 14px", borderRadius: 8, background: BREEDS[weather.season]?.color + "0a", border: `1px solid ${BREEDS[weather.season]?.color}22`, animation: "fadeIn 1s ease-out .3s both", marginBottom: 8 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: BREEDS[weather.season]?.color || "#fbbf24", textAlign: "center", lineHeight: 1.5 } }, BREEDS[weather.season]?.icon, " ", /* @__PURE__ */ React.createElement("b", null, weather.season === "Autumn" ? "Falling Leaves" : weather.season === "Winter" ? "Cold Snap" : weather.season === "Spring" ? "Fresh Growth" : "Long Light"), ": ", weather.season, " cats +2 Power tonight")), nightMod && nightCard.blind === 0 && /* @__PURE__ */ React.createElement("div", { style: { padding: "6px 14px", borderRadius: 8, background: "#c084fc0a", border: "1px solid #c084fc22", animation: "fadeIn 1.2s ease-out .5s both", marginBottom: 8 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#c084fc", textAlign: "center", lineHeight: 1.5 } }, nightMod.icon, " ", /* @__PURE__ */ React.createElement("b", null, nightMod.name), ": ", nightMod.desc)), isBoss2 && boss && /* @__PURE__ */ React.createElement("div", { style: {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -9255,7 +9302,7 @@
             transition: "all .15s"
           }, title: `${a.name}: ${a.desc}` });
         })));
-      })(), hasRun && meta && (meta.codex || []).length > 0 && /* @__PURE__ */ React.createElement("div", { onClick: () => { const cx = meta.codex || []; const tot = BK.length * (TRAITS.length + 1); const pct = Math.round(cx.length / tot * 100); const byBreed = BK.map((b) => ({ b, n: cx.filter((k) => k.startsWith(b)).length })); toast("\u{1F4D6}", `Codex: ${cx.length}/${tot} (${pct}%). ` + byBreed.map((x) => `${BREEDS[x.b].icon}${x.n}`).join(" "), "#c084fc", 4e3); }, style: { display: "flex", alignItems: "center", gap: 6, cursor: "pointer", animation: "fadeIn 2.5s ease-out" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fc88", letterSpacing: 2 } }, "\u{1F4D6} CODEX ", (meta.codex || []).length, "/", BK.length * (TRAITS.length + 1)), /* @__PURE__ */ React.createElement("div", { style: { width: 40, height: 3, background: "#1a1a2e", borderRadius: 2, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${(meta.codex || []).length / (BK.length * (TRAITS.length + 1)) * 100}%`, background: "#c084fc", borderRadius: 2 } }))), hasRun && meta && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 12, alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { color: "#c084fc", fontSize: 13, fontWeight: 700 } }, "\u2726 ", sd, " Stardust"), sd > 0 && !showUpgrades && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fc88" } }, "earned from the Hearth"), sd > 0 && showUpgrades && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fc88", cursor: "pointer" }, onClick: () => setTab("\u2726 upgrades") }, "spend on upgrades \u25B8"), meta.cats.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fcbb" } }, "\u{1F3E0} +", calcTotalHearthDust(meta.cats, getMB().dustBonus || 0, getHeatFx(meta?.heat).dustMult || 1).total, "/run")), showHeat && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 2, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ef4444" } }, "Heat ", meta.heat), meta.heat > 0 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#4ade80" } }, "+", meta.heat * 25, "% hearth")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, alignItems: "center" } }, Array.from({ length: (meta.stats.mh || meta.heat || 1) + 1 }).map((_, h) => {
+      })(), hasRun && meta && (meta.codex || []).length > 0 && /* @__PURE__ */ React.createElement("div", { onClick: () => { const cx = meta.codex || []; const tot = BK.length * (TRAITS.length + 1); const pct = Math.round(cx.length / tot * 100); const frags = (meta.loreFragments || []).length; const byBreed = BK.map((b) => ({ b, n: cx.filter((k) => k.startsWith(b)).length })); toast("\u{1F4D6}", `Codex: ${cx.length}/${tot} (${pct}%). ` + byBreed.map((x) => `${BREEDS[x.b].icon}${x.n}`).join(" ") + (frags > 0 ? ` \xB7 ${frags} lore fragments` : ""), "#c084fc", 5e3); }, style: { display: "flex", alignItems: "center", gap: 6, cursor: "pointer", animation: "fadeIn 2.5s ease-out" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fc88", letterSpacing: 2 } }, "\u{1F4D6} CODEX ", (meta.codex || []).length, "/", BK.length * (TRAITS.length + 1), (meta.loreFragments || []).length > 0 ? ` \xB7 ${(meta.loreFragments || []).length}\u{1F4DC}` : ""), /* @__PURE__ */ React.createElement("div", { style: { width: 40, height: 3, background: "#1a1a2e", borderRadius: 2, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${(meta.codex || []).length / (BK.length * (TRAITS.length + 1)) * 100}%`, background: "#c084fc", borderRadius: 2 } }))), hasRun && meta && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 12, alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { color: "#c084fc", fontSize: 13, fontWeight: 700 } }, "\u2726 ", sd, " Stardust"), sd > 0 && !showUpgrades && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fc88" } }, "earned from the Hearth"), sd > 0 && showUpgrades && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#c084fc88", cursor: "pointer" }, onClick: () => setTab("\u2726 upgrades") }, "spend on upgrades \u25B8"), meta.cats.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fcbb" } }, "\u{1F3E0} +", calcTotalHearthDust(meta.cats, getMB().dustBonus || 0, getHeatFx(meta?.heat).dustMult || 1).total, "/run")), showHeat && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 2, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ef4444" } }, "Heat ", meta.heat), meta.heat > 0 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#4ade80" } }, "+", meta.heat * 25, "% hearth")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, alignItems: "center" } }, Array.from({ length: (meta.stats.mh || meta.heat || 1) + 1 }).map((_, h) => {
         const isActive = h === meta.heat;
         return /* @__PURE__ */ React.createElement(
           "button",
@@ -9406,7 +9453,7 @@ Score: ${todayScore.toLocaleString()} \xB7 Night ${dd.night || "?"}
         const hd = calcTotalHearthDust(meta.cats, dustBonus, heatMult);
         const activeCats = meta.cats.filter((c) => !c.enshrined);
         const enshrinedCats = meta.cats.filter((c) => c.enshrined);
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "8px 0" } }, (() => {
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { position: "relative", width: "100%", height: 80, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", marginBottom: -8 } }, /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", width: 120, height: 120, borderRadius: "50%", background: "radial-gradient(circle, #fbbf2418, #ef44440a, transparent 70%)", animation: "breathe 3s ease-in-out infinite" } }), /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", width: 80, height: 80, borderRadius: "50%", background: "radial-gradient(circle, #fbbf2422, transparent 60%)", animation: "breathe 2.5s ease-in-out .5s infinite" } }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 36, zIndex: 1, animation: "float 3s ease-in-out infinite", filter: "drop-shadow(0 0 20px #fbbf2444)" } }, "\u{1F525}"), activeCats.slice(0, 8).map((c, i) => { const ang = (i / Math.min(8, activeCats.length)) * Math.PI * 2 - Math.PI / 2; const r = 34; return /* @__PURE__ */ React.createElement("div", { key: c.id || i, style: { position: "absolute", left: `calc(50% + ${Math.cos(ang) * r}px - 3px)`, top: `calc(50% + ${Math.sin(ang) * r}px - 3px)`, width: 6, height: 6, borderRadius: "50%", background: BREEDS[c.breed]?.color || "#fbbf24", boxShadow: `0 0 4px ${BREEDS[c.breed]?.color || "#fbbf24"}66`, opacity: 0.7, animation: `breathe ${2 + i * 0.3}s ease-in-out ${i * 0.2}s infinite` } }); })), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "8px 0" } }, (() => {
           const n = meta.cats.length;
           const tier = n >= 15 ? { name: "THE CONSTELLATION", icon: "\u2B50", color: "#fef08a", bonus: "+30% stardust" } : n >= 6 ? { name: "THE CIRCLE", icon: "\u{1F525}", color: "#fb923c", bonus: "+15% stardust" } : { name: "THE EMBER", icon: "\u{1F56F}\uFE0F", color: "#b8956a", bonus: "" };
           return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: tier.color + "88", letterSpacing: 3, marginBottom: 4 } }, tier.icon, " ", tier.name, tier.bonus ? ` \xB7 ${tier.bonus}` : "");
@@ -9422,12 +9469,14 @@ Score: ${todayScore.toLocaleString()} \xB7 Night ${dd.night || "?"}
           return /* @__PURE__ */ React.createElement("div", { key: `h${i}`, style: { textAlign: "center", position: "relative" }, onClick: () => {
             const legacyLines = [c.name];
             if (c.epithet) legacyLines.push(c.epithet);
+            if (c.origin) legacyLines.push(c.origin);
             if (c.savedAt) legacyLines.push("Saved run #" + (c.savedAt || "?"));
-            if (c.stats?.bs) legacyLines.push("Best hand: " + c.stats.bs.toLocaleString());
-            if (c.stats?.tp) legacyLines.push(c.stats.tp + " hands played");
+            if (c.stats?.bs) legacyLines.push("Best: " + c.stats.bs.toLocaleString());
+            if (c.stats?.tp) legacyLines.push(c.stats.tp + " hands");
+            if (c.scarred) legacyLines.push("Battle-hardened");
             const childCount = (meta.cats || []).filter((x) => x._hearthParents && x._hearthParents.includes(c.name.split(" ")[0])).length;
-            if (childCount > 0) legacyLines.push(childCount + " descendant" + (childCount > 1 ? "s" : "") + " in draft pools");
-            toast(BREEDS[c.breed]?.icon || "\u{1F431}", legacyLines.join(" \xB7 "), BREEDS[c.breed]?.color || "#fbbf24", 4e3);
+            if (childCount > 0) legacyLines.push(childCount + " descendant" + (childCount > 1 ? "s" : ""));
+            toast(BREEDS[c.breed]?.icon || "\u{1F431}", legacyLines.join(" \xB7 "), BREEDS[c.breed]?.color || "#fbbf24", 5e3);
           } }, /* @__PURE__ */ React.createElement(CC, { cat: { ...c, id: `ht${i}`, trait: tr }, sm: true }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: "#c084fc", marginTop: 1, textShadow: "0 0 6px #c084fc44" } }, "+", perCat, "\u2726"), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
             e.stopPropagation();
             const pairCats = c.pairId ? meta.cats.filter((x) => x.pairId === c.pairId) : meta.cats.filter((x) => x.name === c.name && x.savedAt === c.savedAt);
@@ -9577,7 +9626,7 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
       })()));
     }
     if (anteUp) {
-      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", zIndex: 1, gap: 16, padding: 20 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ffffffbb", fontStyle: "italic", textAlign: "center", maxWidth: 300, lineHeight: 1.6, animation: "fadeIn 1.5s ease-out", letterSpacing: 1 } }, NIGHT_EPI[Math.min(anteUp.to - 1, 4)]), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 72, fontWeight: 900, background: "linear-gradient(135deg,#f59e0b,#fef08a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", animation: "scorePop .6s ease-out", letterSpacing: 8, marginTop: 8 } }, anteUp.to), /* @__PURE__ */ React.createElement(ProgressMap, { ante: anteUp.to, blind: 0, mx: MX }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", marginTop: 4 } }, "Target: ", /* @__PURE__ */ React.createElement("span", { style: { color: "#e8e6e3", fontWeight: 700 } }, anteUp.target.toLocaleString())), ANTE_ESCALATION[Math.min(anteUp.to - 1, 4)] && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#fbbf2466", fontStyle: "italic", animation: "fadeIn 1.4s ease-out", textAlign: "center", maxWidth: 320, lineHeight: 1.6, textShadow: "0 0 15px #fbbf2422" } }, ANTE_ESCALATION[Math.min(anteUp.to - 1, 4)]), anteUp.to > 1 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#d97706bb", fontStyle: "italic", animation: "fadeIn 1.2s ease-out", textAlign: "center" } }, "\u26A1 The night deepens. The colony holds."), runLog.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { maxWidth: 350, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", letterSpacing: 2, marginBottom: 4 } }, "LAST NIGHT"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 2, maxHeight: 120, overflowY: "auto" } }, runLog.filter((e) => e.ante === anteUp.from).slice(-6).map((e, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { fontSize: 10, color: e.type === "death" ? "#ef4444" : e.type === "breed" ? "#4ade80" : e.type === "hand" ? "#fbbf24" : "#666", padding: "1px 4px" } }, e.type === "draft" && /* @__PURE__ */ React.createElement("span", null, "Drafted: ", e.data.picked), e.type === "hand" && /* @__PURE__ */ React.createElement("span", null, e.data.type, ": ", e.data.score.toLocaleString()), e.type === "breed" && /* @__PURE__ */ React.createElement("span", null, e.data.baby, " born (", e.data.breed, ")"), e.type === "fight" && /* @__PURE__ */ React.createElement("span", null, e.data.loser, " hardened (-", e.data.dmg, "P)"), e.type === "death" && /* @__PURE__ */ React.createElement("span", null, e.data.victim, " died"), e.type === "night" && /* @__PURE__ */ React.createElement("span", null, "Night ", e.data.to, " begins"), e.type === "phoenix" && /* @__PURE__ */ React.createElement("span", null, e.data.risen, " rose from the ashes!"), e.type === "mentor" && /* @__PURE__ */ React.createElement("span", null, e.data.elder, " mentored ", e.data.young), e.type === "found" && /* @__PURE__ */ React.createElement("span", null, e.data.cat, " found rations"), e.type === "growth" && /* @__PURE__ */ React.createElement("span", null, e.data.cat, " grew stronger"), e.type === "wanderer" && /* @__PURE__ */ React.createElement("span", null, e.data.cat, " joined"), e.type === "reward" && /* @__PURE__ */ React.createElement("span", null, "Reward: ", e.data.name), e.type === "event" && /* @__PURE__ */ React.createElement("span", null, e.data.title, ": ", e.data.choice))))), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", zIndex: 1, gap: 16, padding: 20 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ffffffbb", fontStyle: "italic", textAlign: "center", maxWidth: 300, lineHeight: 1.6, animation: "fadeIn 1.5s ease-out", letterSpacing: 1 } }, NIGHT_EPI[Math.min(anteUp.to - 1, 4)]), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 72, fontWeight: 900, background: "linear-gradient(135deg,#f59e0b,#fef08a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", animation: "scorePop .6s ease-out", letterSpacing: 8, marginTop: 8 } }, anteUp.to), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff22", letterSpacing: 6, marginTop: -4, animation: "fadeIn 1s ease-out .3s both" } }, NIGHT_PLACES[Math.min(anteUp.to - 1, NIGHT_PLACES.length - 1)]), /* @__PURE__ */ React.createElement(ProgressMap, { ante: anteUp.to, blind: 0, mx: MX }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", marginTop: 4 } }, "Target: ", /* @__PURE__ */ React.createElement("span", { style: { color: "#e8e6e3", fontWeight: 700 } }, anteUp.target.toLocaleString())), ANTE_ESCALATION[Math.min(anteUp.to - 1, 4)] && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#fbbf2466", fontStyle: "italic", animation: "fadeIn 1.4s ease-out", textAlign: "center", maxWidth: 320, lineHeight: 1.6, textShadow: "0 0 15px #fbbf2422" } }, ANTE_ESCALATION[Math.min(anteUp.to - 1, 4)]), anteUp.to > 1 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#d97706bb", fontStyle: "italic", animation: "fadeIn 1.2s ease-out", textAlign: "center" } }, "\u26A1 The night deepens. The colony holds."), runLog.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { maxWidth: 350, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", letterSpacing: 2, marginBottom: 4 } }, "LAST NIGHT"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 2, maxHeight: 120, overflowY: "auto" } }, runLog.filter((e) => e.ante === anteUp.from).slice(-6).map((e, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { fontSize: 10, color: e.type === "death" ? "#ef4444" : e.type === "breed" ? "#4ade80" : e.type === "hand" ? "#fbbf24" : "#666", padding: "1px 4px" } }, e.type === "draft" && /* @__PURE__ */ React.createElement("span", null, "Drafted: ", e.data.picked), e.type === "hand" && /* @__PURE__ */ React.createElement("span", null, e.data.type, ": ", e.data.score.toLocaleString()), e.type === "breed" && /* @__PURE__ */ React.createElement("span", null, e.data.baby, " born (", e.data.breed, ")"), e.type === "fight" && /* @__PURE__ */ React.createElement("span", null, e.data.loser, " hardened (-", e.data.dmg, "P)"), e.type === "death" && /* @__PURE__ */ React.createElement("span", null, e.data.victim, " died"), e.type === "night" && /* @__PURE__ */ React.createElement("span", null, "Night ", e.data.to, " begins"), e.type === "phoenix" && /* @__PURE__ */ React.createElement("span", null, e.data.risen, " rose from the ashes!"), e.type === "mentor" && /* @__PURE__ */ React.createElement("span", null, e.data.elder, " mentored ", e.data.young), e.type === "found" && /* @__PURE__ */ React.createElement("span", null, e.data.cat, " found rations"), e.type === "growth" && /* @__PURE__ */ React.createElement("span", null, e.data.cat, " grew stronger"), e.type === "wanderer" && /* @__PURE__ */ React.createElement("span", null, e.data.cat, " joined"), e.type === "reward" && /* @__PURE__ */ React.createElement("span", null, "Reward: ", e.data.name), e.type === "event" && /* @__PURE__ */ React.createElement("span", null, e.data.title, ": ", e.data.choice))))), /* @__PURE__ */ React.createElement("button", { onClick: () => {
         setAnteUp(null);
       }, style: { ...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)", "#0a0a1a"), padding: "12px 40px", fontSize: 15, marginTop: 8 } }, "Continue")));
     }
@@ -11104,7 +11153,7 @@ The fire still burns.
         setSeen((s) => ({ ...s, guided: true }));
         setTimeout(() => toast("\u{1F4A1}", "Tip: Discard swaps cats for new draws. Tap it to try!", "#fbbf2488", 4e3), 2e3);
       }, style: { marginTop: 8, fontSize: 11, background: "#fbbf2422", border: "1px solid #fbbf2444", borderRadius: 6, color: "#fbbf24", cursor: "pointer", padding: "5px 16px", fontWeight: 700, letterSpacing: 1 } }, "Got it"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, justifyContent: "center", marginTop: 6 } }, [0, 1, 2, 3].map((i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { width: 6, height: 6, borderRadius: "50%", background: i === guide.step ? "#fbbf24" : i < guide.step ? "#fbbf2444" : "#333", transition: "all .15s" } }))));
-    })(), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: mob ? "6px 12px" : "8px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, borderBottom: `1px solid ${isBoss ? "#ef444422" : "#ffffff0a"}` } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#888", letterSpacing: 2 } }, "NIGHT ", ante, "/", MX, !mob && /* @__PURE__ */ React.createElement("span", { style: { color: "#666" } }, " Round ", blind + 1, "/3")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: mob ? 13 : 14, fontWeight: 700, color: isBoss ? "#ef4444" : "#fbbf24" } }, blindN[blind]), !mob && /* @__PURE__ */ React.createElement(ProgressMap, { ante, blind, mx: MX })), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#888", letterSpacing: 2 } }, "SCORE"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: mob ? 16 : 18, fontWeight: 900 } }, /* @__PURE__ */ React.createElement("span", { style: { color: rScore >= tgt ? "#4ade80" : "#e8e6e3" } }, rScore.toLocaleString()), /* @__PURE__ */ React.createElement("span", { style: { color: "#666", fontSize: 12 } }, " / ", tgt.toLocaleString())), !mob && rScore < tgt && hLeft > 0 && (() => {
+    })(), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: mob ? "6px 12px" : "8px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, borderBottom: `1px solid ${isBoss ? "#ef444422" : "#ffffff0a"}` } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#888", letterSpacing: 2 } }, "NIGHT ", ante, "/", MX, !mob && /* @__PURE__ */ React.createElement("span", { style: { color: "#666" } }, " Round ", blind + 1, "/3"), !mob && /* @__PURE__ */ React.createElement("span", { style: { color: "#ffffff22", marginLeft: 6, fontSize: 9, letterSpacing: 3 } }, NIGHT_PLACES[Math.min(ante - 1, NIGHT_PLACES.length - 1)])), /* @__PURE__ */ React.createElement("div", { style: { fontSize: mob ? 13 : 14, fontWeight: 700, color: isBoss ? "#ef4444" : "#fbbf24" } }, blindN[blind]), !mob && /* @__PURE__ */ React.createElement(ProgressMap, { ante, blind, mx: MX })), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#888", letterSpacing: 2 } }, "SCORE"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: mob ? 16 : 18, fontWeight: 900 } }, /* @__PURE__ */ React.createElement("span", { style: { color: rScore >= tgt ? "#4ade80" : "#e8e6e3" } }, rScore.toLocaleString()), /* @__PURE__ */ React.createElement("span", { style: { color: "#666", fontSize: 12 } }, " / ", tgt.toLocaleString())), !mob && rScore < tgt && hLeft > 0 && (() => {
       const need = tgt - rScore;
       const nph = Math.ceil(need / hLeft);
       return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: nph > 45e3 ? "#ef4444" : nph > 24e3 ? "#fb923c" : "#aaa", fontWeight: 700, animation: nph > 45e3 ? "fpp 2s ease infinite" : "none" } }, "\u{1F3AF} Need ", need.toLocaleString(), hLeft > 1 ? /* @__PURE__ */ React.createElement("span", { style: { color: "#666", fontWeight: 400 } }, " (", nph.toLocaleString(), "/hand)") : "");
@@ -11466,6 +11515,7 @@ The fire still burns.
       const grudges = (ic.grudgedWith || []).map((gid) => allC.find((c) => c.id === gid)).filter(Boolean);
       const xp = getCatXP(ic.stats?.tp || 0, !!getMB().xp);
       const timeline = [];
+      if (ic.origin && !ic._bornNight && !ic._hearthParents) timeline.push({ night: "", text: ic.origin, color: "#ffffff44", icon: "\u{1F43E}" });
       if (ic._bornNight) timeline.push({ night: ic._bornNight, text: "Born in the dark.", color: "#c084fc", icon: "\u{1F423}" });
       if (ic._hearthParents) timeline.push({ night: 0, text: `Child of ${ic._hearthParents}.`, color: "#fbbf24", icon: "\u{1F3E0}" });
       if (ic.hearthDescendant) timeline.push({ night: 0, text: "Descended from the Hearth.", color: "#fbbf24aa", icon: "\u{1F525}" });
