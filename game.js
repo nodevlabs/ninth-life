@@ -8722,6 +8722,28 @@
       if (!meta || (meta.dust || 0) < u.cost) return;
       const cur = meta.ups?.[u.id] || 0;
       if (cur >= u.max) return;
+      const primary = meta.primaryBranch || null;
+      if (u.tier >= 4 && primary && primary !== u.branch) {
+        toast("\u{1F512}", `Tier 4+ is locked. Your colony is dedicated to ${SKILL_BRANCHES[primary].name}. Respec to change.`, "#ef4444", 3500);
+        return;
+      }
+      if (u.tier >= 4 && !primary) {
+        if (!u._dedicateConfirm) {
+          u._dedicateConfirm = true;
+          const B = SKILL_BRANCHES[u.branch];
+          toast(B.icon, `Dedicate to ${B.name}? This unlocks tiers 4-5 for ${B.name} but locks them for the other paths. Tap again to commit.`, B.color, 5e3);
+          setTimeout(() => { u._dedicateConfirm = false; }, 6e3);
+          return;
+        }
+        u._dedicateConfirm = false;
+        const um = { ...meta, dust: (meta.dust || 0) - u.cost, ups: { ...meta.ups, [u.id]: cur + 1 }, primaryBranch: u.branch };
+        setMeta(um);
+        await saveS(um);
+        Haptic.heavy();
+        const B = SKILL_BRANCHES[u.branch];
+        toast(B.icon, `Colony dedicated to ${B.name}. "${B.desc}"`, B.color, 4e3);
+        return;
+      }
       if (u.cost >= 100 && !u._confirmed) {
         u._confirmed = true;
         toast("\u2726", `Buy ${u.name} for ${u.cost}\u2726? Tap again to confirm.`, SKILL_BRANCHES[u.branch]?.color || "#c084fc", 3e3);
@@ -9456,7 +9478,8 @@
           const cur = meta.ups?.[u.id] || 0;
           const branchLvl = UPGRADES.filter((x) => x.branch === u.branch).reduce((s, x) => s + (meta.ups?.[x.id] || 0), 0);
           const tierReq2 = { 1: 0, 2: 1, 3: 3, 4: 5, 5: 7 };
-          return branchLvl >= tierReq2[u.tier] && cur < u.max && (meta.dust || 0) >= u.cost;
+          const dedicationBlocked = u.tier >= 4 && meta.primaryBranch && meta.primaryBranch !== u.branch;
+          return !dedicationBlocked && branchLvl >= tierReq2[u.tier] && cur < u.max && (meta.dust || 0) >= u.cost;
         });
         return availTabs.map((t) => {
           const isUpg = t === "skill tree";
@@ -9589,7 +9612,7 @@ Score: ${todayScore.toLocaleString()} \xB7 Night ${dd.night || "?"}
                 const refund = UPGRADES.reduce((s, u) => s + (meta.ups?.[u.id] || 0) * Math.floor(u.cost * 0.5), 0);
                 if (refund <= 0) return;
                 if (confirm("Respec all upgrades?\nYou receive " + refund + "\u2726 (50% refund).")) {
-                  const nm = { ...meta, dust: (meta.dust || 0) + refund, ups: {} };
+                  const nm = { ...meta, dust: (meta.dust || 0) + refund, ups: {}, primaryBranch: null };
                   setMeta(nm); saveS(nm);
                   toast("\u2726", "Refunded " + refund + "\u2726. Choose a new path.", "#c084fc", 3e3);
                   Haptic.medium();
@@ -9616,7 +9639,7 @@ Score: ${todayScore.toLocaleString()} \xB7 Night ${dd.night || "?"}
               /* @__PURE__ */ React.createElement("div", { onClick: () => setOpenBranch(openBranch === br ? null : br), style: { display: "flex", alignItems: "center", gap: 8, cursor: "pointer", padding: "10px 12px", borderRadius: openBranch === br && !allMaxed ? "10px 10px 0 0" : 10, background: `linear-gradient(135deg, ${B.color}${allMaxed ? "12" : "08"}, ${B.color}04)`, border: `1.5px solid ${B.color}${allMaxed ? "55" : hasAffordable ? "66" : "22"}`, animation: hasAffordable && !allMaxed ? "breathe 2.5s ease-in-out infinite" : "none", transition: "all .2s" } },
                 /* @__PURE__ */ React.createElement("div", { style: { width: 36, height: 36, borderRadius: "50%", background: allMaxed ? "#4ade8015" : B.color + "12", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, border: `1.5px solid ${allMaxed ? "#4ade8044" : B.color + "33"}` } }, allMaxed ? "\u2713" : B.icon),
                 /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } },
-                  /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, fontWeight: 900, color: allMaxed ? "#4ade80" : B.color, letterSpacing: 2 } }, B.name),
+                  /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, fontWeight: 900, color: allMaxed ? "#4ade80" : B.color, letterSpacing: 2 } }, B.name, (meta.primaryBranch === br) && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 7, color: B.color, background: B.color + "22", padding: "1px 5px", borderRadius: 3, marginLeft: 6, letterSpacing: 1, fontWeight: 700, verticalAlign: "middle" } }, "DEDICATED")),
                   /* @__PURE__ */ React.createElement("div", { style: { width: "100%", height: 4, borderRadius: 2, background: "#ffffff0a", marginTop: 3 } },
                     /* @__PURE__ */ React.createElement("div", { style: { width: pct + "%", height: "100%", borderRadius: 2, background: `linear-gradient(90deg, ${allMaxed ? "#4ade80" : B.color}88, ${allMaxed ? "#4ade80" : B.color})`, transition: "width .4s ease-out", boxShadow: pct > 0 ? `0 0 6px ${allMaxed ? "#4ade80" : B.color}33` : "none" } }))),
                 /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 800, color: allMaxed ? "#4ade80" : B.color, minWidth: 32, textAlign: "right" } }, allMaxed ? "MAX" : bLvl + "/" + bMax)),
@@ -9625,21 +9648,25 @@ Score: ${todayScore.toLocaleString()} \xB7 Night ${dd.night || "?"}
                 tiers.map((t) => {
                   const tierUps = UPGRADES.filter((u) => u.branch === br && u.tier === t);
                   if (!tierUps.length) return null;
-                  const unlocked = bLvl >= tierReq[t];
+                  const primary = meta.primaryBranch || null;
+                  const dedicationBlocked = t >= 4 && primary && primary !== br;
+                  const needsDedication = t >= 4 && !primary;
+                  const unlocked = bLvl >= tierReq[t] && !dedicationBlocked;
                   const tn = TIER_NAMES[br]?.[t] || "TIER " + t;
                   const allTierDone = tierUps.every((u) => (meta.ups?.[u.id] || 0) >= u.max);
-                  return /* @__PURE__ */ React.createElement("div", { key: t, style: { marginTop: 2, marginLeft: 10, paddingLeft: 10, borderLeft: `2px solid ${allTierDone ? "#4ade8033" : unlocked ? B.color + "44" : "#ffffff08"}` } },
-                    /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: allTierDone ? "#4ade8088" : unlocked ? B.color + "99" : "#ffffff22", letterSpacing: 3, fontWeight: 800, marginBottom: 2, marginTop: 4 } }, allTierDone ? "\u2713 " + tn : unlocked ? tn : "\u{1F512} " + tn, !unlocked && /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 400, letterSpacing: 1 } }, " \u2022 ", tierReq[t], " needed")),
+                  return /* @__PURE__ */ React.createElement("div", { key: t, style: { marginTop: 2, marginLeft: 10, paddingLeft: 10, borderLeft: `2px solid ${dedicationBlocked ? "#ef444422" : allTierDone ? "#4ade8033" : unlocked ? B.color + "44" : "#ffffff08"}` } },
+                    /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: dedicationBlocked ? "#ef444466" : allTierDone ? "#4ade8088" : unlocked ? B.color + "99" : needsDedication && bLvl >= tierReq[t] ? B.color + "66" : "#ffffff22", letterSpacing: 3, fontWeight: 800, marginBottom: 2, marginTop: 4 } }, dedicationBlocked ? "\u{1F512} " + tn + " \u2022 dedicated to " + SKILL_BRANCHES[primary].name : allTierDone ? "\u2713 " + tn : unlocked ? tn : needsDedication && bLvl >= tierReq[t] ? tn + " \u2022 choose dedication" : "\u{1F512} " + tn, !unlocked && !dedicationBlocked && !(needsDedication && bLvl >= tierReq[t]) && /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 400, letterSpacing: 1 } }, " \u2022 ", tierReq[t], " needed")),
                     tierUps.map((u) => {
                       const o = meta.ups?.[u.id] || 0;
                       const mx = o >= u.max;
-                      const can = unlocked && (meta.dust || 0) >= u.cost && !mx;
-                      return /* @__PURE__ */ React.createElement("div", { key: u.id, onClick: () => can && buyUpg(u), style: { display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", marginBottom: 2, borderRadius: 8, background: mx ? "#4ade8008" : can ? B.color + "0a" : "#ffffff03", border: `1px solid ${mx ? "#4ade8033" : can ? B.color + "55" : "#ffffff06"}`, cursor: can ? "pointer" : "default", opacity: !unlocked ? 0.25 : mx ? 0.7 : can ? 1 : 0.45, transition: "all .15s", animation: can ? "breathe 2s ease-in-out infinite" : "none" } },
-                        /* @__PURE__ */ React.createElement("span", { style: { fontSize: 16, width: 24, textAlign: "center" } }, mx ? "\u2713" : u.icon),
+                      const can = unlocked && !dedicationBlocked && (meta.dust || 0) >= u.cost && !mx;
+                      const canDedicate = needsDedication && bLvl >= tierReq[t] && (meta.dust || 0) >= u.cost && !mx;
+                      return /* @__PURE__ */ React.createElement("div", { key: u.id, onClick: () => (can || canDedicate) && buyUpg(u), style: { display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", marginBottom: 2, borderRadius: 8, background: dedicationBlocked ? "#ef444404" : mx ? "#4ade8008" : (can || canDedicate) ? B.color + "0a" : "#ffffff03", border: `1px solid ${dedicationBlocked ? "#ef444418" : mx ? "#4ade8033" : (can || canDedicate) ? B.color + "55" : "#ffffff06"}`, cursor: (can || canDedicate) ? "pointer" : "default", opacity: dedicationBlocked ? 0.2 : !unlocked && !canDedicate ? 0.25 : mx ? 0.7 : (can || canDedicate) ? 1 : 0.45, transition: "all .15s", animation: (can || canDedicate) ? "breathe 2s ease-in-out infinite" : "none" } },
+                        /* @__PURE__ */ React.createElement("span", { style: { fontSize: 16, width: 24, textAlign: "center" } }, dedicationBlocked ? "\u{1F512}" : mx ? "\u2713" : u.icon),
                         /* @__PURE__ */ React.createElement("div", { style: { flex: 1, textAlign: "left" } },
-                          /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: mx ? "#4ade80" : can ? B.color : B.color + "88" } }, u.name, u.max > 1 && o > 0 ? ` (${o}/${u.max})` : ""),
-                          /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: mx ? "#4ade8088" : "#777" } }, u.desc)),
-                        /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: mx ? "#4ade80" : can ? B.color : "#555", minWidth: 32, textAlign: "right" } }, mx ? "" : "\u2726" + u.cost));
+                          /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: dedicationBlocked ? "#ef444444" : mx ? "#4ade80" : (can || canDedicate) ? B.color : B.color + "88" } }, u.name, u.max > 1 && o > 0 ? ` (${o}/${u.max})` : ""),
+                          /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: dedicationBlocked ? "#ef444433" : mx ? "#4ade8088" : "#777" } }, u.desc)),
+                        /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: dedicationBlocked ? "#ef444433" : mx ? "#4ade80" : (can || canDedicate) ? B.color : "#555", minWidth: 32, textAlign: "right" } }, mx ? "" : dedicationBlocked ? "\u{1F512}" : "\u2726" + u.cost));
                     }));
                 })));
           }));
