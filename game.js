@@ -848,9 +848,9 @@
     { id: "u_scr", branch: "flame", name: "Scar Memory", icon: "\u{1FA79}", desc: "Scarred cats +2 bonus", cost: 55, b: { scarMult: 2 }, max: 1, tier: 2, flavor: "Scars remember. Scars teach." },
     { id: "u_combo", branch: "flame", name: "Power Resonance", icon: "\u{1F4A5}", desc: "Power combos +50% bonus", cost: 65, b: { comboBoost: 0.5 }, max: 1, tier: 2, flavor: "Power aligned. The colony resonates." },
     { id: "u_nerve_floor", branch: "flame", name: "Ember Within", icon: "\u{1F56F}\uFE0F", desc: "+2 starting Nerve each run", cost: 80, b: { fervor: 2 }, max: 1, tier: 3, flavor: "The fire starts hotter now." },
-    { id: "u_second_wind", branch: "flame", name: "Second Wind", icon: "\u{1F4A8}", desc: "+1 extra Hand on boss blinds", cost: 100, b: { bossHand: 1 }, max: 1, tier: 3, flavor: "When the dark pushes, the colony pushes back." },
-    { id: "u_bond_str", branch: "flame", name: "Unbreakable Bonds", icon: "\u{1F495}", desc: "Bonded pairs score \xD71.75", cost: 120, b: { bondBoost: 1 }, max: 1, tier: 4, flavor: "Love as a weapon. The dark has no defense." },
-    { id: "u_fury", branch: "flame", name: "Fury of Nine", icon: "\u2694\uFE0F", desc: "All cats +1 Power when colony has 3+ scars", cost: 150, b: { furyBonus: 1 }, max: 1, tier: 5, flavor: "Nine colonies burned. This one bites back." },
+    { id: "u_bond_str", branch: "flame", name: "Unbreakable Bonds", icon: "\u{1F495}", desc: "Bonded pairs score \xD71.75", cost: 80, b: { bondBoost: 1 }, max: 1, tier: 3, flavor: "Love as a weapon. The dark has no defense." },
+    { id: "u_second_wind", branch: "flame", name: "Second Wind", icon: "\u{1F4A8}", desc: "+1 extra Hand on boss blinds", cost: 120, b: { bossHand: 1 }, max: 1, tier: 4, flavor: "When the dark pushes, the colony pushes back." },
+    { id: "u_wildfire", branch: "flame", name: "Wildfire", icon: "\u{1F525}", desc: "Each played cat with P5+ adds +2 mult", cost: 150, b: { wildfireBonus: 1 }, max: 1, tier: 5, flavor: "Nine colonies burned. This one bites back." },
     // === SHELTER BRANCH === (colony, breeding, den, defense, healing)
     { id: "u_g", branch: "shelter", name: "Buried Provisions", icon: "\u{1F41F}", desc: "+2 Rations each night", cost: 25, b: { gold: 2 }, max: 3, tier: 1, flavor: "The remembered buried rations for those who came next." },
     { id: "u_den", branch: "shelter", name: "Deeper Burrow", icon: "\u{1F3E0}", desc: "+1 Shelter slot in the den", cost: 35, b: { shelter: 1 }, max: 2, tier: 1, flavor: "Deeper earth. Safer dreams." },
@@ -858,8 +858,8 @@
     { id: "u_bench", branch: "shelter", name: "Deep Reserves", icon: "\u{1FA91}", desc: "Unplayed cats +50% passive bonus", cost: 60, b: { doubleBench: 1 }, max: 1, tier: 2, flavor: "Those who watch learn twice as much." },
     { id: "u_grd", branch: "shelter", name: "Grudge Tempering", icon: "\u26A1", desc: "Grudge penalty halved: \u22122 \u2192 \u22121", cost: 75, b: { grudgeWisdom: 1 }, max: 1, tier: 3, flavor: "Forgiveness is a survival strategy." },
     { id: "u_pot", branch: "shelter", name: "The Warden", icon: "\u{1F6E1}\uFE0F", desc: "Start each run with a random ward", cost: 90, b: { startWard: 1 }, max: 2, tier: 3, flavor: "Protection. The first gift of the remembered." },
-    { id: "u_colony_cap", branch: "shelter", name: "Sprawling Den", icon: "\u{1F3D5}\uFE0F", desc: "Colony cap +5 (25\u219230)", cost: 110, b: { colonyCap: 5 }, max: 1, tier: 4, flavor: "More room. More names. More to lose." },
-    { id: "u_sanctuary", branch: "shelter", name: "Sanctuary", icon: "\u{1F54A}\uFE0F", desc: "Den deaths reduced by 50%. Injuries heal in 1 round.", cost: 150, b: { denSafety: 1, fastHeal: 1 }, max: 1, tier: 5, flavor: "Nothing dies in the shelter. Not anymore." },
+    { id: "u_colony_cap", branch: "shelter", name: "Sprawling Den", icon: "\u{1F3D5}\uFE0F", desc: "Colony cap +5, +1 max den births", cost: 110, b: { colonyCap: 5 }, max: 1, tier: 4, flavor: "More room. More names. More to lose." },
+    { id: "u_eternal_hearth", branch: "shelter", name: "Eternal Hearth", icon: "\u{1F525}", desc: "Kittens inherit parent's trait and start at P3", cost: 150, b: { eternalHearth: 1 }, max: 1, tier: 5, flavor: "What the parents carried, the children are born knowing." },
     // === MEMORY BRANCH === (stardust, drafting, traits, knowledge, hearth)
     { id: "u_keen", branch: "memory", name: "Keen Eye", icon: "\u{1F3AF}", desc: "Recruit costs 1\u{1F41F} less (min free)", cost: 25, b: { recruitDiscount: 1 }, max: 1, tier: 1, flavor: "The colony knows who to call." },
     { id: "u_d", branch: "memory", name: "Quick Instincts", icon: "\u{1F4E3}", desc: "+1 Free Recruit per round", cost: 35, b: { freeRecruits: 1 }, max: 2, tier: 1, flavor: "Sharper eyes find allies in the dark." },
@@ -867,10 +867,9 @@
     { id: "u_scroll", branch: "memory", name: "Ancient Scrolls", icon: "\u{1F4DC}", desc: "Start with a random hand type leveled", cost: 60, b: { startScroll: 1 }, max: 1, tier: 2, flavor: "Ancient knowledge in paw prints." },
     { id: "u_c", branch: "memory", name: "Bloodline", icon: "\u{1F4FF}", desc: "Companion +2P, drafted +1P", cost: 80, b: { heirloom: 2, draftPower: 1 }, max: 1, tier: 3, flavor: "The blood runs strong." },
     { id: "u_o", branch: "memory", name: "What The Stars Owe", icon: "\u{1F50D}", desc: "+50% Stardust from the Hearth", cost: 90, b: { dustBonus: 0.5 }, max: 1, tier: 3, flavor: "The stars owe a debt. Collect." },
-    { id: "u_draft", branch: "memory", name: "Wider Horizons", icon: "\u{1F305}", desc: "4 cats per draft wave instead of 3", cost: 100, b: { draftSize: 1 }, max: 1, tier: 4, flavor: "One more voice in the chorus." },
-    { id: "u_trait_luck", branch: "memory", name: "The Colony's Memory", icon: "\u{1F9EC}", desc: "55% Rare trait chance in drafts", cost: 120, b: { traitLuck: 1 }, max: 1, tier: 4, flavor: "The colony remembers the shapes of power." },
-    { id: "u_4draft", branch: "memory", name: "Colony Instinct", icon: "\u{1F431}", desc: "Draft 4 cats instead of 3", cost: 140, b: { extraDraft: 1 }, max: 1, tier: 5, flavor: "Four voices. Four names. Four chances." },
-    { id: "u_mythic", branch: "memory", name: "Mythic Bloodline", icon: "\u{1F31F}", desc: "Guarantee 1 Legendary in each draft", cost: 180, b: { mythicChance: 1 }, max: 1, tier: 5, flavor: "Legends aren't born. They're remembered into being." }
+    { id: "u_trait_luck", branch: "memory", name: "The Colony's Memory", icon: "\u{1F9EC}", desc: "55% Rare trait chance in drafts", cost: 80, b: { traitLuck: 1 }, max: 1, tier: 3, flavor: "The colony remembers the shapes of power." },
+    { id: "u_4draft", branch: "memory", name: "Colony Instinct", icon: "\u{1F431}", desc: "Draft 4 cats instead of 3, +1 per wave", cost: 120, b: { extraDraft: 1, draftSize: 1 }, max: 1, tier: 4, flavor: "Four voices. Four names. Four chances." },
+    { id: "u_mythic", branch: "memory", name: "Mythic Bloodline", icon: "\u{1F31F}", desc: "50% chance of Legendary trait per draft wave", cost: 160, b: { mythicChance: 1 }, max: 1, tier: 5, flavor: "Legends aren't born. They're remembered into being." }
   ];
   const MILESTONES = [
     { req: 3, bonus: { gold: 1 }, label: "First Light" },
@@ -3784,12 +3783,12 @@
       });
       if (pbTotal > 0) bd.push({ label: `\u{1F451} Devotion Power +${pbTotal}C`, chips: pbTotal, mult: 0, type: "devotion" });
     }
-    if (ctx.furyBonus && ctx.furyBonus > 0) {
-      const scarCount = (ctx.bench || []).filter((c) => c.scarred).length + cats.filter((c) => c.scarred).length;
-      if (scarCount >= 3) {
-        const furyChips = cats.length * ctx.furyBonus;
-        chips += furyChips;
-        bd.push({ label: `\u2694\uFE0F Fury of Nine +${furyChips}C (${scarCount} scars)`, chips: furyChips, mult: 0, type: "fury" });
+    if (ctx.wildfireBonus && ctx.wildfireBonus > 0) {
+      const strongCats = cats.filter((c) => c.power >= 5 && !c.injured).length;
+      if (strongCats > 0) {
+        const wfMult = strongCats * 2;
+        mult += wfMult;
+        bd.push({ label: `\u{1F525} Wildfire +${wfMult}M (${strongCats} cats P5+)`, chips: 0, mult: wfMult, type: "wildfire" });
       }
     }
     const powers = cats.map((c) => c.power);
@@ -5224,8 +5223,8 @@
       setAutoPlay({ step: -3, idxs });
     }
     function getMB() {
-      if (!meta) return { gold: 0, hands: 0, discards: 0, freeRecruits: 0, fervor: 0, bloodMemory: 0, heirloom: 0, draftPower: 0, dustBonus: 0, scarMult: 0, startWard: 0, grudgeWisdom: 0, shelter: 0, draftSize: 0, traitLuck: 0, bondBoost: 0, nerveFloor: 0, bossHand: 0, recruitDiscount: 0, breedBoost: 0, startScroll: 0, doubleBench: 0, comboBoost: 0, extraDraft: 0, mythicChance: 0, furyBonus: 0, colonyCap: 0, denSafety: 0, fastHeal: 0 };
-      let b = { gold: 0, hands: 0, discards: 0, freeRecruits: 0, fervor: 0, bloodMemory: 0, heirloom: 0, draftPower: 0, dustBonus: 0, scarMult: 0, startWard: 0, grudgeWisdom: 0, shelter: 0, draftSize: 0, traitLuck: 0, bondBoost: 0, nerveFloor: 0, bossHand: 0, recruitDiscount: 0, breedBoost: 0, startScroll: 0, doubleBench: 0, comboBoost: 0, extraDraft: 0, mythicChance: 0, furyBonus: 0, colonyCap: 0, denSafety: 0, fastHeal: 0 };
+      if (!meta) return { gold: 0, hands: 0, discards: 0, freeRecruits: 0, fervor: 0, bloodMemory: 0, heirloom: 0, draftPower: 0, dustBonus: 0, scarMult: 0, startWard: 0, grudgeWisdom: 0, shelter: 0, draftSize: 0, traitLuck: 0, bondBoost: 0, nerveFloor: 0, bossHand: 0, recruitDiscount: 0, breedBoost: 0, startScroll: 0, doubleBench: 0, comboBoost: 0, extraDraft: 0, mythicChance: 0, wildfireBonus: 0, colonyCap: 0, eternalHearth: 0 };
+      let b = { gold: 0, hands: 0, discards: 0, freeRecruits: 0, fervor: 0, bloodMemory: 0, heirloom: 0, draftPower: 0, dustBonus: 0, scarMult: 0, startWard: 0, grudgeWisdom: 0, shelter: 0, draftSize: 0, traitLuck: 0, bondBoost: 0, nerveFloor: 0, bossHand: 0, recruitDiscount: 0, breedBoost: 0, startScroll: 0, doubleBench: 0, comboBoost: 0, extraDraft: 0, mythicChance: 0, wildfireBonus: 0, colonyCap: 0, eternalHearth: 0 };
       MILESTONES.forEach((m) => {
         if (meta.cats.length >= m.req) Object.entries(m.bonus).forEach(([k, v]) => {
           b[k] = (b[k] || 0) + v;
@@ -6288,7 +6287,7 @@
       setAftermath([]);
       const beatingPace = rScore >= eTgt() * 0.4;
       const activeBT = blind === 2 ? bossTraits : [];
-      const result = calcScore(cats, fams, ferv, cfx, { gold, deckSize: allC.length, discSize: disc.length, handSize: hs(), beatingPace, bossTraitFx: activeBT, scarMult: getMB().scarMult || 0, grudgeWisdom: getMB().grudgeWisdom || 0, hasMastery: !!getMB().xp, bondBoost: getMB().bondBoost || 0, comboBoost: getMB().comboBoost || 0, furyBonus: getMB().furyBonus || 0, doubleBench: getMB().doubleBench || 0, kindredMult: tempMods.kindredMult || 0, weatherSeason: weather?.season || null, nightModFx: nightMod?.fx || {}, lastHandIds, lastHandLost, lastHandType, htLevels, devotion, bench: hand.filter((c) => !cats.find((x) => x.id === c.id)) });
+      const result = calcScore(cats, fams, ferv, cfx, { gold, deckSize: allC.length, discSize: disc.length, handSize: hs(), beatingPace, bossTraitFx: activeBT, scarMult: getMB().scarMult || 0, grudgeWisdom: getMB().grudgeWisdom || 0, hasMastery: !!getMB().xp, bondBoost: getMB().bondBoost || 0, comboBoost: getMB().comboBoost || 0, wildfireBonus: getMB().wildfireBonus || 0, doubleBench: getMB().doubleBench || 0, kindredMult: tempMods.kindredMult || 0, weatherSeason: weather?.season || null, nightModFx: nightMod?.fx || {}, lastHandIds, lastHandLost, lastHandType, htLevels, devotion, bench: hand.filter((c) => !cats.find((x) => x.id === c.id)) });
       advancingRef.current = false;
       actionLock.current = false;
       setSRes(result);
@@ -7302,6 +7301,13 @@
       results.forEach((r) => {
         if (r.type === "breed") {
           r.baby._bornNight = ante;
+          if (getMB().eternalHearth) {
+            const parentTraits = [r.c1.trait, r.c2.trait].filter((t) => t && t.name !== "Plain");
+            if (parentTraits.length > 0 && (!r.baby.trait || r.baby.trait.name === "Plain")) {
+              r.baby.trait = pk(parentTraits);
+            }
+            r.baby.power = Math.max(3, r.baby.power);
+          }
           setDraw((d) => [...d, r.baby]);
           if (r.twins) {
             const twin = breedC(r.c1, r.c2);
@@ -9602,8 +9608,8 @@ Score: ${todayScore.toLocaleString()} \xB7 Night ${dd.night || "?"}
               if (mb.startWard > 0) ab.push({ l: mb.startWard + "Ward", c: "#4ade80" });
               if (mb.dustBonus > 0) ab.push({ l: "+Dust", c: "#c084fc" });
               if (mb.extraDraft > 0) ab.push({ l: "4Draft", c: "#c084fc" });
-              if (mb.furyBonus > 0) ab.push({ l: "Fury", c: "#ef4444" });
-              if (mb.denSafety > 0) ab.push({ l: "Safe", c: "#4ade80" });
+              if (mb.wildfireBonus > 0) ab.push({ l: "Wildfire", c: "#ef4444" });
+              if (mb.eternalHearth > 0) ab.push({ l: "Safe", c: "#4ade80" });
               return ab.length > 0 ? /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, flexWrap: "wrap", justifyContent: "center", marginTop: 6 } }, ab.map((x, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { fontSize: 8, color: x.c, padding: "1px 5px", borderRadius: 3, background: x.c + "11", border: "1px solid " + x.c + "22" } }, x.l))) : null;
             })(),
             totalLevels > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "center", gap: 12, marginTop: 6, alignItems: "center" } },
@@ -11276,7 +11282,7 @@ The fire still burns.
                   Audio.cardPlay(); Haptic.medium();
                   const beatingPace = rScore >= eTgt() * 0.4;
                   const activeBT = blind === 2 ? bossTraits : [];
-                  const result = calcScore(cats, fams, ferv, cfx, { gold, deckSize: allC.length, discSize: disc.length, handSize: hs(), beatingPace, bossTraitFx: activeBT, scarMult: getMB().scarMult || 0, grudgeWisdom: getMB().grudgeWisdom || 0, hasMastery: !!getMB().xp, bondBoost: getMB().bondBoost || 0, comboBoost: getMB().comboBoost || 0, furyBonus: getMB().furyBonus || 0, doubleBench: getMB().doubleBench || 0, kindredMult: tempMods.kindredMult || 0, weatherSeason: weather?.season || null, nightModFx: nightMod?.fx || {}, lastHandIds, lastHandLost, lastHandType, htLevels, devotion, bench: hand.filter((c) => !cats.find((x) => x.id === c.id)) });
+                  const result = calcScore(cats, fams, ferv, cfx, { gold, deckSize: allC.length, discSize: disc.length, handSize: hs(), beatingPace, bossTraitFx: activeBT, scarMult: getMB().scarMult || 0, grudgeWisdom: getMB().grudgeWisdom || 0, hasMastery: !!getMB().xp, bondBoost: getMB().bondBoost || 0, comboBoost: getMB().comboBoost || 0, wildfireBonus: getMB().wildfireBonus || 0, doubleBench: getMB().doubleBench || 0, kindredMult: tempMods.kindredMult || 0, weatherSeason: weather?.season || null, nightModFx: nightMod?.fx || {}, lastHandIds, lastHandLost, lastHandType, htLevels, devotion, bench: hand.filter((c) => !cats.find((x) => x.id === c.id)) });
                   advancingRef.current = false;
                   setSRes(result);
                   setSStep(-1);
@@ -11957,7 +11963,7 @@ The fire still burns.
     })(), undoRef.current && ph === "playing" && !isDailyRun && /* @__PURE__ */ React.createElement("button", { onClick: undoDiscard, style: { fontSize: 9, padding: "2px 8px", borderRadius: 4, border: "1px solid #ffffff15", background: "#ffffff06", color: "#888", cursor: "pointer", marginTop: 2 } }, "\u21A9 Undo")), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, sel.size >= 2 && ph === "playing" && !autoPlay && runCount >= 3 && (() => {
       const cats = [...sel].map((i) => hand[i]).filter(Boolean);
       if (cats.length < 1) return null;
-      const preview2 = calcScore(cats, fams, ferv, cfx, { gold, deckSize: allC.length, discSize: disc.length, handSize: hs(), beatingPace: rScore >= tgt, bossTraitFx: [], scarMult: getMB().scarMult || 0, grudgeWisdom: getMB().grudgeWisdom || 0, hasMastery: !!getMB().xp, bondBoost: getMB().bondBoost || 0, comboBoost: getMB().comboBoost || 0, furyBonus: getMB().furyBonus || 0, doubleBench: getMB().doubleBench || 0, kindredMult: tempMods.kindredMult || 0, weatherSeason: weather?.season || null, nightModFx: nightMod?.fx || {}, lastHandIds, lastHandLost, lastHandType, htLevels, devotion, bench: hand.filter((c) => !cats.find((x) => x.id === c.id)) });
+      const preview2 = calcScore(cats, fams, ferv, cfx, { gold, deckSize: allC.length, discSize: disc.length, handSize: hs(), beatingPace: rScore >= tgt, bossTraitFx: [], scarMult: getMB().scarMult || 0, grudgeWisdom: getMB().grudgeWisdom || 0, hasMastery: !!getMB().xp, bondBoost: getMB().bondBoost || 0, comboBoost: getMB().comboBoost || 0, wildfireBonus: getMB().wildfireBonus || 0, doubleBench: getMB().doubleBench || 0, kindredMult: tempMods.kindredMult || 0, weatherSeason: weather?.season || null, nightModFx: nightMod?.fx || {}, lastHandIds, lastHandLost, lastHandType, htLevels, devotion, bench: hand.filter((c) => !cats.find((x) => x.id === c.id)) });
       const htName = preview2.ht || "?";
       return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf24aa", marginBottom: 2, letterSpacing: 1 } }, htName, " \xB7 ~", preview2.total.toLocaleString());
     })(), /* @__PURE__ */ React.createElement("button", { onClick: playH, disabled: !sel.size || hLeft <= 0 || ph !== "playing" || !!autoPlay, style: { ...BTN(sel.size && ph === "playing" && !autoPlay ? "linear-gradient(135deg,#fbbf24,#f59e0b)" : "#222", sel.size && ph === "playing" && !autoPlay ? "#0a0a1a" : "#555", sel.size > 0 && ph === "playing" && !autoPlay), minWidth: mob ? 80 : 70, padding: mob ? "12px 18px" : "8px 16px", fontSize: mob ? 15 : 14, animation: hLeft === 1 && rScore < tgt ? "fpp 1.2s ease infinite" : "none", boxShadow: hLeft === 1 && rScore < tgt ? "0 0 20px #ef444488" : "none" } }, "Play", hLeft === 1 && rScore < tgt ? " \u26A0" : ""), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u{1F0CF}", `Hands: ${hLeft} remaining this round. Each hand plays up to 5 cats. Score \u2265 target to clear.`, "#3b82f6", 4500), style: { fontSize: 10, color: hLeft <= 1 && rScore < tgt ? "#ef4444" : "#888", marginTop: 2, fontWeight: hLeft <= 1 && rScore < tgt ? 900 : 400, animation: hLeft <= 1 && rScore < tgt ? "fpp 1s ease infinite" : "none", cursor: "help" } }, hLeft <= 1 && rScore < tgt ? "\u26A0 FINAL" : hLeft === 0 ? "Done" : `Hands: ${hLeft}`)), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setDeckView(true), style: { ...BTN("#1a1a2e", "#888"), border: "1px solid #ffffff12", padding: mob ? "10px 10px" : "8px 10px", fontSize: 10, minWidth: mob ? 44 : 45 } }, allC.length > 0 ? `${allC.length} \u{1F431}` : "Deck"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#666", marginTop: 1 } }, draw.length, "\u2191 ", disc.length, "\u2193"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", marginTop: 1, cursor: "pointer" }, onClick: () => setHandSort((s) => s === "season" ? "power" : "season") }, handSort === "season" ? "\u2600 szn" : "\u26A1 pwr")))), meta && meta.stats.w < 3 && ph === "playing" && !autoPlay && (() => {
