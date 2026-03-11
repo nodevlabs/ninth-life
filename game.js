@@ -4727,11 +4727,17 @@
         right: sm ? 4 : 6,
         top: "50%",
         transform: "translateY(-50%)",
-        background: "#0d1117",
-        padding: "0 2px",
+        background: neon + "22",
+        borderRadius: "50%",
+        width: xs ? 14 : sm ? 16 : 20,
+        height: xs ? 14 : sm ? 16 : 20,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         fontSize: xs ? 8 : sm ? 10 : 13,
         lineHeight: 1,
-        zIndex: 1
+        zIndex: 1,
+        boxShadow: "0 0 6px " + neon + "15"
       } }, isWild ? "\u2726" : b.icon)), !sm && /* @__PURE__ */ React.createElement("div", { style: { background: "#0d1117", padding: "2px 8px 5px", textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: {
         fontSize: fn.length > 8 ? 10 : fn.length > 6 ? 11 : 13,
         fontWeight: 700,
@@ -9218,7 +9224,7 @@
       if (meta && meta.stats.r >= 1) availTabs.push("bestiary");
       if (meta && meta.stats.w >= 1) availTabs.push("rankings");
       const safeTab = availTabs.includes(tab) ? tab : "play";
-      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement(Dust, null), /* @__PURE__ */ React.createElement("style", null, CSS), (() => {
+      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement(Dust, null), /* @__PURE__ */ React.createElement("img", { src: "https://greatgamesgonewild.github.io/ninth-life/hero.png", alt: "", style: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 800, opacity: 0.18, pointerEvents: "none", zIndex: 0, maskImage: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 40%, transparent 80%)", WebkitMaskImage: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 40%, transparent 80%)" }, onError: (e) => { e.target.style.display = "none"; } }), /* @__PURE__ */ React.createElement("style", null, CSS), (() => {
         if (meta?.stats?.r > 0) return null;
         const phase = demoStep % 16;
         const demoCards = [
