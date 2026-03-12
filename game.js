@@ -843,7 +843,7 @@
   };
   const UPGRADES = [
     // === FLAME BRANCH === (scoring, hands, nerve, aggression)
-    { id: "u_h", branch: "flame", name: "Stubborn Will", icon: "\u270A", desc: "+1 Hand per round", cost: 30, b: { hands: 1 }, max: 2, tier: 1, flavor: "One more chance. The colony fights faster." },
+    { id: "u_h", branch: "flame", name: "Stubborn Will", icon: "\u270A", desc: "+1 Hand per round", cost: 40, b: { hands: 1 }, max: 1, tier: 1, flavor: "One more chance. The colony fights faster." },
     { id: "u_f", branch: "flame", name: "The Old Fire", icon: "\u{1F525}", desc: "Start with +2 Nerve", cost: 40, b: { fervor: 2 }, max: 2, tier: 1, flavor: "The old fire burns in the new colony." },
     { id: "u_scr", branch: "flame", name: "Scar Memory", icon: "\u{1FA79}", desc: "Scarred cats +2 bonus", cost: 55, b: { scarMult: 2 }, max: 1, tier: 2, flavor: "Scars remember. Scars teach." },
     { id: "u_combo", branch: "flame", name: "Power Resonance", icon: "\u{1F4A5}", desc: "Power combos +50% bonus", cost: 65, b: { comboBoost: 0.5 }, max: 1, tier: 2, flavor: "Power aligned. The colony resonates." },
@@ -4198,10 +4198,11 @@
     };
   }
   function getTarget(a, b, firstRun, isLong) {
-    const scale = isLong ? 1.45 : 1.65;
-    const base = (firstRun ? [1400, 2800, 4200] : [2e3, 4e3, 8500])[b] * Math.pow(scale, a - 1);
+    const scale = isLong ? 1.55 : 1.85;
+    const base = (firstRun ? [1200, 2200, 3500] : [2200, 4200, 8000])[b] * Math.pow(scale, a - 1);
     const bossDiscount = b === 2 ? a === 1 ? 0.9 : a === 2 && firstRun ? 0.9 : 1 : 1;
-    return Math.round(base * bossDiscount);
+    const lateNightPressure = b === 2 && !firstRun ? (a >= 5 ? 1.15 : a >= 4 ? 1.08 : 1) : 1;
+    return Math.round(base * bossDiscount * lateNightPressure);
   }
   function getHeatMult(h) {
     return 1 + (h || 0) * 0.15;
