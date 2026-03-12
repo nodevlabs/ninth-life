@@ -11954,7 +11954,7 @@ The fire still burns.
       const seasonOrder = { Autumn: 0, Winter: 1, Spring: 2, Summer: 3 };
       const indexed = hand.map((c, i) => ({ c, i }));
       const sorted = handSort === "season" ? [...indexed].sort((a, b) => (seasonOrder[a.c.breed] || 0) - (seasonOrder[b.c.breed] || 0) || b.c.power - a.c.power) : [...indexed].sort((a, b) => b.c.power - a.c.power);
-      const _cw = mob ? Math.max(56, Math.min(80, Math.floor((vw - 32) / Math.max(5, hand.length)))) : 0;
+      const _cw = mob ? Math.max(56, Math.min(80, Math.floor((vw - 32) / Math.max(5, hand.length)))) : Math.min(112, Math.floor((Math.min(vw, 700) - 32) / Math.max(5, hand.length) - 4));
       return sorted.map(({ c, i }) => {
         const selCats = [...sel].map((idx) => hand[idx]).filter(Boolean);
         const selSeasons = (() => {
