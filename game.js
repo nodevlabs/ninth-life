@@ -4557,7 +4557,7 @@
     const goldBorder = _goldBorders && !isPlain;
     const mythicBorder = isMythicTier ? `2px solid #c084fc66` : isLegendaryTier ? `2px solid #f9731644` : null;
     let rankLabel = null;
-    if (fog) return /* @__PURE__ */ React.createElement("div", { onClick: dis ? void 0 : onClick, style: { width: w, height: h, borderRadius: sm ? 8 : 12, background: "#0d1117", border: "2px solid #ffffff12", boxShadow: "0 2px 8px #00000066", cursor: dis ? "default" : "pointer", transition: "all .15s", transform: sel ? "translateY(-12px) scale(1.05)" : "", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: sm ? 22 : 30, opacity: 0.12, color: neon } }, "?"));
+    if (fog) return /* @__PURE__ */ React.createElement("div", { onClick: dis ? void 0 : onClick, style: { width: w, height: h, borderRadius: sm ? 8 : 12, background: "#0d1117", border: "2px solid #ffffff12", boxShadow: "0 2px 8px #00000066", cursor: dis ? "default" : "pointer", transition: "all .15s", transform: sel ? "translateY(-12px)" : "", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: sm ? 22 : 30, opacity: 0.12, color: neon } }, "?"));
     return /* @__PURE__ */ React.createElement(
       "div",
       {
@@ -4572,7 +4572,7 @@
           boxShadow: (sel ? "0 0 14px " + neon + "66,0 0 28px " + ng : hl ? "0 0 10px " + ng : "0 0 6px " + ng + ",0 0 14px " + ng) + tierGlow + (goldBorder ? ",0 0 3px #fbbf2422" : ""),
           cursor: dis ? "default" : "pointer",
           transition: "all .15s ease-out",
-          transform: sel ? `translateY(-${Math.min(12, Math.round(w * 0.12))}px) scale(1.04)` : "translateZ(0)",
+          transform: sel ? `translateY(-${Math.min(12, Math.round(w * 0.12))}px)` : "translateZ(0)",
           position: "relative",
           overflow: "hidden",
           flexShrink: 0,
@@ -11466,7 +11466,8 @@ The fire still burns.
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
-      justifyContent: "center",
+      justifyContent: "flex-start",
+      paddingTop: mob ? "15vh" : "18vh",
       gap: 0,
       willChange: "transform",
       animation: scoreShake > 0 ? `bigShake ${0.2 + scoreShake * 0.08}s ease` : "none"
@@ -11938,7 +11939,7 @@ The fire still burns.
       ), topTrait && topTrait[1] >= 2 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 9, color: "#c084fc", padding: "1px 4px", borderRadius: 3, background: "#c084fc11", border: "1px solid #c084fc22" } }, topTrait[1], "\xD7", topTrait[0]), bonds > 0 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 9, color: "#f472b6", padding: "1px 4px", borderRadius: 3, background: "#f472b611", border: "1px solid #f472b622" } }, "\u{1F495}", Math.floor(bonds)), hardened > 0 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 9, color: "#fbbf24", padding: "1px 4px", borderRadius: 3, background: "#fbbf2411", border: "1px solid #fbbf2422" } }, "\u2694", hardened), weather && /* @__PURE__ */ React.createElement("span", { onClick: () => toast("\u{1F324}", `${weather.season === "Autumn" ? "Falling Leaves" : weather.season === "Winter" ? "Cold Snap" : weather.season === "Spring" ? "Fresh Growth" : "Long Light"}: ${weather.season} cats get +2 base score tonight.`, BREEDS[weather.season]?.color || "#fbbf24", 4e3), style: { fontSize: 9, color: BREEDS[weather.season]?.color || "#888", padding: "1px 4px", borderRadius: 3, background: BREEDS[weather.season]?.color + "11", border: `1px solid ${BREEDS[weather.season]?.color}22`, cursor: "help" } }, "\u{1F324}", BREEDS[weather.season]?.icon), nightMod && /* @__PURE__ */ React.createElement("span", { onClick: () => toast(nightMod.icon, `${nightMod.name}: ${nightMod.desc}`, "#c084fc", 4e3), style: { fontSize: 9, color: "#c084fc", padding: "1px 4px", borderRadius: 3, background: "#c084fc11", border: "1px solid #c084fc22", cursor: "help" } }, nightMod.icon));
     })(), /* @__PURE__ */ React.createElement("div", { style: {
       display: "flex",
-      gap: mob ? 2 : 3,
+      gap: mob ? Math.max(1, Math.min(4, Math.floor((vw - 16) / hand.length) - 58)) : Math.max(3, Math.min(8, Math.floor(840 / hand.length) - 114)),
       padding: "0 4px",
       zIndex: 1,
       justifyContent: hand.length > (mob ? 5 : 8) ? "flex-start" : "center",
