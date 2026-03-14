@@ -736,6 +736,11 @@
     { name: "Quintuplets", bonus: { c: 250, m: 15 }, standalone: { c: 350, m: 18 }, ex: "5 same power", hidden: true, echo: "impossible odds" }
     // near 0%
   ];
+  const WILD_CARDS = [
+    { id: "wc_moonfire", name: "Moonfire", icon: "\u{1F319}", desc: "Next play scores twice", cost: 8, flavor: "The second colony scored one hand so perfectly the dark paused. This is that hand.", type: "moonfire" },
+    { id: "wc_straywind", name: "Stray Wind", icon: "\u{1F32C}\uFE0F", desc: "Next play: all cats count as same season", cost: 5, flavor: "The wind doesn't care what season you were born in.", type: "straywind" },
+    { id: "wc_bloodpact", name: "Blood Pact", icon: "\u{1FA78}", desc: "Next play: all cats copy strongest trait", cost: 6, flavor: "One trait. Five bodies. The colony becomes a single thought.", type: "bloodpact" }
+  ];
   const FAMS = [
     { id: "f1", name: "Falling Leaf", icon: "\u{1F342}", desc: "Autumn cats: +2 bonus each, +5 if 3+", eff: (c) => {
       const n = c.filter((x) => getCatBreeds(x).includes("Autumn")).length;
@@ -3750,6 +3755,33 @@
     return { type: primary, idx, combo, comboIdxs, handIdxs };
   }
   function calcScore(cats, fams, fLvl, cfx = {}, ctx = {}) {
+    let scoreCats = [...cats];
+    if (ctx.wildCard === "straywind" && scoreCats.length > 0) {
+      const dominant = scoreCats.reduce((m, c) => { m[c.breed] = (m[c.breed] || 0) + 1; return m; }, {});
+      const topBreed = Object.entries(dominant).sort((a, b) => b[1] - a[1])[0][0];
+      scoreCats = scoreCats.map((c) => ({ ...c, breed: topBreed, _wildSeason: true }));
+    }
+    if (ctx.wildCard === "bloodpact" && scoreCats.length > 0) {
+      const strongest = scoreCats.reduce((best, c) => (!best || (c.trait && c.trait.name !== "Plain" && (c.trait.tier === "mythic" ? 4 : c.trait.tier === "legendary" ? 3 : c.trait.tier === "rare" ? 2 : 1) > (best.trait && best.trait.name !== "Plain" ? (best.trait.tier === "mythic" ? 4 : best.trait.tier === "legendary" ? 3 : best.trait.tier === "rare" ? 2 : 1) : 0)) ? c : best), null);
+      if (strongest?.trait && strongest.trait.name !== "Plain") {
+        scoreCats = scoreCats.map((c) => ({ ...c, trait: strongest.trait, _wildTrait: true }));
+      }
+    }
+    cats = scoreCats;
+    if (ctx.bossMechanic === "weakest_benched" && cats.length > 1) {
+      const weakest = cats.reduce((w, c) => !w || c.power < w.power ? c : w, null);
+      if (weakest) cats = cats.map((c) => c.id === weakest.id ? { ...c, _bossHalved: true, power: Math.max(1, Math.ceil(c.power / 2)) } : c);
+    }
+    if (ctx.bossMechanic === "season_exile" && cats.length > 0) {
+      const seasons = {};
+      cats.forEach((c) => { seasons[c.breed] = (seasons[c.breed] || 0) + c.power; });
+      const strongest = Object.entries(seasons).sort((a, b) => b[1] - a[1])[0]?.[0];
+      if (strongest) cats = cats.map((c) => c.breed === strongest ? { ...c, _exiled: true, power: Math.max(1, Math.ceil(c.power / 2)) } : c);
+    }
+    if (ctx.bossMechanic === "forced_full") {
+      ctx._noFocus = true;
+      ctx._noBench = true;
+    }
     const { type, combo, comboIdxs, handIdxs } = evalH(cats);
     const htLv = getHtLevel(type.name, ctx.htLevels || {});
     const scaledBase = getHtScaled(type, htLv);
@@ -4066,7 +4098,7 @@
           if (mate && !bondedPairs.find((p) => p[0] === mate.id)) bondedPairs.push([c.id, mate.id]);
         }
       });
-      bondedPairs.forEach(([a, b], pi) => {
+      if (ctx.bossMechanic !== "bond_curse") bondedPairs.forEach(([a, b], pi) => {
         const ca = cats.find((c) => c.id === a), cb = cats.find((c) => c.id === b);
         const bondBoostActive = ctx.bondBoost || 0;
         const baseBond = devFx.bondScale || 1.5;
@@ -4083,6 +4115,9 @@
           }
         });
       });
+      if (ctx.bossMechanic === "bond_curse" && bondedPairs.length > 0) {
+        bd.push({ label: "\u{1F494} Grief Mirror: bonds silenced", chips: 0, mult: 0, type: "boss_trait", allCats: true });
+      }
     }
     let bG = 0;
     if (!cfx.silence) {
@@ -4147,10 +4182,13 @@
       });
     }
     const focusScale = [0, 1.5, 1.3, 1.2, 1.1];
-    if (cats.length >= 1 && cats.length <= 4) {
+    if (cats.length >= 1 && cats.length <= 4 && !ctx._noFocus) {
       const fm = focusScale[cats.length];
       mult = Math.round(mult * fm);
       bd.push({ label: `\u{1F3AF} Focus \xD7${fm}`, chips: 0, mult: 0, xMult: fm, type: "focus", allCats: true });
+    }
+    if (ctx._noFocus) {
+      bd.push({ label: "\u{1F41C} Outnumbered: no focus bonus", chips: 0, mult: 0, type: "boss_trait", allCats: true });
     }
     const fv = NERVE[fLvl];
     if (fv.xM > 1) {
@@ -4185,7 +4223,14 @@
     const bdNeg = bd.filter((s) => negTypes.has(s.type) || s.mult < 0 && s.type !== "hand" && s.type !== "combo");
     const bdPos = bd.filter((s) => !negTypes.has(s.type) && !(s.mult < 0 && s.type !== "hand" && s.type !== "combo") && s.type !== "hand" && s.type !== "combo");
     const bdSorted = [...bdHand, ...bdNeg, ...bdPos];
-    return { chips: Math.max(0, chips), mult: Math.max(1, mult), total: Math.max(0, chips) * Math.max(1, mult), bd: bdSorted, bG, ht: type.name, combo: combo?.name || null, hasGrudgeProve };
+    if (ctx.wildCard === "straywind") bd.push({ label: "\u{1F32C}\uFE0F Stray Wind: all one season", chips: 0, mult: 0, type: "wild", allCats: true });
+    if (ctx.wildCard === "bloodpact") bd.push({ label: "\u{1FA78} Blood Pact: shared trait", chips: 0, mult: 0, type: "wild", allCats: true });
+    let finalTotal = Math.max(0, chips) * Math.max(1, mult);
+    if (ctx.wildCard === "moonfire") {
+      finalTotal *= 2;
+      bd.push({ label: "\u{1F319} Moonfire: scores twice", chips: 0, mult: 0, xMult: 2, type: "wild", allCats: true });
+    }
+    return { chips: Math.max(0, chips), mult: Math.max(1, mult), total: finalTotal, bd: bdSorted, bG, ht: type.name, combo: combo?.name || null, hasGrudgeProve };
   }
   function narrativeLabel(step, allCats) {
     if (Math.random() > 0.15) return null;
@@ -4901,6 +4946,9 @@
     const [fams, setFams] = useState([]);
     const [sCats, setSCats] = useState([]);
     const [sFams, setSFams] = useState([]);
+    const [sWild, setSWild] = useState(null);
+    const [activeWild, setActiveWild] = useState(null);
+    const [wildUsed, setWildUsed] = useState(false);
     const [sRes, setSRes] = useState(null);
     const [sStep, setSStep] = useState(-1);
     const [runChips, setRunChips] = useState(0);
@@ -5081,7 +5129,8 @@
         },
         defeat: "...for now. I come back every morning disguised as a plan.",
         defeatFn: (ctx) => ctx.clutch ? "That close. You smelled it. You'll smell it again." : ctx.deathless ? `You fed them all. Even ${ctx.strongestName || "the strongest"}. Nobody's done that before.` : "You passed the first test. There are others.",
-        lore: "Not a creature. A fact."
+        lore: "Not a creature. A fact.",
+        mechanic: { id: "weakest_benched", name: "Starvation", desc: "Weakest cat scores half", icon: "\u{1F9B4}" }
       },
       {
         id: "territory",
@@ -5095,7 +5144,8 @@
         },
         defeat: "Next time, build faster.",
         defeatFn: (ctx) => ctx.clutch ? "Barely. The ground remembers close calls." : ctx.deathless ? "Sturdy. The second colony was sturdy too. For a while." : "You held it. This time.",
-        lore: "The land remembers who was here first."
+        lore: "The land remembers who was here first.",
+        mechanic: { id: "season_exile", name: "Claimed Ground", desc: "One season scores half Power", icon: "\u{1F3F4}" }
       },
       {
         id: "mother",
@@ -5110,7 +5160,8 @@
         },
         defeat: "Take care of them. Please. Do what I couldn't.",
         defeatFn: (ctx) => ctx.clutch ? "One number. That's all that stood between them and me." : ctx.deathless ? "You kept them all. I never could." : ctx.fallen > 0 ? "You've already lost some. And you're still going. That's the choice I couldn't make." : "You're stronger than I was. Don't waste it.",
-        lore: "She is what you become if you fail."
+        lore: "She is what you become if you fail.",
+        mechanic: { id: "bond_curse", name: "Grief Mirror", desc: "Bonded pairs lose their bonus", icon: "\u{1F494}" }
       },
       {
         id: "swarm",
@@ -5124,7 +5175,8 @@
         },
         defeat: "We are still counting.",
         defeatFn: (ctx) => ctx.clutch ? "We almost had you. We always almost have you." : ctx.fallen > 0 ? `We took ${ctx.fallenName}. We'll take more next time.` : ctx.deathless ? `Not a single one. Not even ${ctx.strongestName || "the weakest"}. The math says that shouldn't happen.` : "Fewer of us now. But never none. Never, ever none.",
-        lore: "The math of extinction."
+        lore: "The math of extinction.",
+        mechanic: { id: "forced_full", name: "Outnumbered", desc: "Must play all cats. No bench", icon: "\u{1F41C}" }
       },
       {
         id: "forgetting",
@@ -5140,7 +5192,8 @@
         },
         defeat: "You remembered. This time.",
         defeatFn: (ctx) => ctx.clutch ? "One number between you and oblivion." : ctx.epithets > 3 ? "Titles. So many titles. But will anyone read them in a hundred years?" : ctx.deathless ? "Every name survived. Impressive. For now." : ctx.deathless ? "They'll remember this colony. I couldn't stop you. I've never failed before." : ctx.fallen > 2 ? "You'll tell people about the survivors. Not the fallen. That's how I work. Not with violence. With editing." : "You passed. I'll adapt. I always adapt.",
-        lore: "The last enemy is not death. It is being forgotten."
+        lore: "The last enemy is not death. It is being forgotten.",
+        mechanic: { id: "trait_fog", name: "Erasure", desc: "Trait icons hidden during play", icon: "\u{1F32B}" }
       }
     ];
     const wins = meta?.stats?.w || 0;
@@ -5439,6 +5492,9 @@
     }
     function startGame() {
       clearRunSave();
+      setActiveWild(null);
+      setWildUsed(false);
+      setSWild(null);
       try {
         const today = (/* @__PURE__ */ new Date()).toDateString();
         const lastPlay = localStorage.getItem("nl_lastPlay");
@@ -5974,8 +6030,38 @@
       advancingRef.current = true;
       try {
         if (autoPlay) {
-          setAutoPlay(null);
-          setGuide({ step: 2, msg: "" });
+          if (!autoPlay._secondHand && isFirstRun && ante === 1 && blind === 0) {
+            const firstScore = sRes?.total || 0;
+            setAutoPlay(null);
+            setTimeout(() => {
+              if (hand.length >= 3) {
+                const bc2 = {};
+                hand.forEach((c) => { bc2[c.breed] = (bc2[c.breed] || 0) + 1; });
+                const worst = Object.entries(bc2).sort((a, b) => a[1] - b[1]);
+                const mixedIds = [];
+                worst.forEach(([breed]) => {
+                  const cat = hand.find((c) => c.breed === breed && !mixedIds.includes(c.id));
+                  if (cat && mixedIds.length < 3) mixedIds.push(cat.id);
+                });
+                if (mixedIds.length >= 2) {
+                  const idxs2 = mixedIds.map((id) => hand.findIndex((c) => c.id === id)).filter((i) => i >= 0);
+                  setAutoPlay({ step: -3, idxs: idxs2, _secondHand: true, _firstScore: firstScore });
+                } else {
+                  setGuide({ step: 2, msg: "" });
+                }
+              } else {
+                setGuide({ step: 2, msg: "" });
+              }
+            }, 800);
+          } else {
+            const firstScore = autoPlay._firstScore || 0;
+            const secondScore = sRes?.total || 0;
+            setAutoPlay(null);
+            if (firstScore > 0 && secondScore > 0 && firstScore > secondScore * 1.5) {
+              setTimeout(() => toast("\u{1F4A1}", `See the difference? Matched seasons scored ${Math.round(firstScore / secondScore)}x more. Your turn.`, "#fbbf24", 5e3), 600);
+            }
+            setGuide({ step: 2, msg: "" });
+          }
         }
         const result = sRes;
         const cats = scoringCats;
@@ -6327,7 +6413,8 @@
       const activeBT = blind === 2 ? bossTraits : [];
       const tgtNow = eTgt();
       const isLastStand = hLeft <= 1 && rScore < tgtNow * 0.5;
-      const result = calcScore(cats, fams, ferv, cfx, { gold, deckSize: allC.length, discSize: disc.length, handSize: hs(), beatingPace, bossTraitFx: activeBT, scarMult: getMB().scarMult || 0, grudgeWisdom: getMB().grudgeWisdom || 0, hasMastery: !!getMB().xp, bondBoost: getMB().bondBoost || 0, comboBoost: getMB().comboBoost || 0, wildfireBonus: getMB().wildfireBonus || 0, doubleBench: getMB().doubleBench || 0, kindredMult: tempMods.kindredMult || 0, weatherSeason: weather?.season || null, nightModFx: nightMod?.fx || {}, lastHandIds, lastHandLost, lastHandType, htLevels, devotion, bench: hand.filter((c) => !cats.find((x) => x.id === c.id)), lastStand: isLastStand });
+      const result = calcScore(cats, fams, ferv, cfx, { gold, deckSize: allC.length, discSize: disc.length, handSize: hs(), beatingPace, bossTraitFx: activeBT, scarMult: getMB().scarMult || 0, grudgeWisdom: getMB().grudgeWisdom || 0, hasMastery: !!getMB().xp, bondBoost: getMB().bondBoost || 0, comboBoost: getMB().comboBoost || 0, wildfireBonus: getMB().wildfireBonus || 0, doubleBench: getMB().doubleBench || 0, kindredMult: tempMods.kindredMult || 0, weatherSeason: weather?.season || null, nightModFx: nightMod?.fx || {}, lastHandIds, lastHandLost, lastHandType, htLevels, devotion, bench: hand.filter((c) => !cats.find((x) => x.id === c.id)), lastStand: isLastStand, wildCard: activeWild?.type || null, bossMechanic: blind === 2 && boss?.mechanic?.id || null });
+      if (activeWild) { setActiveWild(null); setWildUsed(true); }
       if (isLastStand) setTimeout(() => toast("\u{1F525}", "LAST STAND. Everything or nothing.", "#ef4444", 2500), 200);
       advancingRef.current = false;
       actionLock.current = false;
@@ -7164,6 +7251,11 @@
       setSellsLeft(2);
       setDen([]);
       setRerollCount(0);
+      if (ante >= 2 && !wildUsed && !sWild && Math.random() < 0.4) {
+        setSWild(pk(WILD_CARDS));
+      } else if (ante < 2) {
+        setSWild(null);
+      }
       setShopTab(isFirstRun && fams.length === 0 ? "wards" : "cats");
     }
     const famPrice = (f) => f?._starter ? 2 : 4 + ante + (getHeatFx(meta?.heat).shopCost || 0);
@@ -9965,7 +10057,7 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
           } catch (er) {
           }
         }, style: { background: "none", border: "1px solid #ef444433", borderRadius: 6, fontSize: 9, color: "#ef444466", cursor: "pointer", padding: "3px 10px", animation: "fadeIn 2.5s ease-out", marginTop: -4 } }, "Share taunt");
-      })(), bossTraits.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", animation: "fadeIn 1.8s ease-out", maxWidth: 400 } }, bossTraits.map((t, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { padding: "8px 14px", borderRadius: 8, background: "#ef444415", border: "1px solid #ef444433", textAlign: "center", minWidth: 120, maxWidth: 180 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 16 } }, t.icon), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: "#ef4444", fontWeight: 700, letterSpacing: 1 } }, t.name)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ef4444cc", marginTop: 3, lineHeight: 1.3 } }, t.desc), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef4444bb", fontStyle: "italic", marginTop: 2 } }, t.flavor)))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444bb", fontStyle: "italic", letterSpacing: 2, animation: "fadeIn 2.5s ease-out" } }, b.lore), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", marginTop: 4 } }, curses.map((c, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { padding: "6px 10px", borderRadius: 8, background: "#ef444408", border: "1px solid #ef444433", textAlign: "center", minWidth: 90 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 16 } }, c.icon), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef4444", fontWeight: 600, marginTop: 1 } }, c.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#ef4444bb", marginTop: 1 } }, c.fx.exile && cfx.exileBreed ? `${BREEDS[cfx.exileBreed].icon} ${cfx.exileBreed} can't score` : c.desc)))), cfx.exileBreed && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444bb" } }, BREEDS[cfx.exileBreed].icon, " ", cfx.exileBreed, " exiled"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#666", marginTop: 8 } }, "Target: ", /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444", fontWeight: 700, fontSize: 16 } }, eTgt().toLocaleString()), (meta?.heat || 0) > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444bb", fontSize: 10 } }, " (Heat +", (meta.heat || 0) * 10, "%)")), hasRelic(3) && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade8066", fontStyle: "italic", textAlign: "center", maxWidth: 300, lineHeight: 1.5, animation: "fadeIn 2.5s ease-out", padding: "4px 12px", borderRadius: 6, background: "#4ade8008", border: "1px solid #4ade8018" } }, "\u{1F441}\uFE0F The Vigil whispers: ", b.id === "hunger" ? "Bonds score double here. Fill every hand." : b.id === "territory" ? "Scars make you stronger. The Territory respects fighters." : b.id === "mother" ? "Don't spread thin. Pick your best five and commit." : b.id === "swarm" ? "Morale is everything. Build it before you get here." : b.id === "forgetting" ? "Every name matters. Play your bonded pairs." : b.id === "fraying" ? "Resolve your grudges before you get here. Every grudge is \u22122 bonus." : b.id === "eclipse" ? "Don't rest. Momentum carries through." : b.id === "ember" ? "Give everything. One more hand is all it takes." : "Trust the colony."), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      })(), bossTraits.length > 0 && /* @__PURE__  */ React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", animation: "fadeIn 1.8s ease-out", maxWidth: 400 } }, bossTraits.map((t, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { padding: "8px 14px", borderRadius: 8, background: "#ef444415", border: "1px solid #ef444433", textAlign: "center", minWidth: 120, maxWidth: 180 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 16 } }, t.icon), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: "#ef4444", fontWeight: 700, letterSpacing: 1 } }, t.name)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ef4444cc", marginTop: 3, lineHeight: 1.3 } }, t.desc), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef4444bb", fontStyle: "italic", marginTop: 2 } }, t.flavor)))), boss?.mechanic && /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 16px", borderRadius: 8, background: "#ef444418", border: "1.5px solid #ef444466", animation: "fadeIn 2s ease-out", maxWidth: 300, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 16, marginBottom: 2 } }, boss.mechanic.icon), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 800, color: "#ef4444", letterSpacing: 2 } }, boss.mechanic.name.toUpperCase()), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444bb", marginTop: 2 } }, boss.mechanic.desc)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444bb", fontStyle: "italic", letterSpacing: 2, animation: "fadeIn 2.5s ease-out" } }, b.lore), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", marginTop: 4 } }, curses.map((c, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { padding: "6px 10px", borderRadius: 8, background: "#ef444408", border: "1px solid #ef444433", textAlign: "center", minWidth: 90 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 16 } }, c.icon), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef4444", fontWeight: 600, marginTop: 1 } }, c.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#ef4444bb", marginTop: 1 } }, c.fx.exile && cfx.exileBreed ? `${BREEDS[cfx.exileBreed].icon} ${cfx.exileBreed} can't score` : c.desc)))), cfx.exileBreed && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444bb" } }, BREEDS[cfx.exileBreed].icon, " ", cfx.exileBreed, " exiled"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#666", marginTop: 8 } }, "Target: ", /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444", fontWeight: 700, fontSize: 16 } }, eTgt().toLocaleString()), (meta?.heat || 0) > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444bb", fontSize: 10 } }, " (Heat +", (meta.heat || 0) * 10, "%)")), hasRelic(3) && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade8066", fontStyle: "italic", textAlign: "center", maxWidth: 300, lineHeight: 1.5, animation: "fadeIn 2.5s ease-out", padding: "4px 12px", borderRadius: 6, background: "#4ade8008", border: "1px solid #4ade8018" } }, "\u{1F441}\uFE0F The Vigil whispers: ", b.id === "hunger" ? "Bonds score double here. Fill every hand." : b.id === "territory" ? "Scars make you stronger. The Territory respects fighters." : b.id === "mother" ? "Don't spread thin. Pick your best five and commit." : b.id === "swarm" ? "Morale is everything. Build it before you get here." : b.id === "forgetting" ? "Every name matters. Play your bonded pairs." : b.id === "fraying" ? "Resolve your grudges before you get here. Every grudge is \u22122 bonus." : b.id === "eclipse" ? "Don't rest. Momentum carries through." : b.id === "ember" ? "Give everything. One more hand is all it takes." : "Trust the colony."), /* @__PURE__ */ React.createElement("button", { onClick: () => {
         if (bossTraits.some((bt) => bt.fx.marked)) {
           const eligible = [...hand, ...draw, ...disc].filter((c) => !c.scarred);
           if (eligible.length > 0) {
@@ -11029,9 +11121,10 @@ The fire still burns.
         if (r.traitGained) beats.push({ pri: 4, el: /* @__PURE__ */ React.createElement("div", { key: beats.length, style: { fontSize: 11, color: "#fbbf24", fontWeight: 700, lineHeight: 1.4, padding: "4px 0" } }, "\u2728 ", n(r.traitGained.cat), " gained ", r.traitGained.trait.icon, " ", r.traitGained.trait.name) });
       });
       beats.sort((a, b) => a.pri - b.pri);
-      const majors = beats.filter((b) => b.pri <= 1);
+      const hero = beats.length > 0 && beats[0].pri <= 1 ? beats[0] : null;
+      const majors = hero ? beats.filter((b) => b.pri <= 1).slice(1) : beats.filter((b) => b.pri <= 1);
       const minors = beats.filter((b) => b.pri >= 2);
-      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", minHeight: "100vh", zIndex: 1, gap: 10, padding: mob2 ? "16px 12px" : "20px", maxWidth: 550, overflowY: "auto", paddingTop: mob2 ? 30 : 40 } }, /* @__PURE__ */ React.createElement("h2", { style: { fontSize: mob2 ? 16 : 18, color: "#c084fc", letterSpacing: 4, margin: 0, animation: "fadeIn .6s ease-out" } }, "WHAT HAPPENED IN THE DARK"), denRes.length === 0 && /* @__PURE__ */ React.createElement("div", { style: { color: "#666", fontSize: 13, fontStyle: "italic", textAlign: "center", lineHeight: 1.6, maxWidth: 340 } }, cpk(flavorCache, "denQuiet", DEN_QUIET, (fn) => fn())), majors.map((b, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { width: "100%", animation: `slideInLeft .4s ease-out ${i * 0.4}s both` } }, b.el)), minors.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 1, width: "100%", maxWidth: 420, padding: "8px 12px", borderRadius: 10, background: "#ffffff04", border: "1px solid #ffffff08", animation: `slideInLeft .4s ease-out ${majors.length * 0.4 + 0.2}s both` } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fc88", letterSpacing: 4, textAlign: "center", fontWeight: 700, marginBottom: 4 } }, "DEN REPORT"), minors.map((b, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { animation: `slideInLeft .3s ease-out ${majors.length * 0.6 + 0.5 + i * 0.15}s both` } }, b.el))), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", minHeight: "100vh", zIndex: 1, gap: 10, padding: mob2 ? "16px 12px" : "20px", maxWidth: 550, overflowY: "auto", paddingTop: mob2 ? 30 : 40 } }, /* @__PURE__ */ React.createElement("h2", { style: { fontSize: mob2 ? 16 : 18, color: "#c084fc", letterSpacing: 4, margin: 0, animation: "fadeIn .6s ease-out" } }, "WHAT HAPPENED IN THE DARK"), denRes.length === 0 && /* @__PURE__ */ React.createElement("div", { style: { color: "#666", fontSize: 13, fontStyle: "italic", textAlign: "center", lineHeight: 1.6, maxWidth: 340 } }, cpk(flavorCache, "denQuiet", DEN_QUIET, (fn) => fn())), hero && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", animation: "fadeIn 1s ease-out", transform: "scale(1.02)", marginBottom: 6 } }, hero.el), majors.map((b, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { width: "100%", animation: `slideInLeft .4s ease-out ${i * 0.4}s both` } }, b.el)), minors.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 1, width: "100%", maxWidth: 420, padding: "8px 12px", borderRadius: 10, background: "#ffffff04", border: "1px solid #ffffff08", animation: `slideInLeft .4s ease-out ${majors.length * 0.4 + 0.2}s both` } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fc88", letterSpacing: 4, textAlign: "center", fontWeight: 700, marginBottom: 4 } }, "DEN REPORT"), minors.map((b, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { animation: `slideInLeft .3s ease-out ${majors.length * 0.6 + 0.5 + i * 0.15}s both` } }, b.el))), /* @__PURE__ */ React.createElement("button", { onClick: () => {
         const babies = [];
         denRes.filter((r) => r.type === "breed").forEach((r) => {
           babies.push(r.baby);
@@ -11089,7 +11182,23 @@ The fire still burns.
           const can = gold >= p;
           return /* @__PURE__ */ React.createElement("div", { key: c2.id, onClick: () => can && buyCat(ri), style: { cursor: can ? "pointer" : "not-allowed", textAlign: "center", flex: "1 1 80px", maxWidth: 110, padding: "8px 6px", borderRadius: 8, background: can ? "#ffffff04" : "#ffffff02", border: `1px solid ${can ? BREEDS[c2.breed].color + "33" : "#ffffff0a"}`, opacity: can ? 1 : 0.4, transition: "all .15s", animation: `scorePop .4s ease-out ${0.2 + ri2 * 0.15}s both` } }, /* @__PURE__ */ React.createElement(CC, { cat: c2, sm: true, dis: !can, onTraitClick: (ct) => setTraitTip(ct) }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: BREEDS[c2.breed].color, marginTop: 3, fontWeight: 700 } }, c2.name.split(" ")[0]), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888" } }, BREEDS[c2.breed].icon, " P", c2.power, " ", c2.sex === "M" ? "\u2642" : "\u2640"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf24", fontWeight: 700, marginTop: 2 } }, p, "\u{1F41F}"));
         }))), !sCats.length && /* @__PURE__ */ React.createElement("div", { style: { color: "#666", fontSize: 10, textAlign: "center", padding: 16 } }, "Sold out"));
-      })()), (shopTab === "upgrades" || shopTab === "scrolls" || shopTab === "wards") && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", animation: "fadeIn .3s ease-out", background: "#c084fc04", borderRadius: 10, padding: "8px 6px" } }, !seen.shop2 && /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderRadius: 8, background: "#fbbf2408", border: "1px solid #fbbf2422", marginBottom: 10, animation: "fadeIn .6s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24cc", lineHeight: 1.6 } }, /* @__PURE__ */ React.createElement("b", null, "\u{1F6E1}\uFE0F Wards"), " boost your score every hand.", /* @__PURE__ */ React.createElement("br", null), /* @__PURE__ */ React.createElement("b", null, "\u{1F4DC} Scrolls"), " level up hand types for bigger bases.", /* @__PURE__ */ React.createElement("br", null), "Both shape your strategy."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setSeen((s) => ({ ...s, shop2: true })), style: { fontSize: 10, background: "#fbbf24", border: "none", borderRadius: 4, color: "#0a0a1a", cursor: "pointer", padding: "3px 12px", fontWeight: 700 } }, "Got it"))), fams.length === 0 && sFams.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 14px", borderRadius: 8, background: "#4ade8008", border: "1px solid #4ade8033", marginBottom: 8, animation: "breathe 2s ease-in-out infinite" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#4ade80", fontWeight: 700 } }, "\u{1F4A1} Buy a ward! They boost your score every hand.")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fcbb", letterSpacing: 2, marginBottom: 6 } }, "\u{1F6E1}\uFE0F WARDS FOR SALE"), sFams.length > 0 ? /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 } }, sFams.map((f, i) => {
+      })()), sWild && !activeWild && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", animation: "fadeIn .5s ease-out", padding: "8px 6px" } },
+        /* @__PURE__  */ React.createElement("div", { style: { fontSize: 10, color: "#fef08a88", letterSpacing: 3, marginBottom: 6, textAlign: "center" } }, "\u2726 RARE OFFERING"),
+        /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "center" } },
+          /* @__PURE__ */ React.createElement("button", { onClick: () => {
+            if (gold < sWild.cost) return;
+            setGold((g) => g - sWild.cost);
+            setActiveWild(sWild);
+            setSWild(null);
+            Haptic.heavy();
+            toast(sWild.icon, `${sWild.name} acquired. Activate it before playing a hand.`, "#fef08a", 4e3);
+          }, disabled: gold < sWild.cost, style: { padding: "10px 16px", borderRadius: 10, background: gold >= sWild.cost ? "linear-gradient(135deg, #fef08a11, #fef08a06)" : "#1a1a2e", border: `1.5px solid ${gold >= sWild.cost ? "#fef08a44" : "#ffffff11"}`, cursor: gold >= sWild.cost ? "pointer" : "default", maxWidth: 280, width: "100%", textAlign: "center", opacity: gold >= sWild.cost ? 1 : 0.4 } },
+            /* @__PURE__ */ React.createElement("div", { style: { fontSize: 24, marginBottom: 2 } }, sWild.icon),
+            /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 800, color: "#fef08a", letterSpacing: 2 } }, sWild.name),
+            /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fef08acc" } }, sWild.desc),
+            /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fef08a66", fontStyle: "italic", marginTop: 4, lineHeight: 1.4 } }, sWild.flavor),
+            /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: gold >= sWild.cost ? "#fef08a" : "#ef4444", fontWeight: 700, marginTop: 6 } }, sWild.cost, " \u{1F41F}")))),
+      (shopTab === "upgrades" || shopTab === "scrolls" || shopTab === "wards") && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", animation: "fadeIn .3s ease-out", background: "#c084fc04", borderRadius: 10, padding: "8px 6px" } }, !seen.shop2 && /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderRadius: 8, background: "#fbbf2408", border: "1px solid #fbbf2422", marginBottom: 10, animation: "fadeIn .6s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24cc", lineHeight: 1.6 } }, /* @__PURE__ */ React.createElement("b", null, "\u{1F6E1}\uFE0F Wards"), " boost your score every hand.", /* @__PURE__ */ React.createElement("br", null), /* @__PURE__ */ React.createElement("b", null, "\u{1F4DC} Scrolls"), " level up hand types for bigger bases.", /* @__PURE__ */ React.createElement("br", null), "Both shape your strategy."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setSeen((s) => ({ ...s, shop2: true })), style: { fontSize: 10, background: "#fbbf24", border: "none", borderRadius: 4, color: "#0a0a1a", cursor: "pointer", padding: "3px 12px", fontWeight: 700 } }, "Got it"))), fams.length === 0 && sFams.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 14px", borderRadius: 8, background: "#4ade8008", border: "1px solid #4ade8033", marginBottom: 8, animation: "breathe 2s ease-in-out infinite" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#4ade80", fontWeight: 700 } }, "\u{1F4A1} Buy a ward! They boost your score every hand.")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fcbb", letterSpacing: 2, marginBottom: 6 } }, "\u{1F6E1}\uFE0F WARDS FOR SALE"), sFams.length > 0 ? /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 } }, sFams.map((f, i) => {
         const wp = famPrice(f);
         const can = gold >= wp && fams.length < MF;
         const alreadyOwned = fams.some((owned) => owned.id === f.id);
@@ -12054,7 +12163,7 @@ The fire still burns.
       const preview2 = calcScore(cats, fams, ferv, cfx, { gold, deckSize: allC.length, discSize: disc.length, handSize: hs(), beatingPace: rScore >= tgt, bossTraitFx: [], scarMult: getMB().scarMult || 0, grudgeWisdom: getMB().grudgeWisdom || 0, hasMastery: !!getMB().xp, bondBoost: getMB().bondBoost || 0, comboBoost: getMB().comboBoost || 0, wildfireBonus: getMB().wildfireBonus || 0, doubleBench: getMB().doubleBench || 0, kindredMult: tempMods.kindredMult || 0, weatherSeason: weather?.season || null, nightModFx: nightMod?.fx || {}, lastHandIds, lastHandLost, lastHandType, htLevels, devotion, bench: hand.filter((c) => !cats.find((x) => x.id === c.id)) });
       const htName = preview2.ht || "?";
       return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf24aa", marginBottom: 2, letterSpacing: 1 } }, htName, " \xB7 ~", preview2.total.toLocaleString());
-    })(), /* @__PURE__ */ React.createElement("button", { onClick: playH, disabled: !sel.size || hLeft <= 0 || ph !== "playing" || !!autoPlay, style: { ...BTN(sel.size && ph === "playing" && !autoPlay ? "linear-gradient(135deg,#fbbf24,#f59e0b)" : "#222", sel.size && ph === "playing" && !autoPlay ? "#0a0a1a" : "#555", sel.size > 0 && ph === "playing" && !autoPlay), minWidth: mob ? 80 : 70, padding: mob ? "12px 18px" : "8px 16px", fontSize: mob ? 15 : 14, animation: hLeft === 1 && rScore < tgt ? "fpp 1.2s ease infinite" : "none", boxShadow: hLeft === 1 && rScore < tgt ? "0 0 20px #ef444488" : "none" } }, "Play", hLeft === 1 && rScore < tgt ? " \u26A0" : ""), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u{1F0CF}", `Hands: ${hLeft} remaining this round. Each hand plays up to 5 cats. Score \u2265 target to clear.`, "#3b82f6", 4500), style: { fontSize: 10, color: hLeft <= 1 && rScore < tgt ? "#ef4444" : "#888", marginTop: 2, fontWeight: hLeft <= 1 && rScore < tgt ? 900 : 400, animation: hLeft <= 1 && rScore < tgt ? "fpp 1s ease infinite" : "none", cursor: "help" } }, hLeft <= 1 && rScore < tgt ? "\u26A0 FINAL" : hLeft === 0 ? "Done" : `Hands: ${hLeft}`)), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setDeckView(true), style: { ...BTN("#1a1a2e", "#888"), border: "1px solid #ffffff12", padding: mob ? "10px 10px" : "8px 10px", fontSize: 10, minWidth: mob ? 44 : 45 } }, allC.length > 0 ? `${allC.length} \u{1F431}` : "Deck"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#666", marginTop: 1 } }, draw.length, "\u2191 ", disc.length, "\u2193"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", marginTop: 1, cursor: "pointer" }, onClick: () => setHandSort((s) => s === "season" ? "power" : "season") }, handSort === "season" ? "\u2600 szn" : "\u26A1 pwr")))), meta && meta.stats.w < 3 && ph === "playing" && !autoPlay && (() => {
+    })(), activeWild && ph === "playing" && !autoPlay && /* @__PURE__ */ React.createElement("button", { onClick: () => { toast(activeWild.icon, `${activeWild.name} is armed. Your next play will activate it!`, "#fef08a", 3e3); }, style: { padding: mob ? "8px 12px" : "6px 10px", borderRadius: 8, background: "linear-gradient(135deg, #fef08a22, #fef08a08)", border: "1.5px solid #fef08a55", animation: "breathe 2s ease-in-out infinite", cursor: "pointer", fontSize: mob ? 13 : 11, color: "#fef08a", fontWeight: 800, letterSpacing: 1 } }, activeWild.icon, " ARMED"), /* @__PURE__ */ React.createElement("button", { onClick: playH, disabled: !sel.size || hLeft <= 0 || ph !== "playing" || !!autoPlay, style: { ...BTN(sel.size && ph === "playing" && !autoPlay ? "linear-gradient(135deg,#fbbf24,#f59e0b)" : "#222", sel.size && ph === "playing" && !autoPlay ? "#0a0a1a" : "#555", sel.size > 0 && ph === "playing" && !autoPlay), minWidth: mob ? 80 : 70, padding: mob ? "12px 18px" : "8px 16px", fontSize: mob ? 15 : 14, animation: hLeft === 1 && rScore < tgt ? "fpp 1.2s ease infinite" : "none", boxShadow: hLeft === 1 && rScore < tgt ? "0 0 20px #ef444488" : "none" } }, "Play", hLeft === 1 && rScore < tgt ? " \u26A0" : ""), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u{1F0CF}", `Hands: ${hLeft} remaining this round. Each hand plays up to 5 cats. Score \u2265 target to clear.`, "#3b82f6", 4500), style: { fontSize: 10, color: hLeft <= 1 && rScore < tgt ? "#ef4444" : "#888", marginTop: 2, fontWeight: hLeft <= 1 && rScore < tgt ? 900 : 400, animation: hLeft <= 1 && rScore < tgt ? "fpp 1s ease infinite" : "none", cursor: "help" } }, hLeft <= 1 && rScore < tgt ? "\u26A0 FINAL" : hLeft === 0 ? "Done" : `Hands: ${hLeft}`)), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setDeckView(true), style: { ...BTN("#1a1a2e", "#888"), border: "1px solid #ffffff12", padding: mob ? "10px 10px" : "8px 10px", fontSize: 10, minWidth: mob ? 44 : 45 } }, allC.length > 0 ? `${allC.length} \u{1F431}` : "Deck"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#666", marginTop: 1 } }, draw.length, "\u2191 ", disc.length, "\u2193"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", marginTop: 1, cursor: "pointer" }, onClick: () => setHandSort((s) => s === "season" ? "power" : "season") }, handSort === "season" ? "\u2600 szn" : "\u26A1 pwr")))), meta && meta.stats.w < 3 && ph === "playing" && !autoPlay && (() => {
       const isVeryNew = !meta || meta.stats.r <= 1;
       const PLAY_HINTS = isVeryNew ? [
         "Match season icons (\u{1F342}\u2600\uFE0F\u2744\uFE0F\u{1F331}) for bigger scores. More matches = more points!",
