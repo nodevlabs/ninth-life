@@ -3838,7 +3838,7 @@
       if (strongCats > 0) {
         const wfMult = strongCats * 2;
         mult += wfMult;
-        bd.push({ label: `\u{1F525} Wildfire +${wfMult}M (${strongCats} cats P5+)`, chips: 0, mult: wfMult, type: "wildfire" });
+        bd.push({ label: `\u{1F525} Wildfire +${wfMult}B (${strongCats} cats P5+)`, chips: 0, mult: wfMult, type: "wildfire" });
       }
     }
     const powers = cats.map((c) => c.power);
@@ -4209,14 +4209,14 @@
     if (nmfx2.fullMoonMult && cats.length >= 4) {
       const fm = nmfx2.fullMoonMult * cats.length;
       mult += fm;
-      bd.push({ label: `\u{1F315} Full Moon (+${fm}M)`, chips: 0, mult: fm, type: "night_mod", allCats: true });
+      bd.push({ label: `\u{1F315} Full Moon (+${fm}B)`, chips: 0, mult: fm, type: "night_mod", allCats: true });
     }
     if (nmfx2.bondHandMult) {
       const bondPairs = cats.filter((c) => c.bondedTo && cats.find((x) => x.id === c.bondedTo)).length / 2;
       if (bondPairs > 0) {
         const bm = Math.round(nmfx2.bondHandMult * bondPairs);
         mult += bm;
-        bd.push({ label: `\u{1F495} Kindred Spirits (+${bm}M)`, chips: 0, mult: bm, type: "night_mod", allCats: true });
+        bd.push({ label: `\u{1F495} Kindred Spirits (+${bm}B)`, chips: 0, mult: bm, type: "night_mod", allCats: true });
       }
     }
     if (ctx.lastStand) {
@@ -4895,8 +4895,9 @@
       } }));
     }));
   }
-  function _FM({ level, prev }) {
+  function _FM({ level, prev, compact }) {
     const fv = NERVE[level] || NERVE[0], pct = level / NERVE_MAX * 100, mx = level === NERVE_MAX, ch = prev !== null && prev !== level, up = ch && level > prev, dn = ch && level < prev;
+    if (compact) return /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: "0 16px", display: "flex", alignItems: "center", gap: 8 } }, /* @__PURE__ */ React.createElement("span", { title: "MORALE multiplies ALL scores.", style: { fontSize: 10, fontWeight: 700, color: fv.color, letterSpacing: 1, whiteSpace: "nowrap", cursor: "help", animation: up ? "fpp .4s ease-out" : dn ? "shake .3s ease" : "none" } }, fv.name, fv.xM > 1 ? ` \xD7${fv.xM}` : ""), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, height: 4, background: "#1a1a2e", borderRadius: 2, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${pct}%`, borderRadius: 2, background: mx ? "linear-gradient(90deg,#b85c2c,#f59e0b,#fef08a)" : `linear-gradient(90deg,#b8956a,${fv.color})`, transition: "width .5s cubic-bezier(.34,1.56,.64,1)" } })));
     return /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: "0 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6 } }, /* @__PURE__ */ React.createElement("span", { title: "MORALE multiplies ALL scores.\nGain: +unused hands when you clear a round.\nFaster clears = more Morale.\nAt NINTH LIFE (max): \xD72.3 to ALL scores.", style: { fontSize: 12, fontWeight: 700, color: fv.color, letterSpacing: 2, textShadow: mx ? `0 0 14px ${fv.glow}` : level > 5 ? `0 0 6px ${fv.color}44` : "none", animation: mx ? "fp 1s ease-in-out infinite" : up ? "fpp .4s ease-out" : dn ? "shake .3s ease" : "none", cursor: "help" } }, mx ? "\u2726 " : "", fv.name, mx ? " \u2726" : ""), /* @__PURE__ */ React.createElement("span", { style: { fontSize: fv.xM > 1 ? 13 : 11, color: fv.color, fontWeight: 900, opacity: fv.xM > 1 ? 1 : 0.3, letterSpacing: fv.xM > 1 ? 1 : 0, textShadow: fv.xM > 1.3 ? `0 0 8px ${fv.color}44` : "none" } }, fv.xM > 1 ? `\xD7${fv.xM}` : "\xD71"), ch && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, fontWeight: 700, animation: "countUp .4s ease-out", color: up ? "#4ade80" : "#ef4444" } }, up ? "\u25B2" : "\u25BC")), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#666" } }, level, "/", NERVE_MAX)), /* @__PURE__ */ React.createElement("div", { style: { height: 8, background: "#1a1a2e", borderRadius: 4, overflow: "hidden", border: "1px solid #ffffff08" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${pct}%`, borderRadius: 4, background: mx ? "linear-gradient(90deg,#b85c2c,#f59e0b,#fef08a,#ffffffcc)" : `linear-gradient(90deg,#b8956a,${fv.color})`, transition: "width .5s cubic-bezier(.34,1.56,.64,1)", boxShadow: level > 5 ? `0 0 8px ${fv.color}44` : "none", animation: level > 8 ? `nervePulse ${Math.max(0.6, 2 - level * 0.1)}s ease-in-out infinite` : "none" } })), level === 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", marginTop: 2, textAlign: "center" } }, "Clear rounds to build Morale. Fewer hands used = more Morale gained."));
   }
   const FM = React.memo(_FM);
@@ -5623,17 +5624,16 @@
       if (isFirstRun && !isDailyRun) {
         const seasons3 = shuf([...BK]);
         wave1 = [
-          gC({ breed: seasons3[0], power: 5, trait: PLAIN, sex: "M", _draftWave: "stranger" }),
-          gC({ breed: seasons3[0], power: 4, trait: PLAIN, sex: "F", _draftWave: "stranger" }),
-          gC({ breed: seasons3[1], power: 3, trait: PLAIN, sex: "M", _draftWave: "stranger" })
+          gC({ breed: seasons3[0], power: 5, trait: PLAIN, sex: "M" }),
+          gC({ breed: seasons3[0], power: 4, trait: PLAIN, sex: "F" }),
+          gC({ breed: seasons3[1], power: 3, trait: PLAIN, sex: "M" })
         ];
         wave2 = [
-          gC({ breed: seasons3[1], power: 5, trait: pk(COMMON_TRAITS), sex: "F", _draftWave: "stranger" }),
-          gC({ breed: seasons3[2], power: 4, trait: PLAIN, sex: "M", _draftWave: "stranger" }),
-          gC({ breed: seasons3[3], power: 3, trait: PLAIN, sex: "F", _draftWave: "stranger" })
+          gC({ breed: seasons3[1], power: 5, trait: pk(COMMON_TRAITS), sex: "F" }),
+          gC({ breed: seasons3[2], power: 4, trait: PLAIN, sex: "M" }),
+          gC({ breed: seasons3[3], power: 3, trait: PLAIN, sex: "F" })
         ];
-        wave1.forEach((c) => { c.name = gN(c.breed, c.trait); c.quirk = pk(QUIRKS[c.breed] || QUIRKS.Autumn); });
-        wave2.forEach((c) => { c.name = gN(c.breed, c.trait); c.quirk = pk(QUIRKS[c.breed] || QUIRKS.Autumn); });
+        [...wave1, ...wave2].forEach((c) => { c._draftWave = "stranger"; c.name = gN(c.breed, c.trait); c.quirk = pk(QUIRKS[c.breed] || QUIRKS.Autumn); });
       } else if (isDailyRun) {
         wave1 = genRandomWave(waveSize, false);
         wave2 = genRandomWave(waveSize, false);
@@ -7291,7 +7291,7 @@
       setSellsLeft(2);
       setDen([]);
       setRerollCount(0);
-      if (ante >= 2 && !wildUsed && !sWild && Math.random() < 0.4) {
+      if (ante >= 2 && !wildUsed && !sWild && !activeWild && Math.random() < 0.4) {
         const wc = pk(WILD_CARDS); setSWild(wc); if (!seen.wildCard) { setSeen((s) => ({ ...s, wildCard: true })); setTimeout(() => toast("\u2726", "RARE FIND. Buy it, save it for the boss.", "#fef08a", 4e3), 600); }
       } else if (ante < 2) {
         setSWild(null);
@@ -11641,7 +11641,7 @@ The fire still burns.
       const pct = dev.next ? Math.min(100, dev.count / dev.next.at * 100) : 100;
       const lastUnlocked = dev.unlocked.length > 0 ? dev.unlocked[dev.unlocked.length - 1] : null;
       return /* @__PURE__ */ React.createElement("div", { key: breed, title: dev.next ? `${breed}: ${dev.count}/${dev.next.at} \u2192 ${dev.next.name}: ${dev.next.desc}` : `${breed}: ALL UNLOCKED`, style: { display: "flex", alignItems: "center", gap: 2, fontSize: 10, color: color + "88" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10 } }, icon), /* @__PURE__ */ React.createElement("span", null, dev.count), /* @__PURE__ */ React.createElement("div", { style: { width: 20, height: 3, background: "#ffffff0a", borderRadius: 2, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${pct}%`, background: color, borderRadius: 2, transition: "width .3s" } })), lastUnlocked && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: color + "66" } }, "\u2713", dev.unlocked.length));
-    })), isBoss && curses.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, padding: "3px 16px", zIndex: 1, maxWidth: 700, width: "100%", flexWrap: "wrap" } }, curses.map((c, i) => /* @__PURE__ */ React.createElement("div", { key: i, title: c.desc, style: { display: "flex", alignItems: "center", gap: 2, padding: "2px 6px", borderRadius: 5, background: "#ef444411", border: "1px solid #ef444433", fontSize: 10, color: "#ef4444" } }, c.icon, " ", /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 600 } }, c.name))), cfx.exileBreed && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 2, padding: "2px 6px", borderRadius: 5, background: "#ef444411", border: "1px solid #ef444433", fontSize: 10, color: "#ef4444" } }, BREEDS[cfx.exileBreed].icon, " Exiled"))), hLeft <= 2 && rScore < tgt && ph === "playing" && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: hLeft === 1 ? "6px 16px" : "4px 16px", zIndex: 1, maxWidth: 700, width: "100%", animation: hLeft === 1 ? "fpp 1.2s ease infinite" : "none", background: hLeft === 1 ? "#ef444418" : "#fb923c08", borderRadius: 6, border: `1px solid ${hLeft === 1 ? "#ef444444" : "#fb923c22"}` } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: hLeft === 1 ? 12 : 10, fontWeight: 900, color: hLeft === 1 ? "#ef4444" : "#fb923c", letterSpacing: hLeft === 1 ? 4 : 2 } }, hLeft === 1 ? "\u26A0 LAST HAND \u26A0" : "\u26A1 2 HANDS REMAINING")), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, zIndex: 1, padding: "3px 0" } }, /* @__PURE__ */ React.createElement(FM, { level: ferv, prev: pFerv })), !mob && fams.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, padding: "0 16px", zIndex: 1, maxWidth: 700, width: "100%", justifyContent: "center", alignItems: "center", flexWrap: "wrap" } }, fams.map((f) => /* @__PURE__ */ React.createElement("span", { key: f.id, title: `${f.name}: ${f.desc}`, onClick: () => toast(f.icon, `${f.name}: ${f.desc}`, "#fbbf24"), style: { fontSize: 14, opacity: cfx.silence ? 0.3 : 1, cursor: "pointer", padding: "2px" } }, f.icon)), cfx.silence && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: "#ef4444bb" } }, "\u{1F910}")), denNews.length > 0 && ph === "playing" && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, padding: "4px 16px", zIndex: 1, maxWidth: 700, width: "100%", justifyContent: "center", flexWrap: "wrap" } }, denNews.slice(-3).map((n, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: {
+    })), isBoss && curses.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, padding: "3px 16px", zIndex: 1, maxWidth: 700, width: "100%", flexWrap: "wrap" } }, curses.map((c, i) => /* @__PURE__ */ React.createElement("div", { key: i, title: c.desc, style: { display: "flex", alignItems: "center", gap: 2, padding: "2px 6px", borderRadius: 5, background: "#ef444411", border: "1px solid #ef444433", fontSize: 10, color: "#ef4444" } }, c.icon, " ", /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 600 } }, c.name))), cfx.exileBreed && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 2, padding: "2px 6px", borderRadius: 5, background: "#ef444411", border: "1px solid #ef444433", fontSize: 10, color: "#ef4444" } }, BREEDS[cfx.exileBreed].icon, " Exiled"))), hLeft <= 2 && rScore < tgt && ph === "playing" && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: hLeft === 1 ? "6px 16px" : "4px 16px", zIndex: 1, maxWidth: 700, width: "100%", animation: hLeft === 1 ? "fpp 1.2s ease infinite" : "none", background: hLeft === 1 ? "#ef444418" : "#fb923c08", borderRadius: 6, border: `1px solid ${hLeft === 1 ? "#ef444444" : "#fb923c22"}` } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: hLeft === 1 ? 12 : 10, fontWeight: 900, color: hLeft === 1 ? "#ef4444" : "#fb923c", letterSpacing: hLeft === 1 ? 4 : 2 } }, hLeft === 1 ? "\u26A0 LAST HAND \u26A0" : "\u26A1 2 HANDS REMAINING")), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, zIndex: 1, padding: mob ? "1px 0" : "3px 0" } }, /* @__PURE__ */ React.createElement(FM, { level: ferv, prev: pFerv, compact: mob })), !mob && fams.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, padding: "0 16px", zIndex: 1, maxWidth: 700, width: "100%", justifyContent: "center", alignItems: "center", flexWrap: "wrap" } }, fams.map((f) => /* @__PURE__ */ React.createElement("span", { key: f.id, title: `${f.name}: ${f.desc}`, onClick: () => toast(f.icon, `${f.name}: ${f.desc}`, "#fbbf24"), style: { fontSize: 14, opacity: cfx.silence ? 0.3 : 1, cursor: "pointer", padding: "2px" } }, f.icon)), cfx.silence && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: "#ef4444bb" } }, "\u{1F910}")), denNews.length > 0 && ph === "playing" && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, padding: "4px 16px", zIndex: 1, maxWidth: 700, width: "100%", justifyContent: "center", flexWrap: "wrap" } }, denNews.slice(mob ? -1 : -3).map((n, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: {
       display: "flex",
       alignItems: "center",
       gap: 4,
@@ -12063,7 +12063,7 @@ The fire still burns.
         if (cursedNotAlone.length) warnings.push({ icon: "\u{1F480}", text: `${cursedNotAlone[0].name.split(" ")[0]} Cursed, not alone (penalty)`, color: "#ef4444" });
         return warnings.length > 0 ? /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 1 } }, warnings.map((w, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { fontSize: 10, color: w.color } }, w.icon, " ", w.text))) : null;
       })());
-    })() : /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "#666", fontSize: 10 } }, "Select up to 5 cats to play"))), sel.size >= 1 && (() => {
+    })() : /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { color: "#666", fontSize: 10 } }, mob && runCount > 0 ? "" : "Select up to 5 cats to play"))), sel.size >= 1 && (() => {
       const ordered = [...sel].map((idx) => hand[idx]).filter(Boolean);
       const benchCats = hand.filter((c) => !ordered.find((x) => x.id === c.id));
       const benchTraited = benchCats.filter((c) => !catIsPlain(c) && !catIsKitten(c));
