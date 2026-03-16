@@ -805,42 +805,74 @@
   const NERVE = [
     { name: "Still", xM: 1, color: "#666", glow: "transparent", desc: "" },
     // 0
-    { name: "Stirring", xM: 1.05, color: "#6b7280", glow: "transparent", desc: "" },
+    { name: "Stirring", xM: 1.03, color: "#6b7280", glow: "transparent", desc: "" },
     // 1
-    { name: "Awake", xM: 1.1, color: "#6b7280", glow: "#6b728033", desc: "" },
+    { name: "Stirring", xM: 1.06, color: "#6b7280", glow: "transparent", desc: "" },
     // 2
-    { name: "Alert", xM: 1.15, color: "#b8956a", glow: "#b8956a33", desc: "" },
+    { name: "Awake", xM: 1.09, color: "#6b7280", glow: "#6b728033", desc: "" },
     // 3
-    { name: "Tense", xM: 1.2, color: "#b8956a", glow: "#b8956a44", desc: "" },
+    { name: "Awake", xM: 1.12, color: "#6b7280", glow: "#6b728033", desc: "" },
     // 4
-    { name: "Focused", xM: 1.25, color: "#b8956a", glow: "#b8956a44", desc: "" },
+    { name: "Alert", xM: 1.15, color: "#b8956a", glow: "#b8956a33", desc: "" },
     // 5
-    { name: "Cornered", xM: 1.3, color: "#b85c2c", glow: "#b85c2c44", desc: "" },
+    { name: "Alert", xM: 1.18, color: "#b8956a", glow: "#b8956a44", desc: "" },
     // 6
-    { name: "Cornered", xM: 1.35, color: "#b85c2c", glow: "#b85c2c55", desc: "" },
+    { name: "Tense", xM: 1.21, color: "#b8956a", glow: "#b8956a44", desc: "" },
     // 7
-    { name: "Defiant", xM: 1.4, color: "#d97706", glow: "#d9770655", desc: "backs against the wall" },
+    { name: "Tense", xM: 1.24, color: "#b8956a", glow: "#b8956a55", desc: "" },
     // 8
-    { name: "Defiant", xM: 1.45, color: "#d97706", glow: "#d9770666", desc: "backs against the wall" },
+    { name: "Focused", xM: 1.27, color: "#b85c2c", glow: "#b85c2c44", desc: "" },
     // 9
-    { name: "Burning", xM: 1.5, color: "#f59e0b", glow: "#f59e0b66", desc: "past the point of fear" },
+    { name: "Focused", xM: 1.3, color: "#b85c2c", glow: "#b85c2c55", desc: "" },
     // 10
-    { name: "Burning", xM: 1.55, color: "#f59e0b", glow: "#f59e0b77", desc: "past the point of fear" },
+    { name: "Cornered", xM: 1.33, color: "#b85c2c", glow: "#b85c2c55", desc: "" },
     // 11
-    { name: "Fury", xM: 1.65, color: "#fb923c", glow: "#fb923c77", desc: "nothing left to lose" },
+    { name: "Cornered", xM: 1.36, color: "#d97706", glow: "#d9770644", desc: "backs against the wall" },
     // 12
-    { name: "Blazing", xM: 1.75, color: "#fbbf24", glow: "#fbbf2488", desc: "the air catches fire" },
+    { name: "Defiant", xM: 1.4, color: "#d97706", glow: "#d9770655", desc: "backs against the wall" },
     // 13
-    { name: "Blazing", xM: 1.85, color: "#fbbf24", glow: "#fbbf24aa", desc: "the air catches fire" },
+    { name: "Defiant", xM: 1.44, color: "#d97706", glow: "#d9770666", desc: "backs against the wall" },
     // 14
-    { name: "Undying", xM: 1.95, color: "#fef08a", glow: "#fef08aaa", desc: "they should have stayed down" },
+    { name: "Burning", xM: 1.48, color: "#f59e0b", glow: "#f59e0b55", desc: "past the point of fear" },
     // 15
-    { name: "Undying", xM: 2.1, color: "#fef08a", glow: "#fef08abb", desc: "they should have stayed down" },
+    { name: "Burning", xM: 1.52, color: "#f59e0b", glow: "#f59e0b66", desc: "past the point of fear" },
     // 16
-    { name: "NINTH LIFE", xM: 2.3, color: "#ffffffdd", glow: "#ffffffbb", desc: "the last one" }
+    { name: "Burning", xM: 1.57, color: "#f59e0b", glow: "#f59e0b77", desc: "past the point of fear" },
     // 17
+    { name: "Fury", xM: 1.63, color: "#fb923c", glow: "#fb923c66", desc: "nothing left to lose" },
+    // 18
+    { name: "Fury", xM: 1.7, color: "#fb923c", glow: "#fb923c77", desc: "nothing left to lose" },
+    // 19
+    { name: "Blazing", xM: 1.78, color: "#fbbf24", glow: "#fbbf2477", desc: "the air catches fire" },
+    // 20
+    { name: "Blazing", xM: 1.86, color: "#fbbf24", glow: "#fbbf2488", desc: "the air catches fire" },
+    // 21
+    { name: "Blazing", xM: 1.95, color: "#fbbf24", glow: "#fbbf24aa", desc: "the air catches fire" },
+    // 22
+    { name: "Undying", xM: 2.05, color: "#fef08a", glow: "#fef08a88", desc: "they should have stayed down" },
+    // 23
+    { name: "Undying", xM: 2.15, color: "#fef08a", glow: "#fef08aaa", desc: "they should have stayed down" },
+    // 24
+    { name: "Undying", xM: 2.25, color: "#fef08a", glow: "#fef08abb", desc: "they should have stayed down" },
+    // 25
+    { name: "Transcendent", xM: 2.4, color: "#e0c3fc", glow: "#e0c3fcaa", desc: "beyond what the dark prepared for" },
+    // 26
+    { name: "Transcendent", xM: 2.55, color: "#e0c3fc", glow: "#e0c3fcbb", desc: "beyond what the dark prepared for" },
+    // 27
+    { name: "Transcendent", xM: 2.7, color: "#e0c3fc", glow: "#e0c3fccc", desc: "the cycle has never seen this" },
+    // 28
+    { name: "NINTH LIFE", xM: 2.9, color: "#ffffffdd", glow: "#ffffffbb", desc: "the last one" },
+    // 29
+    { name: "NINTH LIFE", xM: 3.1, color: "#ffffffee", glow: "#ffffffcc", desc: "break the cycle" }
+    // 30
   ];
-  const NERVE_MAX = 17;
+  const NERVE_MAX = 30;
+  function getNerve(lvl) {
+    if (lvl <= NERVE_MAX) return NERVE[lvl] || NERVE[NERVE_MAX];
+    const base = NERVE[NERVE_MAX];
+    const over = lvl - NERVE_MAX;
+    return { ...base, xM: Math.round((base.xM + over * 0.15) * 100) / 100, desc: over >= 3 ? "the dark is afraid" : base.desc };
+  }
   const SKILL_BRANCHES = {
     flame: { name: "THE FLAME", icon: "\u{1F525}", color: "#ef4444", glow: "#ef444433", desc: "We survive by being too strong to ignore.", philosophy: "Aggression. Scoring. Speed.", lore: "The Eighth Colony chose fire. They burned so bright the dark flinched. One hand short. That was the whole story.", dedicateLine: "The colony chooses to burn. What the dark takes, it takes scorched.", masteryLine: "Nine fires. Eight went out. Yours learned to burn in both directions.", apexLore: "The Eighth Colony's last hand scored higher than any before it. It wasn't enough. Wildfire is what they would have become if they'd had one more night." },
     shelter: { name: "THE SHELTER", icon: "\u{1F6E1}\uFE0F", color: "#4ade80", glow: "#4ade8033", desc: "We survive by building something the dark can't break.", philosophy: "Colony. Breeding. Defense.", lore: "The Third Colony built walls so thick the dark couldn't reach them. The Mother grew inside instead. You can't wall out what's already in the room.", dedicateLine: "The colony chooses to endure. Roots deeper than the dark can dig.", masteryLine: "The Third Colony's walls still stand. Empty. Yours won't be.", apexLore: "The Third Colony's last kitten was born inside the walls. She never saw the dark. Her children were the strongest the system had ever processed." },
@@ -862,7 +894,7 @@
     { id: "u_den", branch: "shelter", name: "Deeper Burrow", icon: "\u{1F3E0}", desc: "+1 Shelter slot in the den", cost: 35, b: { shelter: 1 }, max: 2, tier: 1, flavor: "Deeper earth. Safer dreams." },
     { id: "u_fertile", branch: "shelter", name: "Fertile Ground", icon: "\u{1F33F}", desc: "Den breed chance +15%, +1 max births", cost: 50, b: { breedBoost: 0.15 }, max: 1, tier: 2, flavor: "The earth remembers how to grow." },
     { id: "u_bench", branch: "shelter", name: "Deep Reserves", icon: "\u{1FA91}", desc: "Unplayed cats +50% passive bonus", cost: 60, b: { doubleBench: 1 }, max: 1, tier: 2, flavor: "Those who watch learn twice as much." },
-    { id: "u_grd", branch: "shelter", name: "Grudge Tempering", icon: "\u26A1", desc: "Grudge penalty halved: \u22122 \u2192 \u22121", cost: 75, b: { grudgeWisdom: 1 }, max: 1, tier: 3, flavor: "Forgiveness is a survival strategy." },
+    { id: "u_grd", branch: "shelter", name: "Den Safety", icon: "\u{1F6E1}\uFE0F", desc: "Injured cats cannot die in den fights", cost: 75, b: { denSafety: 1 }, max: 1, tier: 3, flavor: "The wounded deserve protection. Not everyone agrees." },
     { id: "u_pot", branch: "shelter", name: "The Warden", icon: "\u{1F6E1}\uFE0F", desc: "Start each run with a random ward", cost: 90, b: { startWard: 1 }, max: 2, tier: 3, flavor: "Protection. The first gift of the remembered." },
     { id: "u_dev_spring", branch: "shelter", name: "Spring's Echo", icon: "\u{1F33B}", desc: "Start runs with Spring devotion tier 1 active", cost: 85, b: { devMemory: "Spring" }, max: 1, tier: 3, flavor: "The Third Colony loved too much. Spring remembers that love." },
     { id: "u_colony_cap", branch: "shelter", name: "Sprawling Den", icon: "\u{1F3D5}\uFE0F", desc: "Colony cap +5, +1 max den births", cost: 110, b: { colonyCap: 5 }, max: 1, tier: 4, flavor: "More room. More names. More to lose." },
@@ -3515,20 +3547,9 @@
     cats.forEach((c) => {
       breedCensus[c.breed] = (breedCensus[c.breed] || 0) + 1;
     });
-    const minEvents = Math.max(1, Math.floor(cats.length / 2));
-    const maxEvents = cats.length;
-    const baseEvents = breedOnly ? Math.min(minEvents, MAX_BIRTHS) : Math.min(maxEvents, 2 + Math.floor(Math.random() * 2));
-    let bonusEvents = 0;
-    if (breedOnly) {
-      for (let e = 0; e < Math.max(0, cats.length - 2); e++) {
-        if (Math.random() < 0.15) bonusEvents++;
-      }
-    } else {
-      for (let e = 0; e < Math.max(0, cats.length - 4); e++) {
-        if (Math.random() < 0.1) bonusEvents++;
-      }
-    }
-    const targetEvents = Math.min(maxEvents, Math.max(minEvents, baseEvents + bonusEvents));
+    const minEvents = 1;
+    const maxEvents = breedOnly ? Math.max(1, Math.floor(cats.length / 2)) : Math.max(1, Math.floor(cats.length / 6));
+    const targetEvents = maxEvents;
     for (let i = 0; i < cats.length; i++) {
       if (paired.has(cats[i].id)) continue;
       if (results.length >= targetEvents) break;
@@ -4002,8 +4023,8 @@
       ctx._noFocus = true;
       ctx._noBench = true;
     }
-    if (ctx.bossMechanic === "grudge_double") {
-      ctx._grudgeDouble = true;
+    if (ctx.bossMechanic === "scar_curse") {
+      cats = cats.map((c) => c.scarred ? { ...c, _scarCursed: true, power: Math.max(1, Math.ceil(c.power / 2)) } : c);
     }
     const { type, combo, comboIdxs, handIdxs } = evalH(cats);
     const htLv = getHtLevel(type.name, ctx.htLevels || {});
@@ -4011,7 +4032,7 @@
     let chips = scaledBase.c, mult = scaledBase.m;
     if (type.name === "Kindred" && ctx.kindredMult) mult += ctx.kindredMult;
     const lvLabel = htLv > 1 ? ` Lv${htLv}` : "";
-    const bd = [{ label: type.name + lvLabel, chips: scaledBase.c, mult: scaledBase.m + (type.name === "Kindred" && ctx.kindredMult ? ctx.kindredMult : 0), type: "hand", catIdxs: handIdxs }];
+    const bd = [{ label: "\u{1F43E} " + type.name + lvLabel, chips: scaledBase.c, mult: scaledBase.m + (type.name === "Kindred" && ctx.kindredMult ? ctx.kindredMult : 0), type: "hand", catIdxs: handIdxs }];
     let resonance = false;
     if (combo) {
       const comboCats = comboIdxs.map((i) => cats[i]).filter(Boolean);
@@ -4025,7 +4046,7 @@
       const bm = Math.round(combo.bonus.m * resMult);
       chips += bc;
       mult += bm;
-      bd.push({ label: `\u26A1 ${combo.name}${resonance ? " \u2726" : ""}`, chips: bc, mult: bm, type: "combo", catIdxs: comboIdxs });
+      bd.push({ label: `\u26A1 ${combo.name} (Power)${resonance ? " \u2726" : ""}`, chips: bc, mult: bm, type: "combo", catIdxs: comboIdxs });
       if (resonance) bd.push({ label: "\u2726 Resonance: season match bonus", chips: 0, mult: 0, type: "resonance" });
     }
     const btFxAll = ctx.bossTraitFx || [];
@@ -4063,6 +4084,7 @@
     const minP = Math.min(...powers);
     const uniqueBreeds = new Set(cats.flatMap((c) => getCatBreeds(c))).size;
     const toS = [];
+    const bdSurge = [];
     cats.forEach((c, ci) => {
       c._ci = ci;
       toS.push(c);
@@ -4292,31 +4314,44 @@
           if (epDef.bonus.bondMult && c.bondedTo && cats.find((x) => x.id === c.bondedTo)) reasons.push(`"${c.epithet}" bond +2M`);
         }
       }
+      const catReasons = reasons.filter((r) => !r.startsWith("Scarred") && !r.startsWith("Chimera") && !r.startsWith("Alpha") && !r.startsWith("Eternal") && !r.startsWith("Phoenix") && !r.includes("bloodMoon"));
+      const surgeReasons = reasons.filter((r) => r.startsWith("Scarred") || r.startsWith("Chimera") || r.startsWith("Alpha") || r.startsWith("Eternal") || r.startsWith("Phoenix") || r.includes("bloodMoon"));
       bd.push({
         label: `${iconStr}${iconStr ? " " : ""}${c._re ? "\u21BB " : ""}${c.name.split(" ")[0]}${c.epithet ? " " + c.epithet : ""}${c.trait && c.trait.name !== "Plain" && !c._re && ctx.bossMechanic !== "trait_fog" ? " (" + c.trait.name + ")" : ""}`,
-        // v0.7: 15% chance narrative reason replaces mechanical reason
-        reason: reasons.length > 0 ? Math.random() < 0.15 ? narrativeReason(c, cats, reasons) : reasons.join(" \xB7 ") : "",
+        reason: catReasons.length > 0 ? Math.random() < 0.15 ? narrativeReason(c, cats, catReasons) : catReasons.join(" \xB7 ") : "",
         chips: cc,
         mult: cm,
-        xMult: cx !== 1 ? cx : null,
-        type: catType,
+        xMult: null,
+        type: catReasons.length > 0 ? "trait" : "cat",
         catIdx: c._ci,
-        isBigCat: Math.abs(cm) >= 3 || cx > 1 || cc >= 8
+        isBigCat: Math.abs(cm) >= 3 || cc >= 8,
+        hasEpithet: !!(c.epithetKey && !c._re)
       });
+      if (cx !== 1) {
+        const surgeName = catHas(c, "Eternal") ? "\u2728 Eternal" : catHas(c, "Phoenix") ? "\u{1F525} Phoenix" : catHas(c, "Chimera") ? "\u{1F9EC} Chimera" : catHas(c, "Alpha") ? "\u{1F43A} Alpha" : c.scarred && !c.injured ? "\u2694\uFE0F Hardened" : "\u{1FA78} Blood Moon";
+        const surgeLabel = `${surgeName}: ${c.name.split(" ")[0]} \xD7${cx}`;
+        bdSurge.push({
+          label: surgeLabel,
+          reason: surgeReasons.join(" \xB7 "),
+          chips: 0,
+          mult: 0,
+          xMult: cx,
+          type: "surge",
+          catIdx: c._ci,
+          isBigCat: true
+        });
+      }
     });
     const grudges = getGrudges(cats);
-    const grudgePenalty = ((ctx.grudgeWisdom || 0) > 0 ? -1 : -2) * (ctx._grudgeDouble ? 2 : 1);
-    let hasGrudgeProve = false;
     if (!cfx.noTraits && grudges.length > 0) {
       grudges.forEach(([a, b]) => {
-        mult = Math.max(1, mult + grudgePenalty);
         const grudgeNarr = pk([
           `${a.name.split(" ")[0]} and ${b.name.split(" ")[0]}: teeth bared, claws out. Scored anyway`,
           `${a.name.split(" ")[0]} scored DESPITE ${b.name.split(" ")[0]}. Not together. In spite of`,
-          `${a.name.split(" ")[0]}+${b.name.split(" ")[0]}. The grudge costs them both`,
-          `${a.name.split(" ")[0]} won't look at ${b.name.split(" ")[0]}. The score suffers`
+          `${a.name.split(" ")[0]}+${b.name.split(" ")[0]}. Tension in every step`,
+          `${a.name.split(" ")[0]} won't look at ${b.name.split(" ")[0]}. They play anyway`
         ]);
-        bd.push({ label: `\u26A1 ${grudgeNarr}${ctx._grudgeDouble ? " \xD72" : ""}`, chips: 0, mult: grudgePenalty, type: "grudge_tension", catIdxs: [cats.indexOf(a), cats.indexOf(b)] });
+        bd.push({ label: `\u26A1 ${grudgeNarr}`, chips: 0, mult: 0, type: "grudge_tension", catIdxs: [cats.indexOf(a), cats.indexOf(b)] });
       });
     }
     {
@@ -4346,6 +4381,30 @@
       });
       if (ctx.bossMechanic === "bond_curse" && bondedPairs.length > 0) {
         bd.push({ label: "\u{1F494} Grief Mirror: bonds silenced", chips: 0, mult: 0, type: "boss_trait", allCats: true });
+      }
+    }
+    {
+      const lineagePairs = [];
+      cats.forEach((c) => {
+        if (c.parentIds) {
+          c.parentIds.forEach((pid) => {
+            const parent = cats.find((x) => x.id === pid);
+            if (parent && !lineagePairs.find((p) => (p[0] === c.id && p[1] === pid) || (p[0] === pid && p[1] === c.id))) {
+              lineagePairs.push([parent.id, c.id]);
+            }
+          });
+        }
+      });
+      if (lineagePairs.length > 0) {
+        const lineageBonus = 3 * lineagePairs.length;
+        mult += lineageBonus;
+        lineagePairs.forEach(([pid, cid]) => {
+          const p = cats.find((x) => x.id === pid);
+          const ch = cats.find((x) => x.id === cid);
+          if (p && ch) {
+            bd.push({ label: `\u{1F46A} ${p.name.split(" ")[0]} watches over ${ch.name.split(" ")[0]}`, chips: 0, mult: 3, type: "lineage", catIdxs: [cats.indexOf(p), cats.indexOf(ch)] });
+          }
+        });
       }
     }
     let bG = 0;
@@ -4411,10 +4470,15 @@
     if (ctx._noFocus) {
       bd.push({ label: "\u{1F41C} Outnumbered: no focus bonus", chips: 0, mult: 0, type: "boss_trait", allCats: true });
     }
-    const fv = NERVE[fLvl];
-    if (fv.xM > 1) {
-      mult = Math.round(mult * fv.xM);
-      bd.push({ label: `\u{1F525} ${fv.name}`, chips: 0, mult: 0, xMult: fv.xM, type: "nerve", allCats: true });
+    const clampedLvl = Math.min(fLvl, NERVE_MAX);
+    const fv = NERVE[clampedLvl];
+    const overflowLvls = Math.max(0, fLvl - NERVE_MAX);
+    const overflowXM = overflowLvls > 0 ? overflowLvls * 0.15 : 0;
+    const totalXM = fv.xM + overflowXM;
+    if (totalXM > 1) {
+      mult = Math.round(mult * totalXM);
+      const overflowLabel = overflowLvls > 0 ? ` +${overflowLvls}` : "";
+      bd.push({ label: `\u{1F525} ${fv.name}${overflowLabel}`, chips: 0, mult: 0, xMult: totalXM, type: "nerve", allCats: true });
     }
     const nmfx2 = ctx.nightModFx || {};
     if (nmfx2.loneWolfMult && cats.length <= 2) {
@@ -4442,9 +4506,11 @@
     if (ctx.wildCard === "straywind") bd.push({ label: "\u{1F32C}\uFE0F Stray Wind: all one season", chips: 0, mult: 0, type: "wild", allCats: true });
     if (ctx.wildCard === "bloodpact") bd.push({ label: "\u{1FA78} Blood Pact: shared trait", chips: 0, mult: 0, type: "wild", allCats: true });
     const negTypes = /* @__PURE__ */ new Set(["grudge_tension", "curse", "boss_trait"]);
-    const bdHand = bd.filter((s) => s.type === "hand" || s.type === "combo");
+    const bdHand = bd.filter((s) => s.type === "hand");
+    const bdCombo = bd.filter((s) => s.type === "combo" || s.type === "resonance");
     const bdNeg = bd.filter((s) => negTypes.has(s.type) || s.mult < 0 && s.type !== "hand" && s.type !== "combo");
-    const bdPos = bd.filter((s) => !negTypes.has(s.type) && !(s.mult < 0 && s.type !== "hand" && s.type !== "combo") && s.type !== "hand" && s.type !== "combo");
+    const bdCats = bd.filter((s) => s.type === "cat" || s.type === "trait" || s.type === "trait_rare" || s.type === "scar");
+    const bdPos = bd.filter((s) => !negTypes.has(s.type) && !(s.mult < 0 && s.type !== "hand" && s.type !== "combo") && s.type !== "hand" && s.type !== "combo" && s.type !== "resonance" && s.type !== "cat" && s.type !== "trait" && s.type !== "trait_rare" && s.type !== "scar");
     let finalTotal = Math.max(0, chips) * Math.max(1, mult);
     const bdEnd = [];
     if (ctx.wildCard === "moonfire") {
@@ -4455,7 +4521,7 @@
       finalTotal = Math.round(finalTotal * (1 + ctx.prestige * 0.05));
       bdEnd.push({ label: `\u2726 Prestige +${ctx.prestige * 5}%`, chips: 0, mult: 0, xMult: 1 + ctx.prestige * 0.05, type: "prestige", allCats: true });
     }
-    const bdSorted = [...bdHand, ...bdNeg, ...bdPos, ...bdEnd];
+    const bdSorted = [...bdHand, ...bdNeg, ...bdCats, ...bdCombo, ...bdSurge, ...bdPos, ...bdEnd];
     return { chips: Math.max(0, chips), mult: Math.max(1, mult), total: finalTotal, bd: bdSorted, bG, ht: type.name, combo: combo?.name || null, hasGrudgeProve };
   }
   function narrativeLabel(step, allCats) {
@@ -4995,15 +5061,7 @@
         lineHeight: 1,
         fontWeight: 700,
         borderBottom: "1px solid #ef444444"
-      } }, "\u{1F494}"), (cat2.grudgedWith || []).length > 0 && !sm && /* @__PURE__ */ React.createElement("div", { title: "Grudge: \u22122 bonus when played with rival.", style: {
-        background: "linear-gradient(180deg,#fb923c33,#fb923c11)",
-        padding: "3px 5px",
-        fontSize: 11,
-        color: "#fb923c",
-        lineHeight: 1,
-        fontWeight: 700,
-        borderBottom: "1px solid #fb923c44"
-      } }, "\u26A1"), cat2.parentIds && cat2.parentIds.length > 0 && !sm && /* @__PURE__ */ React.createElement("div", { title: `Born in the den${cat2.stats?.par ? ", parents: " + cat2.stats.par : ""}`, style: {
+      } }, "\u{1F494}"), cat2.parentIds && cat2.parentIds.length > 0 && !sm && /* @__PURE__ */ React.createElement("div", { title: `Born in the den${cat2.stats?.par ? ", parents: " + cat2.stats.par : ""}`, style: {
         background: "linear-gradient(180deg,#c084fc33,#c084fc11)",
         padding: "3px 5px",
         fontSize: 11,
@@ -5115,9 +5173,9 @@
     }));
   }
   function _FM({ level, prev, compact }) {
-    const fv = NERVE[level] || NERVE[0], pct = level / NERVE_MAX * 100, mx = level === NERVE_MAX, ch = prev !== null && prev !== level, up = ch && level > prev, dn = ch && level < prev;
+    const fv = getNerve(level), pct = Math.min(100, level / NERVE_MAX * 100), mx = level >= NERVE_MAX, ch = prev !== null && prev !== level, up = ch && level > prev, dn = ch && level < prev;
     if (compact) return /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: "0 16px", display: "flex", alignItems: "center", gap: 8 } }, /* @__PURE__ */ React.createElement("span", { title: "MORALE multiplies ALL scores.", style: { fontSize: 10, fontWeight: 700, color: fv.color, letterSpacing: 1, whiteSpace: "nowrap", cursor: "help", animation: up ? "fpp .4s ease-out" : dn ? "shake .3s ease" : "none" } }, fv.name, fv.xM > 1 ? ` \xD7${fv.xM}` : ""), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, height: 4, background: "#1a1a2e", borderRadius: 2, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${pct}%`, borderRadius: 2, background: mx ? "linear-gradient(90deg,#b85c2c,#f59e0b,#fef08a)" : `linear-gradient(90deg,#b8956a,${fv.color})`, transition: "width .5s cubic-bezier(.34,1.56,.64,1)" } })));
-    return /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: "0 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6 } }, /* @__PURE__ */ React.createElement("span", { title: "MORALE multiplies ALL scores.\nGain: +unused hands when you clear a round.\nFaster clears = more Morale.\nAt NINTH LIFE (max): \xD72.3 to ALL scores.", style: { fontSize: 12, fontWeight: 700, color: fv.color, letterSpacing: 2, textShadow: mx ? `0 0 14px ${fv.glow}` : level > 5 ? `0 0 6px ${fv.color}44` : "none", animation: mx ? "fp 1s ease-in-out infinite" : up ? "fpp .4s ease-out" : dn ? "shake .3s ease" : "none", cursor: "help" } }, mx ? "\u2726 " : "", fv.name, mx ? " \u2726" : ""), /* @__PURE__ */ React.createElement("span", { style: { fontSize: fv.xM > 1 ? 13 : 11, color: fv.color, fontWeight: 900, opacity: fv.xM > 1 ? 1 : 0.3, letterSpacing: fv.xM > 1 ? 1 : 0, textShadow: fv.xM > 1.3 ? `0 0 8px ${fv.color}44` : "none" } }, fv.xM > 1 ? `\xD7${fv.xM}` : "\xD71"), ch && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, fontWeight: 700, animation: "countUp .4s ease-out", color: up ? "#4ade80" : "#ef4444" } }, up ? "\u25B2" : "\u25BC")), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#666" } }, level, "/", NERVE_MAX)), /* @__PURE__ */ React.createElement("div", { style: { height: 8, background: "#1a1a2e", borderRadius: 4, overflow: "hidden", border: "1px solid #ffffff08" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${pct}%`, borderRadius: 4, background: mx ? "linear-gradient(90deg,#b85c2c,#f59e0b,#fef08a,#ffffffcc)" : `linear-gradient(90deg,#b8956a,${fv.color})`, transition: "width .5s cubic-bezier(.34,1.56,.64,1)", boxShadow: level > 5 ? `0 0 8px ${fv.color}44` : "none", animation: level > 8 ? `nervePulse ${Math.max(0.6, 2 - level * 0.1)}s ease-in-out infinite` : "none" } })), level === 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", marginTop: 2, textAlign: "center" } }, "Clear rounds to build Morale. Fewer hands used = more Morale gained."));
+    return /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: "0 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6 } }, /* @__PURE__ */ React.createElement("span", { title: "MORALE multiplies ALL scores.\nGain: +unused hands when you clear a round.\nFaster clears = more Morale.\nAt NINTH LIFE: \xD73.1+. Overflow past max = bonus stardust.", style: { fontSize: 12, fontWeight: 700, color: fv.color, letterSpacing: 2, textShadow: mx ? `0 0 14px ${fv.glow}` : level > 5 ? `0 0 6px ${fv.color}44` : "none", animation: mx ? "fp 1s ease-in-out infinite" : up ? "fpp .4s ease-out" : dn ? "shake .3s ease" : "none", cursor: "help" } }, mx ? "\u2726 " : "", fv.name, mx ? " \u2726" : ""), /* @__PURE__ */ React.createElement("span", { style: { fontSize: fv.xM > 1 ? 13 : 11, color: fv.color, fontWeight: 900, opacity: fv.xM > 1 ? 1 : 0.3, letterSpacing: fv.xM > 1 ? 1 : 0, textShadow: fv.xM > 1.3 ? `0 0 8px ${fv.color}44` : "none" } }, fv.xM > 1 ? `\xD7${fv.xM}` : "\xD71"), ch && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, fontWeight: 700, animation: "countUp .4s ease-out", color: up ? "#4ade80" : "#ef4444" } }, up ? "\u25B2" : "\u25BC")), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#666" } }, level > NERVE_MAX ? `${NERVE_MAX}+${level - NERVE_MAX}` : level, "/", NERVE_MAX, level > NERVE_MAX && /* @__PURE__ */ React.createElement("span", { style: { color: "#c084fc", marginLeft: 4 } }, "+", level - NERVE_MAX, "\u2726"))), /* @__PURE__ */ React.createElement("div", { style: { height: 8, background: "#1a1a2e", borderRadius: 4, overflow: "hidden", border: "1px solid #ffffff08" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${pct}%`, borderRadius: 4, background: mx ? "linear-gradient(90deg,#b85c2c,#f59e0b,#fef08a,#ffffffcc)" : `linear-gradient(90deg,#b8956a,${fv.color})`, transition: "width .5s cubic-bezier(.34,1.56,.64,1)", boxShadow: level > 5 ? `0 0 8px ${fv.color}44` : "none", animation: level > 8 ? `nervePulse ${Math.max(0.6, 2 - level * 0.1)}s ease-in-out infinite` : "none" } })), level === 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", marginTop: 2, textAlign: "center" } }, "Clear rounds to build Morale. Fewer hands used = more Morale gained."));
   }
   const FM = React.memo(_FM);
   function AnimatedScore({ value, style }) {
@@ -5179,6 +5237,9 @@
     const [wildUsed, setWildUsed] = useState(false);
     const [sRes, setSRes] = useState(null);
     const [sStep, setSStep] = useState(-1);
+    const [cascadeSpeed, setCascadeSpeed] = useState(1);
+    const cascadeSpeedRef = useRef(1);
+    useEffect(() => { cascadeSpeedRef.current = cascadeSpeed; }, [cascadeSpeed]);
     const [runChips, setRunChips] = useState(0);
     const [runMult, setRunMult] = useState(0);
     const [scoreShake, setScoreShake] = useState(0);
@@ -5303,11 +5364,19 @@
     const pendingRenames = useRef({});
     const [toasts, setToasts] = useState([]);
     const toastRef = useRef(0);
+    const toastTimesRef = useRef([]);
     function toast(icon, text, color = "#fbbf24", dur = 2500) {
+      const now = Date.now();
+      const recent = toastTimesRef.current.filter((t) => now - t < 1000);
+      if (recent.length >= 4) return;
+      toastTimesRef.current = [...recent, now];
       const mobDur = vw < 500 && dur > 2500 ? 2500 : dur;
       const id = ++toastRef.current;
       const neg = color === "#ef4444" || color === "#fb923c";
-      setToasts((t) => [...t, { id, icon, text, color, big: mobDur > 2500, neg }]);
+      setToasts((t) => {
+        const trimmed = t.length >= 4 ? t.slice(-3) : t;
+        return [...trimmed, { id, icon, text, color, big: mobDur > 2500, neg }];
+      });
       setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), mobDur);
     }
     const prevMoraleRef = useRef(ferv);
@@ -5316,10 +5385,16 @@
       prevMoraleRef.current = ferv;
       if (prev === ferv || ph === "title" || ph === "draft") return;
       const up = ferv > prev;
-      const NERVE_VOICE = { 2: "Tension.", 3: "Cornered.", 4: "DEFIANCE.", 5: "IGNITE.", 6: "FURY.", 7: "BLAZING.", 8: "UNDYING.", 9: "NINTH LIFE." };
-      const DOWN_VOICE = { 0: "Silence.", 1: "Fading.", 2: "Slipping.", 3: "Shaken." };
-      if (up && NERVE_VOICE[ferv]) toast("\u{1F525}", NERVE_VOICE[ferv], NERVE[ferv].color);
-      else if (!up && ferv <= 3 && DOWN_VOICE[ferv]) toast("\u{1F4A8}", DOWN_VOICE[ferv], "#6b7280");
+      const nv = getNerve(ferv);
+      const pnv = getNerve(prev);
+      if (up && nv.name !== pnv.name) {
+        const voice = { "Tense": "Tension.", "Focused": "FOCUSED.", "Cornered": "CORNERED.", "Defiant": "DEFIANCE.", "Burning": "IGNITE.", "Fury": "FURY.", "Blazing": "BLAZING.", "Undying": "UNDYING.", "Transcendent": "TRANSCENDENT.", "NINTH LIFE": "NINTH LIFE." };
+        if (voice[nv.name]) toast("\u{1F525}", voice[nv.name], nv.color);
+        if (ferv > NERVE_MAX) toast("\u2726", `Morale overflow! +${ferv - NERVE_MAX}\u2726 stardust at dawn.`, "#c084fc", 2500);
+      } else if (!up && ferv <= 5) {
+        const dv = { "Still": "Silence.", "Stirring": "Fading.", "Awake": "Slipping." };
+        if (dv[nv.name] && nv.name !== pnv.name) toast("\u{1F4A8}", dv[nv.name], "#6b7280");
+      }
     }, [ferv]);
     const [seen, setSeen] = useState({});
     const [muted, setMuted] = useState(() => {
@@ -5750,14 +5825,14 @@
         const gain = Math.max(0, handsAfter) + (handsAfter > 0 ? devMorale : 0);
         const moraleFrozen = blind === 2 && boss?.mechanic?.id === "morale_frozen";
         if (gain > 0 && !moraleFrozen) {
-          const nx = Math.min(NERVE_MAX, ferv + gain);
+          const nx = ferv + gain;
           setFerv(nx);
           setRMaxF((m) => Math.max(m, nx));
           setFFlash("up");
           Audio.nerveUp();
           if (gain >= 2 || nx >= 8) {
-            const nName = NERVE[nx]?.name || "";
-            setTimeout(() => toast("\u26A1", `+${gain} Morale \u2192 ${nName} (\xD7${NERVE[nx]?.xM || 1})`, NERVE[nx]?.color || "#fbbf24", 2500), 400);
+            const nName = getNerve(nx)?.name || "";
+            setTimeout(() => toast("\u26A1", `+${gain} Morale \u2192 ${nName} (\xD7${getNerve(nx)?.xM || 1})`, getNerve(nx)?.color || "#fbbf24", 2500), 400);
           }
           if (ferv <= 1 && !seen.nerveExplain) {
             setSeen((s2) => ({ ...s2, nerveExplain: true }));
@@ -6431,14 +6506,14 @@
         updFerv(result.total, rScore, tgt2, hLeft, result.hasGrudgeProve);
         if (dareBet) {
           if (result.total >= tgt2 * 0.5) {
-            setFerv((f) => Math.min(NERVE_MAX, f + 6));
+            setFerv((f) => f + 6);
             toast("\u{1F525}", "THE DARE IS MET. +6 Morale!", "#fbbf24");
           } else {
             toast("\u{1F480}", "The dare... failed. The number stares back.", "#ef4444");
           }
           setDareBet(false);
         }
-        logEvent("hand", { score: result.total, type: result.ht, cats: cats.map((c) => c.name.split(" ")[0]).join(", "), nerve: NERVE[ferv].name });
+        logEvent("hand", { score: result.total, type: result.ht, cats: cats.map((c) => c.name.split(" ")[0]).join(", "), nerve: getNerve(ferv).name });
         if (isFirstRun && ante === 1 && blind === 0 && !autoPlay && !firstHandPlayed) {
           const matched = result.ht && ["Kin", "Clowder", "Colony", "Litter", "Full Den", "Two Kin"].includes(result.ht);
           setTimeout(() => {
@@ -6738,6 +6813,7 @@
       actionLock.current = false;
       setSRes(result);
       setSStep(-1);
+      setCascadeSpeed(1);
       setPh("scoring");
       setRunChips(0);
       setRunMult(0);
@@ -6806,7 +6882,7 @@
         const hasX = step2 && !!step2.xMult;
         const isMorale = step2 && step2.type === "nerve";
         const isCombo = step2 && step2.type === "combo";
-        const isBond = step2 && (step2.type === "bond" || step2.type === "grudge_tension");
+        const isBond = step2 && (step2.type === "bond" || step2.type === "lineage" || step2.type === "grudge_tension");
         const isBigCat = step2 && step2.isBigCat;
         const isThreshold = s === thresholdStep;
         if (isNeg) return Math.round(180 * tempo * slowMult);
@@ -6818,6 +6894,7 @@
         if (isLast) return Math.round(Math.max(550, 750 * tempo) * slowMult);
         if (s === 0) return Math.round(1100 * tempo * slowMult);
         if (isCombo) return Math.round(Math.max(900, 1e3 * tempo) * slowMult);
+        if (step2 && step2.hasEpithet) return Math.round(Math.max(600, 750 * tempo) * slowMult);
         if (isBigCat) return Math.round(Math.max(350, 480 * tempo) * slowMult);
         if (s === 1) return Math.round(420 * tempo * slowMult);
         if (s <= 3) return Math.round(380 * tempo * slowMult);
@@ -6861,8 +6938,8 @@
               setTimeout(() => setScoreShake(0), 300);
               setScoringFlash(s.xMult >= 1.5 ? "#fef08a" : "#fbbf24");
               setTimeout(() => setScoringFlash(null), 150);
-              setMultPop({ val: s.xMult, label: s.label, mode: "xmult" });
-              setTimeout(() => setMultPop(null), 1200);
+              // multPop removed
+              // multPop removed
             } else if (s.type === "hand") {
               const htIdx = HT.findIndex((h) => s.label.startsWith(h.name));
               const shk = htIdx >= 6 ? 4 : htIdx >= 4 ? 3 : htIdx >= 2 ? 2 : 1;
@@ -6896,7 +6973,7 @@
             else if (s.chips > 0) Audio.chipUp(s.chips, progress); Haptic.cascade();
             Audio.stepTick(progress);
           }
-          stRef.current = setTimeout(animStep, getStepDelay(step, tot));
+          stRef.current = setTimeout(animStep, Math.round(getStepDelay(step, tot) / cascadeSpeedRef.current));
         } else {
           const end = scoreEndRef.current;
           setRunChips(end.chips);
@@ -6924,7 +7001,7 @@
         setSStep(0);
         setRunChips(scoreEndRef.current.stepTotals[0].chips);
         setRunMult(scoreEndRef.current.stepTotals[0].mult);
-        stRef.current = setTimeout(animStep, getStepDelay(0, tot));
+        stRef.current = setTimeout(animStep, Math.round(getStepDelay(0, tot) / cascadeSpeedRef.current));
       }, 800);
     }
     const MAX_DISCARD = 3;
@@ -7031,7 +7108,7 @@
       }
       setSel(/* @__PURE__ */ new Set());
       setDLeft((v) => v - 1);
-      if (nerveDelta > 0) setFerv((f) => Math.min(NERVE_MAX, f + nerveDelta));
+      if (nerveDelta > 0) setFerv((f) => f + nerveDelta);
       if (goldDelta > 0) setGold((g) => g + goldDelta);
       if (handDelta > 0) setHLeft((h) => h + handDelta);
       if (discDelta > 0) setDLeft((v) => v + discDelta);
@@ -7254,7 +7331,7 @@
               return 0;
             }
           })();
-          setDefeatData({ score: fScore, target: tgtVal, line: pk(defeatLines), blind: bName, dustEarned: Math.min(3, ante) });
+          setDefeatData({ score: fScore, target: tgtVal, line: pk(defeatLines), blind: bName, dustEarned: Math.min(3, ante), overflowDust: Math.max(0, ferv - NERVE_MAX) });
           setPh("defeat");
         }
         if (meta) {
@@ -7300,7 +7377,7 @@
               const runMythics = [...allC].filter((c) => (c.trait || PLAIN).tier === "mythic").length;
               const u = {
                 ...meta,
-                dust: (meta.dust || 0) + (won ? 0 : Math.min(3, ante)) + (won && (meta.stats.streak || 0) >= 4 ? Math.min(10, (meta.stats.streak || 0) + 1) : 0),
+                dust: (meta.dust || 0) + (won ? 0 : Math.min(3, ante)) + (won && (meta.stats.streak || 0) >= 4 ? Math.min(10, (meta.stats.streak || 0) + 1) : 0) + Math.max(0, ferv - NERVE_MAX),
                 heat: newHeat,
                 ninthDawnCleared,
                 relics,
@@ -7649,7 +7726,7 @@
       setGold((g) => g - s.price);
       setHtLevels((prev) => ({ ...prev, [s.name]: (prev[s.name] || 1) + 1, [s.name + "_xp"]: 0 }));
       setSScrolls((sc) => sc.filter((_, j) => j !== i));
-      toast("\u{1F4DC}", `${s.name} \u2192 Lv${s.nextLv}! ${s.nextBase ? s.nextBase.c + "C\xD7" + s.nextBase.m + "M" : ""}`, "#fbbf24");
+      toast("\u{1F4DC}", `${s.name} \u2192 Lv${s.nextLv}! ${s.nextBase ? s.nextBase.c + "P +" + s.nextBase.m + "B" : ""}`, "#fbbf24");
     }
     function reroll() {
       const rc = 2 + ante + rerollCount;
@@ -7698,7 +7775,7 @@
       setHand((h) => h.filter((c) => c.id !== cat2.id));
       setDraw((d) => d.filter((c) => c.id !== cat2.id));
       setDisc((di) => di.filter((c) => c.id !== cat2.id));
-      if (cat2.scarred) setFerv((f) => Math.min(NERVE_MAX, f + 1));
+      if (cat2.scarred) setFerv((f) => f + 1);
       if (cat2.bondedTo) {
         [setHand, setDraw, setDisc].forEach((s) => {
           s((arr) => arr.map((c) => {
@@ -7769,7 +7846,7 @@
       setDenNews([]);
       const hasMM = false;
       const heatFight = getHeatFx(meta?.heat).denFight || 0;
-      const baseCtx = { draftRejects, deckSize: dAll.length, nerveLvl: ferv, breedBoost: (getAllDevotionFx(devotion).breedBoost || 0) + (getMB().breedBoost || 0), mood, hasWon: meta && meta.stats.w > 0, colonyCap: getMB().colonyCap || 0 };
+      const baseCtx = { draftRejects, deckSize: dAll.length, nerveLvl: ferv, breedBoost: (getAllDevotionFx(devotion).breedBoost || 0) + (getMB().breedBoost || 0), mood, hasWon: meta && meta.stats.w > 0, colonyCap: getMB().colonyCap || 0, denSafety: getMB().denSafety || 0 };
       const shelterResults = shelterCats.length >= 2 ? resolveDen(shelterCats, hasMM, true, 0, { ...baseCtx, breedOnly: true, guaranteeBreed: isFirstRun && !firstDenUsed }) : [];
       shelterResults.forEach((r) => r.source = "shelter");
       const wildResults = wildCats.length >= 2 ? resolveDen(wildCats, hasMM, eventDenSafe, heatFight, { ...baseCtx, noBreed: true }) : [];
@@ -8298,7 +8375,7 @@
       if (fx.fervor) {
         const boost = lateGame && fx.fervor >= 2 ? 1 : 0;
         const total = fx.fervor + boost;
-        if (total > 0) setFerv((f) => Math.min(NERVE_MAX, f + total));
+        if (total > 0) setFerv((f) => f + total);
       }
       if (fx.bestPower) {
         const bp = fx.bestPower + (lateGame ? 1 : 0);
@@ -8548,7 +8625,7 @@
         [setHand, setDraw, setDisc].forEach((s) => {
           s((arr) => arr.map((x) => ({ ...x, injured: false, injuryTimer: 0 })));
         });
-        if (lateGame) setFerv((f) => Math.min(NERVE_MAX, f + 1));
+        if (lateGame) setFerv((f) => f + 1);
       }
       if (fx.spareTarget) {
         const weakest = targets[0] || [...all].sort((a, b) => a.power - b.power)[0];
@@ -8824,7 +8901,7 @@
           [setHand, setDraw, setDisc].forEach((s) => {
             s((arr) => arr.map((x) => x.id === t.id ? { ...x, power: x.power + 2 } : x));
           });
-          setFerv((f) => Math.min(NERVE_MAX, f + 1));
+          setFerv((f) => f + 1);
         } else if (hasTrait) {
           [setHand, setDraw, setDisc].forEach((s) => {
             s((arr) => arr.map((x) => x.id === t.id ? { ...x, power: x.power + 1 } : x));
@@ -8876,7 +8953,7 @@
         [setHand, setDraw, setDisc].forEach((s) => {
           s((arr) => arr.map((x) => ({ ...x, injured: false, injuryTimer: 0 })));
         });
-        setFerv((f) => Math.min(NERVE_MAX, f + 2));
+        setFerv((f) => f + 2);
         const unbonded = all.filter((x) => !x.bondedTo);
         if (unbonded.length >= 2) {
           const a = pk(unbonded), b = pk(unbonded.filter((x) => x.id !== a.id && x.sex !== a.sex));
@@ -8929,12 +9006,12 @@
             s((arr) => arr.map((x) => x.id === t.id ? { ...x, scarred: true } : x));
           });
         }
-        setFerv((f) => Math.min(NERVE_MAX, f + 2));
+        setFerv((f) => f + 2);
         setGold((g) => g + 4);
       }
       if (fx.debtRefuse) {
         if (Math.random() < 0.5) {
-          setFerv((f) => Math.min(NERVE_MAX, f + 3));
+          setFerv((f) => f + 3);
         } else {
           setTempMods((m) => ({ ...m, hands: m.hands - 1 }));
           const t = pk(all);
@@ -9043,7 +9120,7 @@
         setGold((g) => Math.floor(g / 2));
         if (Math.random() < 0.55) {
           setGold((g) => g + half * 3);
-          setFerv((f) => Math.min(NERVE_MAX, f + 2));
+          setFerv((f) => f + 2);
         } else {
         }
       }
@@ -9062,12 +9139,12 @@
             }));
           });
         } else if (r < 0.7) {
-          setFerv((f) => Math.min(NERVE_MAX, f + 3));
+          setFerv((f) => f + 3);
         } else {
           [setHand, setDraw, setDisc].forEach((s) => {
             s((arr) => arr.map((x) => x.id === t.id ? { ...x, scarred: true, power: Math.max(1, x.power - 1) } : x));
           });
-          setFerv((f) => Math.min(NERVE_MAX, f + 1));
+          setFerv((f) => f + 1);
         }
       }
       if (fx.addStrays) {
@@ -9076,7 +9153,7 @@
       if (fx.visionPeek) {
         const r = Math.random();
         if (r < 0.5) {
-          setFerv((f) => Math.min(NERVE_MAX, f + 2));
+          setFerv((f) => f + 2);
         } else if (r < 0.8) {
           setGold((g) => g + 4);
         } else {
@@ -9086,7 +9163,7 @@
               s((arr) => arr.map((x) => x.id === t.id ? { ...x, scarred: true } : x));
             });
           }
-          setFerv((f) => Math.min(NERVE_MAX, f + 3));
+          setFerv((f) => f + 3);
         }
       }
       if (fx.forceBond && targets.length >= 2) {
@@ -9666,7 +9743,11 @@
       const whisper = nightCard.blind === 2 && boss ? `${boss.icon} ${boss.name} waits.` : pk(BLIND_WHISPER[blindKey]);
       const isBoss2 = nightCard.blind === 2;
       const glowColor = isBoss2 ? "#ef4444" : isMid ? "#fb923c" : "#fbbf24";
-      const ncAdvance = () => { setPh("playing"); setNightCard(null); if (isFirstEver) { setTimeout(startAutoPlay, 400); } };
+      const ncAdvance = () => { setPh("playing"); setNightCard(null); if (isFirstEver) { setTimeout(startAutoPlay, 400); }
+          if (isFirstRun && blind > 0 && !seen.recruitTip) {
+            setSeen((s) => ({ ...s, recruitTip: true }));
+            setTimeout(() => toast("\u{1F431}", "Use the +1 Cat button to recruit extra cats. More cats = better combos and bench bonuses!", "#4ade80", 5000), 1500);
+          } };
       return /* @__PURE__ */ React.createElement("div", { onClick: ncAdvance, style: { ...W, cursor: "pointer" } }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: {
         position: "fixed",
         top: "10%",
@@ -10521,7 +10602,7 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
         fallen,
         night: ante,
         ante,
-        nerve: NERVE[ferv].name,
+        nerve: getNerve(ferv).name,
         scarred: allC2.filter((c) => c.scarred).length,
         injured: allC2.filter((c) => c.injured).length,
         bonded: allC2.filter((c) => c.bondedTo).length,
@@ -10580,7 +10661,7 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
           boxShadow: canAfford ? "0 4px 20px #00000044" : "none"
         } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: mob ? 13 : 15, color: canAfford ? "#e8e6e3" : "#555", fontWeight: 500, letterSpacing: 1, lineHeight: 1.4 } }, label), hint && canAfford && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: hint.c, letterSpacing: 1, flexShrink: 0, padding: "3px 8px", borderRadius: 6, background: hint.c + "11", border: `1px solid ${hint.c}22`, display: "flex", alignItems: "center", gap: 3 } }, hint.ic, " ", hint.t)), !canAfford && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ef4444bb", display: "block", marginTop: 4 } }, "Need ", Math.abs(ch.fx.gold || 0), "\u{1F41F}"));
       }), hasRelic(1) && /* @__PURE__ */ React.createElement("button", { onClick: () => {
-        setFerv((f) => Math.min(NERVE_MAX, f + 1));
+        setFerv((f) => f + 1);
         setEventOutcome({ title: evt.title, icon: evt.icon, choice: "Stoke the First Flame", desc: [{ text: "The first light anyone carried out of the dark. +1 Morale.", color: "#fbbf24", icon: "\u{1F56F}\uFE0F" }], targets: [] });
         setPh("eventResult");
       }, style: {
@@ -10728,7 +10809,7 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
           if (rw.type === "gold") setGold((g) => g + rw.value);
           if (rw.type === "gold_nerve") {
             setGold((g) => g + rw.value);
-            setFerv((f) => Math.min(NERVE_MAX, f + 1));
+            setFerv((f) => f + 1);
           }
           if (rw.type === "gold_sacrifice") {
             setGold((g) => g + rw.value);
@@ -10816,9 +10897,9 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
             }
           }
           if (rw.type === "shelter") setEventDenBonus((b) => b + 1);
-          if (rw.type === "nerve") setFerv((f) => Math.min(NERVE_MAX, f + rw.value));
+          if (rw.type === "nerve") setFerv((f) => f + rw.value);
           if (rw.type === "nerve_surge") {
-            setFerv((f) => Math.min(NERVE_MAX, f + 4));
+            setFerv((f) => f + 4);
             toast("\u{1F6E1}\uFE0F", "+4 Morale! Unbreakable.", "#c084fc");
           }
           if (rw.type === "ward") {
@@ -11038,7 +11119,7 @@ ${fallen.length} didn't come back.` : `
 All of them made it.`}
 ${nightGrid2} Night ${ante} \xB7 ${pctStr}
 \u2192 https://greatgamesgonewild.github.io/ninth-life/`;
-      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: mob ? "flex-start" : "center", minHeight: "100vh", zIndex: 1, gap: mob ? 8 : 12, padding: mob ? "30px 16px 20px" : 20, maxWidth: 500, overflowY: "auto", maxHeight: "100vh" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24aa", letterSpacing: 4, animation: "fadeIn .8s ease-out" } }, "COLONY #", (meta?.stats?.r || 0) + 1, " \xB7 NIGHT ", ante), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 36, fontWeight: 900, color: "#e8e6e3", letterSpacing: 2, animation: "fadeIn 1s ease-out" } }, defeatData.score.toLocaleString()), defeatData.target > 0 && /* @__PURE__ */ React.createElement("div", { style: { width: Math.min(280, vw - 60), height: 6, background: "#1a1a2e", borderRadius: 3, overflow: "hidden", border: "1px solid #ffffff08", animation: "fadeIn 1.2s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${Math.min(100, defeatData.score / defeatData.target * 100)}%`, borderRadius: 3, background: defeatData.score >= defeatData.target * 0.9 ? "linear-gradient(90deg,#fbbf24,#ef4444)" : "linear-gradient(90deg,#ef4444,#ef444488)", transition: "width 1s ease-out" } })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", animation: "fadeIn 1.2s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#3b82f6" } }, handsPlayed), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "HANDS")), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#c084fc" } }, bestHandScore.toLocaleString()), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "BEST HAND")), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: NERVE[rMaxF].color } }, NERVE[rMaxF].name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "MORALE")), fallen.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ef444422", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#ef4444" } }, fallen.length), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "LOST"))), /* @__PURE__ */ React.createElement("div", { style: { width: 40, height: 1, background: "#ef444433", margin: "2px 0" } }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ef4444aa", fontStyle: "italic", textAlign: "center", maxWidth: 340, lineHeight: 1.7, animation: "fadeIn 1.8s ease-out" } }, defSentence), deficit > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: deficit < defeatData.target * 0.15 ? "#fbbf2488" : "#ef444466", animation: "fadeIn 2s ease-out" } }, deficit < defeatData.target * 0.15 ? `Only ${deficit.toLocaleString()} short. That's one good hand.` : `${deficit.toLocaleString()} short of ${defeatData.target.toLocaleString()}`), fallen.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center", animation: "fadeIn 2.2s ease-out" } }, fallen.map((f, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { fontSize: 10, color: BREEDS[f.breed]?.color || "#888", opacity: 0.5 } }, f.name.split(" ")[0]))), runLog.length > 2 && /* @__PURE__ */ React.createElement("details", { open: true, style: { animation: "fadeIn 2.5s ease-out", maxWidth: 340, width: "100%" } }, /* @__PURE__ */ React.createElement("summary", { style: { fontSize: 10, color: "#666", cursor: "pointer", textAlign: "center", letterSpacing: 2 } }, "THE CHRONICLE"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 3, marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#ffffff04", border: "1px solid #ffffff08" } }, (() => {
+      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: mob ? "flex-start" : "center", minHeight: "100vh", zIndex: 1, gap: mob ? 8 : 12, padding: mob ? "30px 16px 20px" : 20, maxWidth: 500, overflowY: "auto", maxHeight: "100vh" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24aa", letterSpacing: 4, animation: "fadeIn .8s ease-out" } }, "COLONY #", (meta?.stats?.r || 0) + 1, " \xB7 NIGHT ", ante), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 36, fontWeight: 900, color: "#e8e6e3", letterSpacing: 2, animation: "fadeIn 1s ease-out" } }, defeatData.score.toLocaleString()), defeatData.target > 0 && /* @__PURE__ */ React.createElement("div", { style: { width: Math.min(280, vw - 60), height: 6, background: "#1a1a2e", borderRadius: 3, overflow: "hidden", border: "1px solid #ffffff08", animation: "fadeIn 1.2s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${Math.min(100, defeatData.score / defeatData.target * 100)}%`, borderRadius: 3, background: defeatData.score >= defeatData.target * 0.9 ? "linear-gradient(90deg,#fbbf24,#ef4444)" : "linear-gradient(90deg,#ef4444,#ef444488)", transition: "width 1s ease-out" } })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", animation: "fadeIn 1.2s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#3b82f6" } }, handsPlayed), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "HANDS")), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#c084fc" } }, bestHandScore.toLocaleString()), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "BEST HAND")), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: getNerve(rMaxF).color } }, getNerve(rMaxF).name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "MORALE")), fallen.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ef444422", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#ef4444" } }, fallen.length), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "LOST"))), /* @__PURE__ */ React.createElement("div", { style: { width: 40, height: 1, background: "#ef444433", margin: "2px 0" } }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ef4444aa", fontStyle: "italic", textAlign: "center", maxWidth: 340, lineHeight: 1.7, animation: "fadeIn 1.8s ease-out" } }, defSentence), deficit > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: deficit < defeatData.target * 0.15 ? "#fbbf2488" : "#ef444466", animation: "fadeIn 2s ease-out" } }, deficit < defeatData.target * 0.15 ? `Only ${deficit.toLocaleString()} short. That's one good hand.` : `${deficit.toLocaleString()} short of ${defeatData.target.toLocaleString()}`), runLog.length > 2 && /* @__PURE__ */ React.createElement("details", { style: { animation: "fadeIn 2.5s ease-out", maxWidth: 340, width: "100%" } }, /* @__PURE__ */ React.createElement("summary", { style: { fontSize: 10, color: "#666", cursor: "pointer", textAlign: "center", letterSpacing: 2 } }, "THE CHRONICLE"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 3, marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#ffffff04", border: "1px solid #ffffff08" } }, (() => {
         const moments = [];
         const bestH = runLog.filter((e) => e.type === "hand").reduce((best, e) => (e.data?.score || 0) > (best?.data?.score || 0) ? e : best, null);
         if (bestH) moments.push({ text: `Best: ${bestH.data.cats} ${bestH.data.type} for ${bestH.data.score.toLocaleString()}`, color: "#fbbf24", icon: "\u2726" });
@@ -11058,7 +11139,7 @@ ${nightGrid2} Night ${ante} \xB7 ${pctStr}
       }, style: { ...BTN("linear-gradient(135deg,#ef4444,#dc2626)", "#fff"), padding: "10px 32px", fontSize: 14 } }, "Continue"), /* @__PURE__ */ React.createElement("button", { onClick: () => {
         setDefeatData(null);
         startGame();
-      }, style: { ...BTN("#1a1a2e", "#fbbf24"), padding: "10px 20px", fontSize: 11, border: "1px solid #fbbf2444" } }, "Retry \u2192")), defeatData.dustEarned >= 0 && !defeatData.daily && meta && meta.stats.r === 1 && !meta._firstBonusClaimed && Object.keys(meta.ups || {}).length === 0 && /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 14px", borderRadius: 8, background: "#4ade800a", border: "1px solid #4ade8033", animation: "fadeIn 2s ease-out", marginTop: 4, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#4ade80", fontWeight: 700 } }, "\u{1F381} The colony left something behind."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80aa", marginTop: 2 } }, "+25\u2726 stardust. Enough for your first upgrade."), /* @__PURE__ */ React.createElement("button", { onClick: () => { setMeta((m) => { const nm = { ...m, dust: (m.dust || 0) + 25, _firstBonusClaimed: true }; saveS(nm); return nm; }); toast("\u2726", "+25\u2726 First colony bonus!", "#4ade80", 3e3); }, style: { marginTop: 6, fontSize: 11, background: "#4ade80", border: "none", borderRadius: 5, color: "#0a0a1a", cursor: "pointer", padding: "5px 16px", fontWeight: 700 } }, "Claim")), defeatData.dustEarned > 0 && !defeatData.daily && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 3, animation: "fadeIn 2.5s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#c084fc", fontWeight: 700 } }, "+", defeatData.dustEarned, "\u2726 stardust from the ashes"), (() => {
+      }, style: { ...BTN("#1a1a2e", "#fbbf24"), padding: "10px 20px", fontSize: 11, border: "1px solid #fbbf2444" } }, "Retry \u2192")), defeatData.dustEarned >= 0 && !defeatData.daily && meta && meta.stats.r === 1 && !meta._firstBonusClaimed && Object.keys(meta.ups || {}).length === 0 && /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 14px", borderRadius: 8, background: "#4ade800a", border: "1px solid #4ade8033", animation: "fadeIn 2s ease-out", marginTop: 4, textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#4ade80", fontWeight: 700 } }, "\u{1F381} The colony left something behind."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80aa", marginTop: 2 } }, "+25\u2726 stardust. Enough for your first upgrade."), /* @__PURE__ */ React.createElement("button", { onClick: () => { setMeta((m) => { const nm = { ...m, dust: (m.dust || 0) + 25, _firstBonusClaimed: true }; saveS(nm); return nm; }); toast("\u2726", "+25\u2726 First colony bonus!", "#4ade80", 3e3); }, style: { marginTop: 6, fontSize: 11, background: "#4ade80", border: "none", borderRadius: 5, color: "#0a0a1a", cursor: "pointer", padding: "5px 16px", fontWeight: 700 } }, "Claim")), defeatData.dustEarned > 0 && !defeatData.daily && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 3, animation: "fadeIn 2.5s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#c084fc", fontWeight: 700 } }, "+", defeatData.dustEarned, "\u2726 stardust from the ashes"), defeatData.overflowDust > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#e0c3fc", fontWeight: 700 } }, "+", defeatData.overflowDust, "\u2726 morale overflow"), (() => {
         if (!meta) return null;
         const currentDust = (meta.dust || 0) + (defeatData.dustEarned || 0);
         const nextUpg = UPGRADES.find((u) => { const cur = meta.ups?.[u.id] || 0; const tier = u.tier <= 1 || u.tier === 2 && meta.stats.w >= 2 || u.tier === 3 && meta.stats.w >= 4; return tier && cur < u.max && u.cost > currentDust; });
@@ -11117,12 +11198,12 @@ ${nightGrid2} Night ${ante} \xB7 ${pctStr}
         { label: "BEST HAND", val: bestHand.toLocaleString(), color: "#c084fc" },
         ...catsLost > 0 ? [{ label: "CATS LOST", val: catsLost, color: "#ef4444" }] : [],
         ...catsBonded > 0 ? [{ label: "BONDS FORMED", val: Math.floor(catsBonded / 2), color: "#4ade80" }] : [],
-        { label: "PEAK MORALE", val: NERVE[rMaxF].name, color: NERVE[rMaxF].color }
+        { label: "PEAK MORALE", val: getNerve(rMaxF).name, color: getNerve(rMaxF).color }
       ] : [
         { label: "SCORED", val: totalScored.toLocaleString(), color: "#fbbf24" },
         { label: "BEST HAND", val: bestHand.toLocaleString(), color: "#c084fc" },
         ...catsLost > 0 ? [{ label: "LOST", val: catsLost, color: "#ef4444" }] : [],
-        { label: "MORALE", val: NERVE[rMaxF].name, color: NERVE[rMaxF].color }
+        { label: "MORALE", val: getNerve(rMaxF).name, color: getNerve(rMaxF).color }
       ];
       const hasChronicle = runLog.length > 2;
       const hasUnlocks = won && (newUnlocks.length > 0 || meta && meta.stats.w === 1);
@@ -11151,7 +11232,7 @@ ${nightGrid2} Night ${ante} \xB7 ${pctStr}
       })(), won && isNinthDawn && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#fbbf24aa", fontStyle: "italic", textAlign: "center", maxWidth: 360, lineHeight: 1.7, animation: "fadeIn 2s ease-out" } }, "The cycle breaks. Nine colonies. Eight fell to feed the dark its patterns. The ninth refused. The dark has no playbook for what comes next."), !won && (() => {
         const breath = ante >= MX ? `Night ${ante}. So close to breaking it. The eighth colony knows what "close" feels like. The cycle holds. For now.` : ante >= 3 ? `Night ${ante}. ${allC.length} still standing when the dark moved in. The cycle continues. But it felt you pushing.` : `Night ${ante}. The cycle holds. But the Hearth remembers. The next colony will be stronger.`;
         return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef444488", fontStyle: "italic", letterSpacing: 2, animation: "fadeIn 1.5s ease-out", marginTop: 4 } }, breath);
-      })(), statItems.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", maxWidth: 400, marginTop: 8 } }, statItems.map((st, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { textAlign: "center", padding: "6px 12px", borderRadius: 8, background: `${st.color}08`, border: `1px solid ${st.color}22`, animation: `scorePop .4s ease-out ${0.8 + i * 0.3}s both`, minWidth: 80 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: `${st.color}88`, letterSpacing: 2 } }, st.label), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 16, fontWeight: 900, color: st.color } }, st.val)))), won && isNinthDawn && meta && meta.cats.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 2, flexWrap: "wrap", justifyContent: "center", maxWidth: 400, animation: "fadeIn 3s ease-out 1s both" } }, meta.cats.map((c, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { width: 4, height: 4, borderRadius: "50%", background: BREEDS[c.breed]?.color || "#fbbf24", boxShadow: `0 0 4px ${BREEDS[c.breed]?.color || "#fbbf24"}`, animation: `fadeIn ${0.5 + i * 0.1}s ease-out ${1 + i * 0.05}s both` }, title: c.name }))), fallen.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4, marginTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef4444bb", letterSpacing: 3 } }, "THEY WERE HERE"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 3, alignItems: "center" } }, fallen.map((f, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: BREEDS[f.breed]?.color || "#888", fontWeight: 700 } }, f.name.split(" ")[0], f.epithet ? " " + f.epithet : ""), f.memorial && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff66", fontStyle: "italic", lineHeight: 1.3, maxWidth: 260 } }, f.memorial))))), !won && allC.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4, marginTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff55", letterSpacing: 3 } }, allC.length, " STILL STANDING"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", maxWidth: 340 } }, allC.map((c, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { fontSize: 10, color: BREEDS[c.breed]?.color || "#888", opacity: 0.4 } }, c.name.split(" ")[0], c.scarred ? "*" : "")))), won && meta && meta.stats.w > 1 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#fbbf24bb", fontStyle: "italic", textAlign: "center", maxWidth: 320, lineHeight: 1.6, marginTop: 4 } }, fallen.length === 0 ? `Every single one. The dark couldn't take ${mvp ? mvp.name.split(" ")[0] + " or " : ""}any of them.` : fallen.length >= 3 ? `${fallen.map((f) => f.name.split(" ")[0]).join(", ")}. The survivors carry those names now.` : clutch ? "One number. The difference between a colony and a memory." : "Not all of them. But the ones who made it carry the ones who didn't."), !won && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#ef4444bb", fontStyle: "italic", textAlign: "center", maxWidth: 320, lineHeight: 1.6, marginTop: 4 } }, fallen.length >= 3 ? `${fallen.map((f) => f.name.split(" ")[0]).join(", ")}. Say them. The dark won't.` : rMaxF >= 6 ? `${mvp ? mvp.name.split(" ")[0] + " fought like something that" : "They fought like they"} refused to go quietly.` : "They were here. They mattered. The dark can take the colony but it can't take that."), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 12, fontSize: 10, color: "#666" } }, meta && meta.cats.length > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#c084fc" } }, "\u{1F3E0} +", calcHearthDust(meta.cats).reduce((s, h) => s + h.dust, 0), "\u2726/run"), /* @__PURE__ */ React.createElement("span", null, "Peak: ", /* @__PURE__ */ React.createElement("span", { style: { color: NERVE[rMaxF].color } }, NERVE[rMaxF].name)), (meta?.heat || 0) > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444" } }, "Heat ", meta.heat, "\u{1F525}")), won ? /* @__PURE__ */ React.createElement("button", { onClick: () => setVictoryStep(hasUnlocks ? 2 : 3), style: { ...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)", "#0a0a1a"), padding: "10px 36px", fontSize: 14, marginTop: 8 } }, "Continue") : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 10, marginTop: 8 } }, /* @__PURE__ */ React.createElement("button", { onClick: () => { setPh("title"); setTimeout(() => { try { Audio.init(); startGame(); setPh("draft"); } catch(e) { setPh("title"); } }, 200); }, style: { ...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)", "#0a0a1a"), padding: "12px 28px", fontSize: 14 } }, "Try Again"), /* @__PURE__ */ React.createElement("button", { onClick: () => setPh("title"), style: { ...BTN("#1a1a2e", "#888"), padding: "12px 20px", fontSize: 12, border: "1px solid #ffffff12" } }, "Title")), (() => { if (!meta) return null; const dust = meta.dust || 0; const primary = meta.primaryBranch || null; const affordable = UPGRADES.find((u) => { const o = meta.ups?.[u.id] || 0; const bL = UPGRADES.filter((x) => x.branch === u.branch).reduce((s, x) => s + (meta.ups?.[x.id] || 0), 0); const tR = { 1: 0, 2: 1, 3: 3, 4: 5, 5: 7 }; return !(u.tier >= 4 && primary && primary !== u.branch) && bL >= tR[u.tier] && o < u.max && dust >= u.cost; }); if (affordable) return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80aa", marginTop: 4, animation: "fadeIn 3s ease-out" } }, "\u2726 You can afford: ", affordable.icon, " ", affordable.name); const almost = UPGRADES.filter((u) => { const o = meta.ups?.[u.id] || 0; const bL = UPGRADES.filter((x) => x.branch === u.branch).reduce((s, x) => s + (meta.ups?.[x.id] || 0), 0); const tR = { 1: 0, 2: 1, 3: 3, 4: 5, 5: 7 }; return !(u.tier >= 4 && primary && primary !== u.branch) && bL >= tR[u.tier] && o < u.max && u.cost > dust && u.cost - dust <= 15; }).sort((a, b) => a.cost - b.cost)[0]; if (almost) return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: (SKILL_BRANCHES[almost.branch]?.color || "#c084fc") + "88", marginTop: 4, animation: "breathe 2.5s ease-in-out infinite" } }, "Just ", almost.cost - dust, "\u2726 more for ", almost.icon, " ", almost.name, "!"); return dust > 0 ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fc44", marginTop: 4 } }, "\u2726 ", dust, " stardust saved") : null; })(), ante <= 2 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff33", marginTop: 4, textAlign: "center", maxWidth: 280, lineHeight: 1.5 } }, "Tip: Match same-season cats for higher base scores. A Clowder (3 matched) scores much more than 3 random."), !won && meta && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 360, padding: "12px 16px", borderRadius: 12, background: "linear-gradient(145deg, #0d1a2e, #0d0d1a)", border: "1px solid #c084fc22", animation: "fadeIn 2.5s ease-out 0.5s both", marginTop: 6 } },
+      })(), statItems.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", maxWidth: 400, marginTop: 8 } }, statItems.map((st, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { textAlign: "center", padding: "6px 12px", borderRadius: 8, background: `${st.color}08`, border: `1px solid ${st.color}22`, animation: `scorePop .4s ease-out ${0.8 + i * 0.3}s both`, minWidth: 80 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: `${st.color}88`, letterSpacing: 2 } }, st.label), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 16, fontWeight: 900, color: st.color } }, st.val)))), won && isNinthDawn && meta && meta.cats.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 2, flexWrap: "wrap", justifyContent: "center", maxWidth: 400, animation: "fadeIn 3s ease-out 1s both" } }, meta.cats.map((c, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { width: 4, height: 4, borderRadius: "50%", background: BREEDS[c.breed]?.color || "#fbbf24", boxShadow: `0 0 4px ${BREEDS[c.breed]?.color || "#fbbf24"}`, animation: `fadeIn ${0.5 + i * 0.1}s ease-out ${1 + i * 0.05}s both` }, title: c.name }))), fallen.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4, marginTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef4444bb", letterSpacing: 3 } }, "THEY WERE HERE"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 3, alignItems: "center" } }, fallen.map((f, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: BREEDS[f.breed]?.color || "#888", fontWeight: 700 } }, f.name.split(" ")[0], f.epithet ? " " + f.epithet : ""), f.memorial && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff66", fontStyle: "italic", lineHeight: 1.3, maxWidth: 260 } }, f.memorial))))), false, won && meta && meta.stats.w > 1 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#fbbf24bb", fontStyle: "italic", textAlign: "center", maxWidth: 320, lineHeight: 1.6, marginTop: 4 } }, fallen.length === 0 ? `Every single one. The dark couldn't take ${mvp ? mvp.name.split(" ")[0] + " or " : ""}any of them.` : fallen.length >= 3 ? `${fallen.map((f) => f.name.split(" ")[0]).join(", ")}. The survivors carry those names now.` : clutch ? "One number. The difference between a colony and a memory." : "Not all of them. But the ones who made it carry the ones who didn't."), !won && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#ef4444bb", fontStyle: "italic", textAlign: "center", maxWidth: 320, lineHeight: 1.6, marginTop: 4 } }, fallen.length >= 3 ? `${fallen.map((f) => f.name.split(" ")[0]).join(", ")}. Say them. The dark won't.` : rMaxF >= 6 ? `${mvp ? mvp.name.split(" ")[0] + " fought like something that" : "They fought like they"} refused to go quietly.` : "They were here. They mattered. The dark can take the colony but it can't take that."), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 12, fontSize: 10, color: "#666" } }, meta && meta.cats.length > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#c084fc" } }, "\u{1F3E0} +", calcHearthDust(meta.cats).reduce((s, h) => s + h.dust, 0), "\u2726/run"), (meta?.heat || 0) > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444" } }, "Heat ", meta.heat, "\u{1F525}")), won ? /* @__PURE__ */ React.createElement("button", { onClick: () => setVictoryStep(hasUnlocks ? 2 : 3), style: { ...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)", "#0a0a1a"), padding: "10px 36px", fontSize: 14, marginTop: 8 } }, "Continue") : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 10, marginTop: 8 } }, /* @__PURE__ */ React.createElement("button", { onClick: () => { setPh("title"); setTimeout(() => { try { Audio.init(); startGame(); setPh("draft"); } catch(e) { setPh("title"); } }, 200); }, style: { ...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)", "#0a0a1a"), padding: "12px 28px", fontSize: 14 } }, "Try Again"), /* @__PURE__ */ React.createElement("button", { onClick: () => setPh("title"), style: { ...BTN("#1a1a2e", "#888"), padding: "12px 20px", fontSize: 12, border: "1px solid #ffffff12" } }, "Title")), (() => { if (!meta) return null; const dust = meta.dust || 0; const primary = meta.primaryBranch || null; const affordable = UPGRADES.find((u) => { const o = meta.ups?.[u.id] || 0; const bL = UPGRADES.filter((x) => x.branch === u.branch).reduce((s, x) => s + (meta.ups?.[x.id] || 0), 0); const tR = { 1: 0, 2: 1, 3: 3, 4: 5, 5: 7 }; return !(u.tier >= 4 && primary && primary !== u.branch) && bL >= tR[u.tier] && o < u.max && dust >= u.cost; }); if (affordable) return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80aa", marginTop: 4, animation: "fadeIn 3s ease-out" } }, "\u2726 You can afford: ", affordable.icon, " ", affordable.name); const almost = UPGRADES.filter((u) => { const o = meta.ups?.[u.id] || 0; const bL = UPGRADES.filter((x) => x.branch === u.branch).reduce((s, x) => s + (meta.ups?.[x.id] || 0), 0); const tR = { 1: 0, 2: 1, 3: 3, 4: 5, 5: 7 }; return !(u.tier >= 4 && primary && primary !== u.branch) && bL >= tR[u.tier] && o < u.max && u.cost > dust && u.cost - dust <= 15; }).sort((a, b) => a.cost - b.cost)[0]; if (almost) return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: (SKILL_BRANCHES[almost.branch]?.color || "#c084fc") + "88", marginTop: 4, animation: "breathe 2.5s ease-in-out infinite" } }, "Just ", almost.cost - dust, "\u2726 more for ", almost.icon, " ", almost.name, "!"); return dust > 0 ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#c084fc44", marginTop: 4 } }, "\u2726 ", dust, " stardust saved") : null; })(), ante <= 2 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff33", marginTop: 4, textAlign: "center", maxWidth: 280, lineHeight: 1.5 } }, "Tip: Match same-season cats for higher base scores. A Clowder (3 matched) scores much more than 3 random."), !won && meta && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 360, padding: "12px 16px", borderRadius: 12, background: "linear-gradient(145deg, #0d1a2e, #0d0d1a)", border: "1px solid #c084fc22", animation: "fadeIn 2.5s ease-out 0.5s both", marginTop: 6 } },
         /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#c084fc88", letterSpacing: 3, marginBottom: 8, textAlign: "center" } }, "YOUR COLONY LEFT BEHIND"),
         /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4, fontSize: 11, color: "#ffffffaa", lineHeight: 1.5 } },
           meta.cats.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { color: "#c084fc" } }, "\u2726 ", meta.dust || 0, " stardust saved"),
@@ -11388,7 +11469,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
             s((arr) => arr.map((x) => x.injured ? { ...x, injuryTimer: Math.max(0, (x.injuryTimer || 2) - 1), injured: (x.injuryTimer || 2) <= 1 ? false : x.injured } : x));
           });
           results.push(injCount > 0 ? { text: `${injCount} injured tended. The colony rests.`, color: "#4ade80", icon: "\u{1FA79}" } : { text: "No injuries. The colony rests easy.", color: "#4ade8066", icon: "\u{1F319}" });
-          setFerv((f) => Math.min(NERVE_MAX, f + 1));
+          setFerv((f) => f + 1);
           Audio.nerveUp();
           setFFlash("up");
           setTimeout(() => setFFlash(null), 400);
@@ -11607,7 +11688,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
         const patternLine = wardCount >= 3 && scrollsBought === 0 ? "You always buy wards. Never scrolls. The keeper has noticed." : scrollsBought >= 2 && wardCount === 0 ? "All scrolls, no wards. The keeper raises an eyebrow." : gold > 15 ? "Carrying that many rations into a shop. The keeper has seen this before. They never spend it." : allC.filter((c) => c.scarred).length >= 3 ? "The hardened ones come through here a lot. The keeper nods with respect at the door now." : null;
         const line = patternLine || WHISPER_SHOP[(ante * 3 + blind) % WHISPER_SHOP.length];
         return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf2466", fontStyle: "italic", textAlign: "center", maxWidth: 320, lineHeight: 1.4, animation: "fadeIn 1.5s ease-out" } }, line);
-      })(), !seen.shop && /* @__PURE__ */ React.createElement("div", { style: { padding: "12px 18px", borderRadius: 10, background: "linear-gradient(145deg,#fbbf2408,#f59e0b04)", border: "1px solid #fbbf2433", fontSize: 12, color: "#e8e6e3cc", lineHeight: 1.7, textAlign: "left", maxWidth: 400, animation: "fadeIn .6s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: "#fbbf24", marginBottom: 6, letterSpacing: 1 } }, "THE MARKET"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F41F} Rations"), " are currency. Spend them or save for ", /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80" } }, "interest"), "."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff55", marginTop: 2 } }, "Every 5\u{1F41F} saved = +1\u{1F41F} per round."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, display: "flex", flexDirection: "column", gap: 3 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F431} Cats"), ". stronger cats with traits boost your score"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F4DC} Scrolls"), ". level up hand types for bigger base scores"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F6E1}\uFE0F Wards"), ". passive bonuses that trigger every play")), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, padding: "6px 10px", borderRadius: 6, background: "#ffffff06", border: "1px solid #ffffff0a" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24bb" } }, "\u{1F4A1} ", /* @__PURE__ */ React.createElement("b", null, "Season Devotion"), ": Play cats of one season to make that season stronger. Check progress in the Upgrades tab.")), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setSeen((s) => ({ ...s, shop: true })), style: { fontSize: 11, background: "linear-gradient(135deg,#fbbf24,#f59e0b)", border: "none", borderRadius: 5, color: "#0a0a1a", cursor: "pointer", padding: "5px 16px", fontWeight: 700 } }, "Got it"))), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", padding: "10px 12px", borderRadius: 10, background: "linear-gradient(145deg,#4ade800a,#4ade8004)", border: "1px solid #4ade8033", animation: "fadeIn .4s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#4ade80", fontWeight: 700, letterSpacing: 2 } }, "\u2694\uFE0F TRAINING GROUNDS"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80aa", lineHeight: 1.5, marginTop: 2 } }, gold >= 6 ? "The colony gathers. 3 cats push themselves harder. +1 Power each." : "Not enough rations. The colony rests.")), /* @__PURE__ */ React.createElement("button", { onClick: () => { const ac2 = [...hand, ...draw, ...disc]; const targets = shuf(ac2).slice(0, 3); targets.forEach((t) => { [setHand, setDraw, setDisc].forEach((s) => { s((arr) => arr.map((x) => x.id === t.id ? { ...x, power: x.power + 1 } : x)); }); }); setGold((g) => g - 6); toast("\u2694\uFE0F", `${targets.map((t) => t.name.split(" ")[0]).join(", ")} trained. +1P each.`, "#4ade80"); }, disabled: gold < 6, style: { ...BTN(gold >= 6 ? "linear-gradient(135deg,#4ade80,#22c55e)" : "#1a1a2e", gold >= 6 ? "#0a0a1a" : "#444", gold >= 6), padding: "10px 20px", fontSize: 13, fontWeight: 900, border: `1px solid ${gold >= 6 ? "#4ade8066" : "#222"}`, minWidth: 100, letterSpacing: 1 } }, "6\u{1F41F} Train"))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 0, width: "100%", borderBottom: "1px solid #ffffff0a" } }, [["cats", "\u{1F431} Cats"], ["upgrades", "\u26A1 Upgrades"], ["colony", "\u{1F465} Colony"]].map(([id, label]) => {
+      })(), !seen.shop && /* @__PURE__ */ React.createElement("div", { style: { padding: "12px 18px", borderRadius: 10, background: "linear-gradient(145deg,#fbbf2408,#f59e0b04)", border: "1px solid #fbbf2433", fontSize: 12, color: "#e8e6e3cc", lineHeight: 1.7, textAlign: "left", maxWidth: 400, animation: "fadeIn .6s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: "#fbbf24", marginBottom: 6, letterSpacing: 1 } }, "THE MARKET"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F41F} Rations"), " are currency. Spend them or save for ", /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80" } }, "interest"), "."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff55", marginTop: 2 } }, "Every 5\u{1F41F} saved = +1\u{1F41F} per round."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, display: "flex", flexDirection: "column", gap: 3 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F431} Cats"), ". stronger cats with traits boost your score"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F4DC} Scrolls"), ". level up hand types for bigger base scores"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F6E1}\uFE0F Wards"), ". passive bonuses that trigger every play")), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, padding: "6px 10px", borderRadius: 6, background: "#ffffff06", border: "1px solid #ffffff0a" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24bb" } }, "\u{1F4A1} ", /* @__PURE__ */ React.createElement("b", null, "Season Devotion"), ": Play cats of one season to make that season stronger. Check progress in the Upgrades tab.")), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setSeen((s) => ({ ...s, shop: true })), style: { fontSize: 11, background: "linear-gradient(135deg,#fbbf24,#f59e0b)", border: "none", borderRadius: 5, color: "#0a0a1a", cursor: "pointer", padding: "5px 16px", fontWeight: 700 } }, "Got it"))), !isFirstRun && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", padding: "10px 12px", borderRadius: 10, background: "linear-gradient(145deg,#4ade800a,#4ade8004)", border: "1px solid #4ade8033", animation: "fadeIn .4s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#4ade80", fontWeight: 700, letterSpacing: 2 } }, "\u2694\uFE0F TRAINING GROUNDS"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80aa", lineHeight: 1.5, marginTop: 2 } }, gold >= 6 ? "The colony gathers. 3 cats push themselves harder. +1 Power each." : "Not enough rations. The colony rests.")), /* @__PURE__ */ React.createElement("button", { onClick: () => { const ac2 = [...hand, ...draw, ...disc]; const targets = shuf(ac2).slice(0, 3); targets.forEach((t) => { [setHand, setDraw, setDisc].forEach((s) => { s((arr) => arr.map((x) => x.id === t.id ? { ...x, power: x.power + 1 } : x)); }); }); setGold((g) => g - 6); toast("\u2694\uFE0F", `${targets.map((t) => t.name.split(" ")[0]).join(", ")} trained. +1P each.`, "#4ade80"); }, disabled: gold < 6, style: { ...BTN(gold >= 6 ? "linear-gradient(135deg,#4ade80,#22c55e)" : "#1a1a2e", gold >= 6 ? "#0a0a1a" : "#444", gold >= 6), padding: "10px 20px", fontSize: 13, fontWeight: 900, border: `1px solid ${gold >= 6 ? "#4ade8066" : "#222"}`, minWidth: 100, letterSpacing: 1 } }, "6\u{1F41F} Train"))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 0, width: "100%", borderBottom: "1px solid #ffffff0a" } }, [["cats", "\u{1F431} Cats"], ["upgrades", "\u26A1 Upgrades"], ["colony", "\u{1F465} Colony"]].map(([id, label]) => {
         const isNudge = id === "upgrades" && shopTab !== "upgrades" && ((sFams.some((f) => f._starter) || sScrolls.length > 0) && fams.length === 0) || id === "upgrades" && shopTab !== "upgrades" && isFirstRun && fams.length === 0;
         return /* @__PURE__ */ React.createElement("button", { key: id, onClick: () => {
           setShopTab(id);
@@ -11708,7 +11789,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
           cursor: can ? "pointer" : "default",
           opacity: can ? 1 : 0.4,
           transition: "all .15s"
-        } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#fbbf24" } }, s.name), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: can ? "#fbbf24" : "#555", fontWeight: 700 } }, s.price, "\u{1F41F}")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888", marginTop: 3 } }, "Lv", s.lv, " ", "\u2192", " Lv", s.nextLv, s.nextBase && /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80" } }, " (", s.nextBase.c, "C \xD7 ", s.nextBase.m, "M)")));
+        } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#fbbf24" } }, s.name), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: can ? "#fbbf24" : "#555", fontWeight: 700 } }, s.price, "\u{1F41F}")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888", marginTop: 3 } }, "Lv", s.lv, " ", "\u2192", " Lv", s.nextLv, s.nextBase && /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80" } }, " (", s.nextBase.c, "P + ", s.nextBase.m, "B)")));
       }))), /* @__PURE__ */ React.createElement("div", { style: { borderTop: "1px solid #ffffff0a", paddingTop: 8, marginBottom: 8 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888", letterSpacing: 2, marginBottom: 4 } }, "HAND LEVELS"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, flexWrap: "wrap" } }, HT.filter((h) => !h.hidden).map((h) => {
         const lv = getHtLevel(h.name, htLevels);
         const sc = getHtScaled(h, lv);
@@ -11846,8 +11927,8 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
                           setTimeout(() => setScoreShake(0), 300);
                           setScoringFlash(s2.xMult >= 1.5 ? "#fef08a" : "#fbbf24");
                           setTimeout(() => setScoringFlash(null), 150);
-                          setMultPop({ val: s2.xMult, label: s2.label, mode: "xmult" });
-                          setTimeout(() => setMultPop(null), 1200);
+                          // multPop removed
+                          // multPop removed
                         } else if (s2.type === "hand") {
                           Audio.comboHit();
                           setScoringFlash("#fbbf24");
@@ -12069,7 +12150,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
       background: n.color + "11",
       border: `1px solid ${n.color}33`,
       animation: "fadeIn .4s ease-out"
-    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 14 } }, n.icon), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: n.color, fontWeight: 700 } }, n.text))), /* @__PURE__ */ React.createElement("button", { onClick: () => setDenNews([]), style: { background: "none", border: "none", color: "#666", fontSize: 10, cursor: "pointer", padding: "2px 4px" } }, "\u2715")), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: "0 16px", zIndex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { height: 6, background: "#1a1a2e", borderRadius: 3, overflow: "hidden", border: "1px solid #ffffff08" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${Math.min(100, rScore / tgt * 100)}%`, background: isNL ? "linear-gradient(90deg,#b85c2c,#f59e0b,#fef08a,#ffffffcc)" : rScore >= tgt ? "linear-gradient(90deg,#4ade80,#4ade80cc)" : "linear-gradient(90deg,#fbbf24,#4ade80)", borderRadius: 3, transition: "width .5s cubic-bezier(.34,1.56,.64,1)" } }))), ph === "scoring" && sRes && /* @__PURE__ */ React.createElement("div", { onClick: scoringDone ? advanceFromScoring : skipScoring, style: {
+    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 14 } }, n.icon), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: n.color, fontWeight: 700 } }, n.text))), /* @__PURE__ */ React.createElement("button", { onClick: () => setDenNews([]), style: { background: "none", border: "none", color: "#666", fontSize: 10, cursor: "pointer", padding: "2px 4px" } }, "\u2715")), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: "0 16px", zIndex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { height: 6, background: "#1a1a2e", borderRadius: 3, overflow: "hidden", border: "1px solid #ffffff08" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${Math.min(100, rScore / tgt * 100)}%`, background: isNL ? "linear-gradient(90deg,#b85c2c,#f59e0b,#fef08a,#ffffffcc)" : rScore >= tgt ? "linear-gradient(90deg,#4ade80,#4ade80cc)" : "linear-gradient(90deg,#fbbf24,#4ade80)", borderRadius: 3, transition: "width .5s cubic-bezier(.34,1.56,.64,1)" } }))), ph === "scoring" && sRes && /* @__PURE__ */ React.createElement("div", { onClick: scoringDone ? advanceFromScoring : cascadeSpeed >= 4 ? skipScoring : () => setCascadeSpeed(4), style: {
       cursor: "pointer",
       position: "fixed",
       inset: 0,
@@ -12083,17 +12164,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
       gap: 0,
       willChange: "transform",
       animation: scoreShake > 0 ? `bigShake ${0.2 + scoreShake * 0.08}s ease` : "none"
-    } }, scoringFlash && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", inset: 0, background: `radial-gradient(circle at 50% 50%, ${scoringFlash}15, ${scoringFlash}08, transparent 70%)`, opacity: 1, pointerEvents: "none", transition: "opacity .2s", zIndex: 101, animation: "flash .4s ease-out" } }), multPop && multPop.mode === "xmult" && (() => {
-      const srcColor = multPop.label.includes("Bond") ? "#4ade80" : multPop.label.includes("Morale") || multPop.label.includes("Blazing") || multPop.label.includes("Fury") || multPop.label.includes("NINTH") || multPop.label.includes("Undying") || multPop.label.includes("Defiant") || multPop.label.includes("Burning") || multPop.label.includes("Cornered") ? "#fb923c" : multPop.label.includes("Phoenix") || multPop.label.includes("Eternal") ? "#fef08a" : multPop.label.includes("Chimera") ? "#c084fc" : multPop.label.includes("Alpha") ? "#60a5fa" : multPop.label.includes("Scarred") ? "#fb923c" : "#fbbf24";
-      return /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: "12%", left: 0, right: 0, zIndex: 102, pointerEvents: "none", textAlign: "center", animation: "multFlash .7s ease-out forwards" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, color: srcColor, letterSpacing: 3, fontWeight: 700, marginBottom: 8, textShadow: `0 0 20px ${srcColor}44` } }, multPop.label), /* @__PURE__ */ React.createElement("div", { style: {
-        fontSize: multPop.val >= 2 ? 110 : multPop.val >= 1.5 ? 90 : 72,
-        fontWeight: 900,
-        color: multPop.val >= 2 ? "#fef08a" : "#fbbf24",
-        textShadow: `0 0 80px ${multPop.val >= 2 ? "#fef08a" : "#fbbf24"}bb, 0 0 160px ${multPop.val >= 2 ? "#fef08a" : "#fbbf24"}44, 0 6px 0 #00000088`,
-        letterSpacing: 12,
-        lineHeight: 1
-      } }, "\xD7", multPop.val));
-    })(), (() => {
+    } }, scoringFlash && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", inset: 0, background: `radial-gradient(circle at 50% 50%, ${scoringFlash}15, ${scoringFlash}08, transparent 70%)`, opacity: 1, pointerEvents: "none", transition: "opacity .2s", zIndex: 101, animation: "flash .4s ease-out" } }), false, (() => {
       const s = sStep >= 0 && sStep < sRes.bd.length ? sRes.bd[sStep] : null;
       const done = sStep >= sRes.bd.length - 1;
       const curTotal = done ? sRes.total : (runChips || 0) * Math.max(1, runMult || 0);
@@ -12114,7 +12185,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
           annotation = `Power ${s.chips || 0} \u2192 +${s.chips || 0} chips`;
         } else if ((t === "trait" || t === "scar") && !fcSeenRef.current.trait) {
           fcSeenRef.current.trait = true;
-          annotation = s.mult > 0 ? `Trait adds +${s.mult} mult` : "Traits stack on top of power";
+          annotation = s.mult > 0 ? `Trait adds +${s.mult} bonus` : "Traits stack on top of power";
         } else if (t === "trait_rare" && !fcSeenRef.current.rare) {
           fcSeenRef.current.rare = true;
           annotation = "Rare traits MULTIPLY everything";
@@ -12123,32 +12194,36 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
           annotation = "Bonded pair \u2192 everything \xD7" + (s.xMult || 1.5);
         } else if (t === "nerve" && !fcSeenRef.current.nerve) {
           fcSeenRef.current.nerve = true;
-          annotation = `Morale ${NERVE[ferv]?.name} \u2192 all scores \xD7${NERVE[ferv]?.xM}`;
+          annotation = `Morale ${getNerve(ferv)?.name} \u2192 all scores \xD7${getNerve(ferv)?.xM}`;
         } else if (t === "grudge_tension" && !fcSeenRef.current.grudge) {
           fcSeenRef.current.grudge = true;
-          annotation = "Grudged cats lose bonus when played together";
+          annotation = "";
         } else if (t === "combo" && !fcSeenRef.current.combo) {
           fcSeenRef.current.combo = true;
-          annotation = "Hidden power combo! Bonus on top of your hand.";
+          annotation = "Power combo: same-power cats stack bonus on top of your season hand.";
+        } else if (t === "surge" && !fcSeenRef.current.surge) {
+          fcSeenRef.current.surge = true;
+          annotation = "Trait multiplier! Rare traits multiply your entire score.";
         }
       }
       const hasX = s && !!s.xMult;
-      const counterColor = done ? tier?.color || "#e8e6e3" : !s ? "#e8e6e3" : hasX ? "#fef08a" : s.type === "hand" || s.type === "combo" || s.type === "nerve" || s.type === "fam" ? "#fbbf24" : s.type === "bond" || s.type === "lineage" || s.type === "grudge_prove" ? "#4ade80" : s.type === "grudge_tension" || s.type === "curse" || s.mult < 0 ? "#ef4444" : s.type === "cat" || s.type === "trait" || s.type === "scar" ? "#60a5fa" : s.type === "wild" || s.type === "prestige" ? "#fef08a" : s.type === "laststand" ? "#ef4444" : s.chips && !s.mult ? "#60a5fa" : "#e8e6e3";
+      const counterColor = done ? tier?.color || "#e8e6e3" : !s ? "#e8e6e3" : hasX ? "#fef08a" : s.type === "surge" ? "#fef08a" : s.type === "surge" ? "#fef08a" : s.type === "combo" ? "#c084fc" : s.type === "hand" || s.type === "nerve" || s.type === "fam" ? "#fbbf24" : s.type === "bond" || s.type === "lineage" || s.type === "grudge_prove" ? "#4ade80" : s.type === "grudge_tension" || s.type === "curse" || s.mult < 0 ? "#ef4444" : s.type === "cat" || s.type === "trait" || s.type === "scar" ? "#60a5fa" : s.type === "wild" || s.type === "prestige" ? "#fef08a" : s.type === "laststand" ? "#ef4444" : s.chips && !s.mult ? "#60a5fa" : "#e8e6e3";
       const prevStepTotal = sStep > 0 && sStep < stepTotalsRef.length ? stepTotalsRef[sStep - 1]?.total ?? stepTotalsRef[sStep - 1] ?? 0 : 0;
       const curStepTotal = sStep >= 0 && sStep < stepTotalsRef.length ? stepTotalsRef[sStep]?.total ?? stepTotalsRef[sStep] ?? 0 : 0;
       const jumpPct = prevStepTotal > 0 ? (curStepTotal - prevStepTotal) / prevStepTotal : 0;
       const counterScale = done ? 1.1 : hasX ? s.xMult >= 2 ? 1.5 : s.xMult >= 1.5 ? 1.35 : 1.25 : jumpPct > 0.5 ? 1.22 : jumpPct > 0.2 ? 1.12 : s?.isBigCat ? 1.1 : 1;
       const pools = {
         bond: ["Love multiplies.", "Together, more.", "The bond holds.", "Stronger as one."],
-        lineage: ["Blood remembers.", "Family fights harder.", "Generations deep."],
+        lineage: ["Blood remembers.", "Family fights harder.", "Generations deep.", "Parent and child. Together.", "They fight for each other."],
         grudge_prove: ["Something to prove.", "Rage is fuel.", "They'll show them.", "Spite burns bright."],
         grudge_tension: ["Old wounds fester.", "They can't focus.", "History weighs."],
-        nerve: NERVE[ferv]?.desc ? [NERVE[ferv].desc] : [],
+        nerve: getNerve(ferv)?.desc ? [getNerve(ferv).desc] : [],
         fam: ["A ward watches.", "Silent guardian."],
         cat: ["Holding the line.", "Every cat counts.", "Power adds to your score.", "They add up."],
         trait: ["Instinct kicks in.", "Bred for this.", "It's in their nature.", "Training pays off."],
         trait_rare: ["Power compounds.", "The engine roars.", "It keeps stacking.", "Transcendent."],
         scar: ["What doesn't kill\u2026", "Battle-hardened.", "Scars are armor.", "Earned, not given."],
+        surge: ["Everything multiplies.", "The colony transcends.", "Beyond what the dark expected.", "This changes everything.", "Numbers don't lie."],
         curse: ["The dark pushes back.", "A price paid."],
         gold: ["Fortune favors them."],
         provider: ["Resourceful."],
@@ -12167,12 +12242,13 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
         else if (s.type === "trait") pool = pools.trait;
         else if (s.type === "trait_rare") pool = pools.trait_rare;
         else if (s.type === "scar") pool = pools.scar;
+        else if (s.type === "surge") pool = pools.surge;
         else if (s.type === "curse") pool = pools.curse;
         else if (s.type === "gold") pool = pools.gold;
         else if (s.type === "provider") pool = pools.provider;
       }
       const flavor = pool && pool.length > 0 ? pool[sStep % pool.length] : null;
-      const stepColor = !s ? "#888" : s.type === "hand" || s.type === "combo" || s.type === "nerve" || s.type === "gold" || s.type === "xp_rank" || s.type === "fam" ? "#fbbf24" : s.type === "cat" || s.type === "trait" || s.type === "trait_rare" || s.type === "scar" ? "#60a5fa" : s.type === "bond" || s.type === "lineage" || s.type === "grudge_prove" || s.type === "provider" ? "#4ade80" : s.type === "wild" ? "#fef08a" : s.type === "laststand" ? "#ef4444" : s.type === "grudge_tension" || s.type === "boss_trait" || s.type === "curse" || s.mult < 0 ? "#ef4444" : "#888";
+      const stepColor = !s ? "#888" : s.type === "combo" ? "#c084fc" : s.type === "hand" || s.type === "nerve" || s.type === "gold" || s.type === "xp_rank" || s.type === "fam" ? "#fbbf24" : s.type === "cat" || s.type === "trait" || s.type === "trait_rare" || s.type === "scar" ? "#60a5fa" : s.type === "bond" || s.type === "lineage" || s.type === "grudge_prove" || s.type === "provider" ? "#4ade80" : s.type === "wild" ? "#fef08a" : s.type === "laststand" ? "#ef4444" : s.type === "grudge_tension" || s.type === "boss_trait" || s.type === "curse" || s.mult < 0 ? "#ef4444" : "#888";
       return /* @__PURE__ */ React.createElement("div", { style: {
         display: "flex",
         flexDirection: "column",
@@ -12207,8 +12283,8 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
           fontSize: done ? 14 : isReveal ? 26 : 20,
           fontWeight: 900,
           letterSpacing: done ? 3 : isReveal ? 10 : 6,
-          color: anyDisc ? "#c084fc" : sRes.bd.some((b) => b.type === "nerve") ? NERVE[ferv].color : "#fbbf24",
-          textShadow: `0 0 ${isReveal ? 40 : 20}px ${anyDisc ? "#c084fc" : sRes.bd.some((b) => b.type === "nerve") ? NERVE[ferv].color : "#fbbf24"}${isReveal ? "77" : "44"}`,
+          color: anyDisc ? "#c084fc" : sRes.bd.some((b) => b.type === "nerve") ? getNerve(ferv).color : "#fbbf24",
+          textShadow: `0 0 ${isReveal ? 40 : 20}px ${anyDisc ? "#c084fc" : sRes.bd.some((b) => b.type === "nerve") ? getNerve(ferv).color : "#fbbf24"}${isReveal ? "77" : "44"}`,
           transition: "font-size .3s, letter-spacing .3s",
           opacity: done ? 0.6 : 1,
           animation: isReveal ? "comboBurst .6s ease-out" : anyDisc ? "newBestPop .6s ease-out" : "none"
@@ -12300,7 +12376,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
     })(), /* @__PURE__ */ React.createElement("div", { style: { height: scoringDone ? 8 : 16 } }), !scoringDone && sStep >= 2 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff55", letterSpacing: 2, animation: "fadeIn 1.5s ease-out" } }, "TAP TO SKIP \u23ED"), scoringDone && /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
       e.stopPropagation();
       advanceFromScoring();
-    }, style: { background: "linear-gradient(135deg,#fbbf24,#f59e0b)", color: "#0a0a1a", border: "none", borderRadius: 10, padding: "10px 32px", fontSize: 13, fontWeight: 700, cursor: "pointer", letterSpacing: 1, boxShadow: "0 0 24px #fbbf2444", animation: "fadeIn .3s ease-out" } }, "Continue"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: mob ? 4 : 8, justifyContent: "center", alignItems: "flex-start", padding: "4px 8px", flexWrap: "wrap", maxWidth: "100%", opacity: sStep < 0 ? 0 : 1, transition: "opacity .3s", animation: sStep === 0 ? "fadeIn .4s ease-out" : "none" } }, scoringCats.map((cat2, ci) => {
+    }, style: { background: "linear-gradient(135deg,#fbbf24,#f59e0b)", color: "#0a0a1a", border: "none", borderRadius: 10, padding: "10px 32px", fontSize: 13, fontWeight: 700, cursor: "pointer", letterSpacing: 1, boxShadow: "0 0 24px #fbbf2444", animation: "fadeIn .3s ease-out" } }, "Continue"), !scoringDone && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: cascadeSpeed >= 4 ? "#fbbf2488" : "#ffffff33", letterSpacing: 2, animation: "fadeIn .3s ease-out", textAlign: "center" } }, cascadeSpeed >= 4 ? "\u25B6\u25B6 tap to skip" : "tap to speed up"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: mob ? 4 : 8, justifyContent: "center", alignItems: "flex-start", padding: "4px 8px", flexWrap: "wrap", maxWidth: "100%", opacity: sStep < 0 ? 0 : 1, transition: "opacity .3s", animation: sStep === 0 ? "fadeIn .4s ease-out" : "none" } }, scoringCats.map((cat2, ci) => {
       const curStep = sStep >= 0 && sStep < sRes.bd.length ? sRes.bd[sStep] : null;
       const mySteps = sRes.bd.filter((s, si) => s.catIdx === ci && si <= sStep);
       const isActive = curStep?.catIdx === ci;
@@ -12310,21 +12386,23 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
       const totalC = mySteps.reduce((a, s) => a + (s.chips || 0), 0);
       const totalM = mySteps.reduce((a, s) => a + (s.mult || 0), 0);
       const xVals = mySteps.filter((s) => s.xMult).map((s) => s.xMult);
-      const hlColor = isActive ? "#fbbf24" : isInvolved ? curStep.type === "hand" ? "#fbbf24" : curStep.type === "bond" ? "#4ade80" : curStep.type === "grudge_tension" ? "#ef4444" : curStep.type === "combo" ? "#c084fc" : curStep.type === "bench" ? "#67e8f9" : curStep.type === "nerve" ? NERVE[ferv].color || "#fbbf24" : "#fbbf24" : null;
-      return /* @__PURE__ */ React.createElement("div", { key: cat2.id, style: {
+      const isRetrigger = isActive && activeStep?.label?.includes("\u21BB");
+      const hlColor = isRetrigger ? "#c084fc" : isActive ? "#fbbf24" : isInvolved ? curStep.type === "hand" ? "#fbbf24" : curStep.type === "bond" ? "#4ade80" : curStep.type === "grudge_tension" ? "#ef4444" : curStep.type === "combo" ? "#c084fc" : curStep.type === "bench" ? "#67e8f9" : curStep.type === "nerve" ? getNerve(ferv).color || "#fbbf24" : "#fbbf24" : null;
+      return /* @__PURE__ */ React.createElement("div", { key: cat2.id, onClick: (e) => { e.stopPropagation(); setTraitTip(cat2); }, style: {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         gap: 2,
-        transform: isActive ? "scale(1.1)" : isInvolved ? "scale(1.04)" : "scale(1)",
+        cursor: "pointer",
+        transform: isActive ? (activeStep?.hasEpithet ? "scale(1.15)" : "scale(1.1)") : isInvolved ? "scale(1.04)" : "scale(1)",
         transition: "transform .25s ease, opacity .3s",
-        animation: isActive ? "cardSquash .25s ease-out" : "none",
+        animation: isActive ? (activeStep?.label?.includes("\u21BB") ? "scorePop .4s ease-out" : activeStep?.hasEpithet ? "cardSquash .25s ease-out, float 2s ease-in-out infinite" : "cardSquash .25s ease-out") : "none",
         opacity: isActive ? 1 : isInvolved ? 0.95 : hasFired ? 0.65 : 0.12,
         flexShrink: 0
-      } }, /* @__PURE__ */ React.createElement("div", { style: { position: "relative" } }, /* @__PURE__ */ React.createElement(CC, { cat: cat2, sel: isActive || isInvolved, hl: hasFired && !isActive && !isInvolved, sm: scoringCats.length > 4, cw: vw < 500 ? 56 : void 0 }), (isActive || isInvolved) && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", inset: -3, borderRadius: 14, border: `2px solid ${hlColor}`, boxShadow: `0 0 ${isActive ? 20 : 12}px ${hlColor}66,0 0 ${isActive ? 40 : 20}px ${hlColor}22`, pointerEvents: "none", animation: isActive ? "glow 1s ease infinite" : "none" } })), /* @__PURE__ */ React.createElement("div", { style: { minHeight: 20, display: "flex", flexDirection: "column", alignItems: "center", gap: 0 } }, hasFired && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, alignItems: "center", animation: isActive ? "countUp .3s ease-out" : "none" } }, totalC !== 0 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: "#3b82f6", fontWeight: 700 } }, totalC > 0 ? "+" : "", totalC), totalM !== 0 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: "#ef4444", fontWeight: 800 } }, totalM > 0 ? "+" : "", totalM)), xVals.map((x, xi) => /* @__PURE__ */ React.createElement("span", { key: xi, style: { fontSize: 14, color: "#fbbf24", fontWeight: 900, animation: "scorePop .3s ease", textShadow: "0 0 10px #fbbf2466" } }, "\xD7", x))), isActive && activeStep?.reason && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff66", textAlign: "center", maxWidth: 100, lineHeight: 1.3, animation: "fadeIn .2s ease-out" } }, activeStep.reason));
-    })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center", maxWidth: 400, marginTop: 4 } }, sRes.bd.slice(0, sStep + 1).filter((s) => s.catIdx === void 0 && s.type !== "hand" && s.type !== "combo" && s.type !== "boss_trait").map((s, i) => {
+      } }, /* @__PURE__ */ React.createElement("div", { style: { position: "relative" } }, /* @__PURE__ */ React.createElement(CC, { cat: cat2, sel: isActive || isInvolved, hl: hasFired && !isActive && !isInvolved, sm: scoringCats.length > 4, cw: vw < 500 ? 56 : void 0 }), (isActive || isInvolved) && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", inset: -3, borderRadius: 14, border: `2px solid ${hlColor}`, boxShadow: `0 0 ${isActive && activeStep?.hasEpithet ? 30 : isActive ? 20 : 12}px ${isActive && activeStep?.hasEpithet ? "#fbbf24" : hlColor}66,0 0 ${isActive && activeStep?.hasEpithet ? 60 : isActive ? 40 : 20}px ${hlColor}22`, pointerEvents: "none", animation: isActive ? "glow 1s ease infinite" : "none" } })), /* @__PURE__ */ React.createElement("div", { style: { minHeight: 20, display: "flex", flexDirection: "column", alignItems: "center", gap: 0 } }, hasFired && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, alignItems: "center", animation: isActive ? "countUp .3s ease-out" : "none" } }, totalC !== 0 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: "#3b82f6", fontWeight: 700 } }, totalC > 0 ? "+" : "", totalC), totalM !== 0 && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: "#ef4444", fontWeight: 800 } }, totalM > 0 ? "+" : "", totalM)), xVals.map((x, xi) => /* @__PURE__ */ React.createElement("span", { key: xi, style: { fontSize: 14, color: "#fbbf24", fontWeight: 900, animation: "scorePop .3s ease", textShadow: "0 0 10px #fbbf2466" } }, "\xD7", x))), isActive && activeStep?.reason && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff66", textAlign: "center", maxWidth: 100, lineHeight: 1.3, animation: "fadeIn .2s ease-out" } }, activeStep.reason));
+    })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center", maxWidth: 400, marginTop: 4 } }, sRes.bd.slice(0, sStep + 1).filter((s) => (s.catIdx === void 0 || s.type === "surge") && s.type !== "hand" && s.type !== "combo" && s.type !== "boss_trait").map((s, i) => {
       const isCurrentStep = sRes.bd.indexOf(s) === sStep;
-      const color = s.type === "nerve" ? "#fbbf24" : s.type === "bond" || s.type === "lineage" || s.type === "grudge_prove" ? "#4ade80" : s.type === "grudge_tension" ? "#ef4444" : s.type === "fam" || s.type === "devotion" ? "#fbbf24" : "#888";
+      const color = s.type === "surge" ? "#fef08a" : s.type === "nerve" ? "#fbbf24" : s.type === "bond" || s.type === "lineage" || s.type === "grudge_prove" ? "#4ade80" : s.type === "grudge_tension" ? "#ef4444" : s.type === "fam" || s.type === "devotion" ? "#fbbf24" : "#888";
       return /* @__PURE__ */ React.createElement("div", { key: i, style: {
         display: "flex",
         gap: 4,
@@ -12337,7 +12415,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
         border: `1px solid ${color}33`,
         transform: isCurrentStep ? "scale(1.05)" : "scale(1)",
         transition: "all .15s"
-      } }, /* @__PURE__ */ React.createElement("span", { style: { color, fontWeight: 700 } }, s.label), s.xMult && /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24", fontWeight: 900, fontSize: isCurrentStep ? 14 : 11 } }, "\xD7", s.xMult), !s.xMult && s.mult > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444", fontWeight: 700 } }, "+", s.mult, "M"), !s.xMult && s.mult < 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444", fontWeight: 700 } }, s.mult, "M"), s.chips > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#3b82f6", fontWeight: 700 } }, "+", s.chips, "C"));
+      } }, /* @__PURE__ */ React.createElement("span", { style: { color, fontWeight: 700 } }, s.label), s.xMult && /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24", fontWeight: 900, fontSize: isCurrentStep ? 14 : 11 } }, "\xD7", s.xMult), !s.xMult && s.mult > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444", fontWeight: 700 } }, "+", s.mult, "B"), !s.xMult && s.mult < 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444", fontWeight: 700 } }, s.mult, "B"), s.chips > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#3b82f6", fontWeight: 700 } }, "+", s.chips, "P"));
     })), sStep >= sRes.bd.length - 1 && aftermath.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 3, alignItems: "center", marginTop: 2, padding: "6px 12px", borderRadius: 8, background: "#ffffff06", border: "1px solid #ffffff0a" } }, aftermath.slice(0, mob ? 2 : 5).map((a, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: {
       fontSize: 10,
       color: a.color,
@@ -12403,7 +12481,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
     })(), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4, marginTop: 8 } }, traitTip.epithet && (() => {
       const epDef = traitTip.epithetKey ? Object.values(EPITHETS).find((e) => e.key === traitTip.epithetKey) : null;
       return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24", textAlign: "center", lineHeight: 1.6 } }, "\u{1F3F7}\uFE0F ", /* @__PURE__ */ React.createElement("b", null, '"', traitTip.epithet, '"'), epDef?.desc ? /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24aa" } }, ": ", epDef.desc) : "", epDef?.flavor && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf2466", fontStyle: "italic", marginTop: 2 } }, '"', epDef.flavor, '"'), (traitTip.earnedEpithets || []).length > 0 && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 4, fontSize: 10, color: "#ffffff55" } }, traitTip.earnedEpithets.map((e, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { marginRight: 6 } }, "\u25CB ", e.title))));
-    })(), traitTip.bondedTo && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#f472b6", textAlign: "center" } }, "\u{1F495} Bonded. \xD71.5 bonus", traitTip.epithetKey === "bonded" ? " (+2 from epithet)" : "", ", \xD71.25 for second pair"), (traitTip.grudgedWith || []).length > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fb923c", textAlign: "center" } }, "\u26A1 ", (traitTip.grudgedWith || []).length, " Grudge", (traitTip.grudgedWith || []).length > 1 ? "s" : "", ". 75% tension / 25% prove per pair"), traitTip.epithetKey === "grudgeResolved" && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#4ade80", textAlign: "center" } }, "\u{1F54A}\uFE0F Immune to future grudges"), traitTip.scarred && !traitTip.injured && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24", textAlign: "center" } }, "\u2694 Battle-Hardened. \xD71.25 bonus"), traitTip.injured && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444", textAlign: "center" } }, "\u{1FA79} Injured. Half power. Permanent until healed by traits, upgrades, or den."), traitTip._hearthChild && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24aa", textAlign: "center" } }, "\u{1F525} Hearth Legend. Cannot be saved back.")), (traitTip.story || []).length > 0 && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 10, padding: "8px 12px", borderRadius: 8, background: "#ffffff04", border: "1px solid #ffffff08" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", letterSpacing: 2, marginBottom: 4 } }, "STORY"), (traitTip.story || []).slice(-3).map((s, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { fontSize: 11, color: "#999", lineHeight: 1.5 } }, s))), traitTip.stats && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, padding: "8px 12px", borderRadius: 8, background: "#ffffff04", border: "1px solid #ffffff08" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", letterSpacing: 2, marginBottom: 4 } }, "BIOGRAPHY"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 2, fontSize: 11, color: "#999", lineHeight: 1.5 } }, traitTip.stats.tp > 0 && /* @__PURE__ */ React.createElement("div", null, "Played ", traitTip.stats.tp, " hand", traitTip.stats.tp > 1 ? "s" : "", ". ", traitTip.stats.bs > 0 ? `Best: ${traitTip.stats.bs.toLocaleString()}.` : ""), traitTip.stats.tp === 0 && /* @__PURE__ */ React.createElement("div", { style: { color: "#666", fontStyle: "italic" } }, "Hasn't played a hand yet. Waiting for a chance."), traitTip.bondedTo && (() => {
+    })(), traitTip.bondedTo && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#f472b6", textAlign: "center" } }, "\u{1F495} Bonded. \xD71.5 bonus", traitTip.epithetKey === "bonded" ? " (+2 from epithet)" : "", ", \xD71.25 for second pair"), traitTip.epithetKey === "grudgeResolved" && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#4ade80", textAlign: "center" } }, "\u{1F54A}\uFE0F Immune to future grudges"), traitTip.scarred && !traitTip.injured && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24", textAlign: "center" } }, "\u2694 Battle-Hardened. \xD71.25 bonus"), traitTip.injured && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444", textAlign: "center" } }, "\u{1FA79} Injured. Half power. Permanent until healed by traits, upgrades, or den."), traitTip._hearthChild && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24aa", textAlign: "center" } }, "\u{1F525} Hearth Legend. Cannot be saved back.")), (traitTip.story || []).length > 0 && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 10, padding: "8px 12px", borderRadius: 8, background: "#ffffff04", border: "1px solid #ffffff08" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", letterSpacing: 2, marginBottom: 4 } }, "STORY"), (traitTip.story || []).slice(-3).map((s, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { fontSize: 11, color: "#999", lineHeight: 1.5 } }, s))), traitTip.stats && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, padding: "8px 12px", borderRadius: 8, background: "#ffffff04", border: "1px solid #ffffff08" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", letterSpacing: 2, marginBottom: 4 } }, "BIOGRAPHY"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 2, fontSize: 11, color: "#999", lineHeight: 1.5 } }, traitTip.stats.tp > 0 && /* @__PURE__ */ React.createElement("div", null, "Played ", traitTip.stats.tp, " hand", traitTip.stats.tp > 1 ? "s" : "", ". ", traitTip.stats.bs > 0 ? `Best: ${traitTip.stats.bs.toLocaleString()}.` : ""), traitTip.stats.tp === 0 && /* @__PURE__ */ React.createElement("div", { style: { color: "#666", fontStyle: "italic" } }, "Hasn't played a hand yet. Waiting for a chance."), traitTip.bondedTo && (() => {
       const mate = allC.find((c) => c.id === traitTip.bondedTo);
       return mate ? /* @__PURE__ */ React.createElement("div", { style: { color: "#f472b6" } }, "Bonded to ", mate.name.split(" ")[0], ".") : null;
     })(), traitTip._mateDied && /* @__PURE__ */ React.createElement("div", { style: { color: "#ef4444" } }, "Lost their partner. Carries the weight."), traitTip.scarred && /* @__PURE__ */ React.createElement("div", { style: { color: "#fbbf24" } }, "Carries a scar. The colony remembers how."), traitTip._bornNight && /* @__PURE__ */ React.createElement("div", { style: { color: "#c084fc" } }, "Born Night ", traitTip._bornNight, ". ", traitTip._hearthParents ? "Child of " + traitTip._hearthParents + "." : "Grew up in the dark."), traitTip.hearthDescendant && /* @__PURE__ */ React.createElement("div", { style: { color: "#fbbf24aa" } }, "Descended from the Hearth. The bloodline continues."), traitTip.epithet && /* @__PURE__ */ React.createElement("div", { style: { color: "#fbbf24" } }, 'Earned the title "', traitTip.epithet, '."'), (traitTip.earnedEpithets || []).length > 1 && /* @__PURE__ */ React.createElement("div", { style: { color: "#666" } }, "Also qualified for: ", traitTip.earnedEpithets.filter((e) => (e.key || e) !== traitTip.epithetKey).map((e) => {
@@ -12454,7 +12532,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
       const ubActive = getMB().bondBoost || 0;
       const bondPairXM = bondPairCount >= 2 ? ubActive ? 1.75 * 1.4 : 1.5 * 1.25 : bondPairCount >= 1 ? ubActive ? 1.75 : 1.5 : 1;
       const focusPreview = selC.length >= 1 && selC.length <= 4 ? [0, 1.5, 1.3, 1.2, 1.1][selC.length] : 1;
-      const sig = (baseC + catPow + 0) * (baseM + traitCount * 2) * Math.max(1, NERVE[ferv].xM) * scarredXM * bondPairXM * focusPreview;
+      const sig = (baseC + catPow + 0) * (baseM + traitCount * 2) * Math.max(1, getNerve(ferv).xM) * scarredXM * bondPairXM * focusPreview;
       const tgt2 = eTgt();
       const need = Math.max(0, tgt2 - rScore);
       const pacePerHand = hLeft > 0 ? need / hLeft : need;
@@ -12477,7 +12555,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
         const injured = selC.filter((c) => c.injured);
         if (injured.length) warnings.push({ icon: "\u{1FA79}", text: `${injured.map((c) => c.name.split(" ")[0]).join(", ")} injured (half power)`, color: "#ef4444" });
         const grudgePairs = getGrudges(selC);
-        if (grudgePairs.length) warnings.push({ icon: "\u26A1", text: `${grudgePairs.map(([a, b]) => a.name.split(" ")[0] + "+" + b.name.split(" ")[0]).join(", ")} grudge (\u22122M)`, color: "#fb923c" });
+
         const cursedNotAlone = selC.filter((c) => catHas(c, "Cursed") && selC.some((x) => x.id !== c.id && getCatBreeds(x).some((b) => getCatBreeds(c).includes(b))));
         if (cursedNotAlone.length) warnings.push({ icon: "\u{1F480}", text: `${cursedNotAlone[0].name.split(" ")[0]} Cursed, not alone (penalty)`, color: "#ef4444" });
         return warnings.length > 0 ? /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 1 } }, warnings.map((w, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { fontSize: 10, color: w.color } }, w.icon, " ", w.text))) : null;
@@ -12602,7 +12680,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
     })(), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: mob ? 12 : 8, padding: mob ? "10px 8px calc(10px + env(safe-area-inset-bottom, 0px))" : "8px", zIndex: 10, alignItems: "center", position: mob ? "sticky" : "static", bottom: mob ? 0 : "auto", background: mob ? "#0a0a1aee" : "transparent", borderTop: mob ? "1px solid #ffffff0a" : "none", justifyContent: "center" } }, ph === "playing" && hLeft <= 0 && rScore < tgt ? /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => endRun(false, rScore), style: { ...BTN("linear-gradient(135deg,#ef4444,#dc2626)", "#fff"), padding: mob ? "12px 24px" : "10px 20px", fontSize: 14, animation: "fpp 1.5s ease infinite" } }, "Face the Dark"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef4444bb", marginTop: 4 } }, rScore > 0 ? `${rScore.toLocaleString()} scored. ${Math.max(0, tgt - rScore).toLocaleString()} short.` : "No hands remaining")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, runCount >= 1 ? (() => {
       const cost = recruitCost();
       const canRecruit = ph === "playing" && !autoPlay && gold >= cost && (draw.length > 0 || disc.length > 0);
-      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: recruitCat, disabled: !canRecruit, style: { ...BTN(canRecruit ? "#1a2e1a" : "#111", canRecruit ? "#4ade80" : "#444", canRecruit), border: `1px solid ${canRecruit ? "#4ade8044" : "#222"}`, minWidth: mob ? 56 : 50, padding: mob ? "10px 10px" : "8px 10px", fontSize: 10 } }, "+1 Cat"), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u{1F431}", "Recruit: draw an extra cat into your hand. Cost doubles each time (1\u21922\u21924\u21928\u{1F41F}). More cats = better hands. Unplayed cats with traits give passive bonuses.", "#4ade80", 5500), style: { fontSize: 10, color: cost === 0 ? "#4ade80" : gold >= cost ? "#fbbf24" : "#ef4444", marginTop: 2, cursor: "help" } }, cost === 0 ? "Free!" : cost + "\u{1F41F}"));
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: recruitCat, disabled: !canRecruit, style: { ...BTN(canRecruit ? "linear-gradient(135deg,#1a2e1a,#0d1a0d)" : "#111", canRecruit ? "#4ade80" : "#444", canRecruit), border: `1.5px solid ${canRecruit ? "#4ade8066" : "#222"}`, minWidth: mob ? 70 : 65, padding: mob ? "12px 14px" : "10px 14px", fontSize: 13, fontWeight: 900, letterSpacing: 1, boxShadow: canRecruit ? "0 0 12px #4ade8022" : "none", animation: canRecruit && cost === 0 ? "breathe 1.5s ease-in-out infinite" : "none" } }, "\u{1F431} +1 Cat"), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u{1F431}", "Recruit: draw an extra cat into your hand. Cost doubles each time (1\u21922\u21924\u21928\u{1F41F}). More cats = better hands + bench bonuses.", "#4ade80", 4e3), style: { fontSize: 11, color: cost === 0 ? "#4ade80" : gold >= cost ? "#fbbf24" : "#ef4444", marginTop: 2, cursor: "help", fontWeight: 700 } }, cost === 0 ? "\u2728 Free!" : cost + "\u{1F41F}"));
     })() : null), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: discardH, disabled: !sel.size || (!cfx.fog && sel.size > MAX_DISCARD) || dLeft <= 0 || ph !== "playing" || cfx.noDisc, style: { ...BTN(sel.size && (cfx.fog || sel.size <= MAX_DISCARD) && dLeft > 0 && ph === "playing" && !cfx.noDisc ? "#1a1a2e" : "#111", sel.size && (cfx.fog || sel.size <= MAX_DISCARD) && dLeft > 0 && ph === "playing" && !cfx.noDisc ? "#ef4444" : "#444", sel.size > 0 && (cfx.fog || sel.size <= MAX_DISCARD) && dLeft > 0 && ph === "playing" && !cfx.noDisc), border: `1px solid ${sel.size && (cfx.fog || sel.size <= MAX_DISCARD) && dLeft > 0 && !cfx.noDisc ? "#ef444444" : "#222"}`, minWidth: mob ? 56 : 60, padding: mob ? "10px 10px" : "8px 14px" } }, "Discard", cfx.noDisc ? " \u{1F6AB}" : ""), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u267B\uFE0F", `Discard: swap up to ${MAX_DISCARD} selected cats for new draws. Free!`, "#ef4444"), style: { fontSize: 10, color: cfx.noDisc ? "#ef4444bb" : sel.size > MAX_DISCARD ? "#ef4444" : dLeft <= 0 ? "#ef4444" : "#888", marginTop: 2, cursor: "help" } }, cfx.noDisc ? "Disabled" : !cfx.fog && sel.size > MAX_DISCARD ? `Max ${MAX_DISCARD}` : `${dLeft} left`), dLeft > 0 && draw.length >= 1 && !cfx.fog && !mob && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, justifyContent: "center", marginTop: 2 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ffffff33" } }, "Next:"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, padding: "1px 5px", borderRadius: 3, background: BREEDS[draw[0].breed]?.color + "15", border: `1px solid ${BREEDS[draw[0].breed]?.color}22`, color: BREEDS[draw[0].breed]?.color || "#888" } }, BREEDS[draw[0].breed]?.icon, " P", draw[0].power)), sel.size > 0 && dLeft > 0 && !cfx.noDisc && ph === "playing" && (() => {
       const selCats2 = [...sel].map((i) => hand[i]).filter(Boolean);
       const hints = [];
@@ -12623,7 +12701,18 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
       if (cats.length < 1) return null;
       const preview2 = calcScore(cats, fams, ferv, cfx, { gold, deckSize: allC.length, discSize: disc.length, handSize: hs(), beatingPace: rScore >= tgt, bossTraitFx: [], scarMult: getMB().scarMult || 0, grudgeWisdom: getMB().grudgeWisdom || 0, hasMastery: !!getMB().xp, bondBoost: getMB().bondBoost || 0, comboBoost: getMB().comboBoost || 0, wildfireBonus: getMB().wildfireBonus || 0, doubleBench: getMB().doubleBench || 0, kindredMult: tempMods.kindredMult || 0, weatherSeason: weather?.season || null, nightModFx: nightMod?.fx || {}, lastHandIds, lastHandLost, lastHandType, htLevels, devotion, bench: hand.filter((c) => !cats.find((x) => x.id === c.id)), prestige: meta?.prestige || 0 });
       const htName = preview2.ht || "?";
-      return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf24aa", marginBottom: 2, letterSpacing: 1 } }, htName, " \xB7 ~", preview2.total.toLocaleString());
+      const pCombo = preview2.combo;
+      const pBonds = preview2.bd.filter((s) => s.type === "bond").length;
+      const pSurge = preview2.bd.filter((s) => s.type === "surge");
+      const pLineage = preview2.bd.filter((s) => s.type === "lineage").length;
+      const pNerve = preview2.bd.find((s) => s.type === "nerve");
+      const hints = [];
+      if (pCombo) hints.push("+" + pCombo);
+      if (pBonds > 0) hints.push("\u{1F495}\xD7" + (pBonds > 1 ? pBonds : ""));
+      if (pLineage > 0) hints.push("\u{1F46A}" + pLineage);
+      pSurge.forEach((s) => { if (s.xMult) hints.push("\xD7" + s.xMult); });
+      if (pNerve && pNerve.xMult > 1) hints.push("\u{1F525}\xD7" + pNerve.xMult);
+      return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf24aa", marginBottom: 2, letterSpacing: 1 } }, htName, hints.length > 0 ? " " + hints.join(" ") : "", " \xB7 ~", preview2.total.toLocaleString());
     })(), activeWild && ph === "playing" && !autoPlay && /* @__PURE__ */ React.createElement("button", { onClick: () => { toast(activeWild.icon, `${activeWild.name} is armed. Your next play will activate it!`, "#fef08a", 3e3); }, style: { padding: mob ? "8px 12px" : "6px 10px", borderRadius: 8, background: "linear-gradient(135deg, #fef08a22, #fef08a08)", border: "1.5px solid #fef08a55", animation: "breathe 2s ease-in-out infinite", cursor: "pointer", fontSize: mob ? 13 : 11, color: "#fef08a", fontWeight: 800, letterSpacing: 1 } }, activeWild.icon, " ARMED"), /* @__PURE__ */ React.createElement("button", { onClick: playH, disabled: !sel.size || hLeft <= 0 || ph !== "playing" || !!autoPlay, style: { ...BTN(sel.size && ph === "playing" && !autoPlay ? "linear-gradient(135deg,#fbbf24,#f59e0b)" : "#222", sel.size && ph === "playing" && !autoPlay ? "#0a0a1a" : "#555", sel.size > 0 && ph === "playing" && !autoPlay), minWidth: mob ? 80 : 70, padding: mob ? "12px 18px" : "8px 16px", fontSize: mob ? 15 : 14, animation: hLeft === 1 && rScore < tgt ? "fpp 1.2s ease infinite" : "none", boxShadow: hLeft === 1 && rScore < tgt ? "0 0 20px #ef444488" : "none" } }, "Play", hLeft === 1 && rScore < tgt ? " \u26A0" : ""), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u{1F0CF}", `Hands: ${hLeft} remaining this round. Each hand plays up to 5 cats. Score \u2265 target to clear.`, "#3b82f6", 4500), style: { fontSize: 10, color: hLeft <= 1 && rScore < tgt ? "#ef4444" : "#888", marginTop: 2, fontWeight: hLeft <= 1 && rScore < tgt ? 900 : 400, animation: hLeft <= 1 && rScore < tgt ? "fpp 1s ease infinite" : "none", cursor: "help" } }, hLeft <= 1 && rScore < tgt ? "\u26A0 FINAL" : hLeft === 0 ? "Done" : `Hands: ${hLeft}`)), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setDeckView(true), style: { ...BTN("#1a1a2e", "#888"), border: "1px solid #ffffff12", padding: mob ? "10px 10px" : "8px 10px", fontSize: 10, minWidth: mob ? 44 : 45 } }, allC.length > 0 ? `${allC.length} \u{1F431}` : "Deck"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#666", marginTop: 1 } }, draw.length, "\u2191 ", disc.length, "\u2193"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", marginTop: 1, cursor: "pointer" }, onClick: () => setHandSort((s) => s === "season" ? "power" : "season") }, handSort === "season" ? "\u2600 szn" : "\u26A1 pwr")))), meta && meta.stats.w < 3 && ph === "playing" && !autoPlay && (() => {
       const isVeryNew = !meta || meta.stats.r <= 1;
       const PLAY_HINTS = isVeryNew ? [
@@ -12659,7 +12748,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
     })), /* @__PURE__ */ React.createElement("div", { style: { borderTop: "1px solid #ffffff0a", marginTop: 4, paddingTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#666", letterSpacing: 1, marginBottom: 2 } }, "TRAITS"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(140px,1fr))", gap: 1 } }, TRAITS.map((t) => {
       const tl = traitTierLabel(t);
       return /* @__PURE__ */ React.createElement("div", { key: t.name, style: { fontSize: 10, color: tl.color } }, t.icon, " ", /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 600 } }, t.name), " ", /* @__PURE__ */ React.createElement("span", { style: { opacity: 0.6, fontSize: 10 } }, "(", tl.label, ")"), " ", t.desc);
-    }))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingTop: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u2694 Scarred: \xD71.25 bonus"), /* @__PURE__ */ React.createElement("span", null, "\u{1FA79} Injured: Half power, \u22122 bonus (permanent until healed)"), /* @__PURE__ */ React.createElement("span", null, "\u{1F525} Morale: \xD71.0 to \xD72.3 (clear with unused hands to build)")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F495} Bonded pair: \xD7", getMB().bondBoost ? "1.75" : "1.5", " bonus (from den shelter)"), /* @__PURE__ */ React.createElement("span", null, "\u26A1 Grudge: Always \u2212", (getMB().grudgeWisdom || 0) > 0 ? "1" : "2", " bonus when grudged cats play together"), /* @__PURE__ */ React.createElement("span", null, "\u{1FA91} Bench: Unplayed cats with traits give passive bonuses. Plain cats give nothing on bench")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F4E3} Recruit: Pay \u{1F41F} to draw extra cats (1\u21922\u21924\u21928\u{1F41F}). More cards = better combos + bench"), /* @__PURE__ */ React.createElement("span", null, "\u{1F3F7}\uFE0F Epithets: Cats earn titles from events (scars, bonds, boss clears). Shown in Hearth")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 6, fontSize: 10, color: "#666", flexWrap: "wrap" } }, Object.keys(DEVOTION_MILESTONES).map((k) => /* @__PURE__ */ React.createElement("span", { key: k, style: { color: BREEDS[k]?.color || "#888" } }, BREEDS[k]?.icon, " ", k, ": Play ", k, " cats to unlock devotion bonuses"))))), showAbandon && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 8, left: 8, zIndex: 200, display: "flex", gap: 4, alignItems: "center" } }, abandonConfirm ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    }))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingTop: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u2694 Scarred: \xD71.25 bonus"), /* @__PURE__ */ React.createElement("span", null, "\u{1FA79} Injured: Half power, \u22122 bonus (permanent until healed)"), /* @__PURE__ */ React.createElement("span", null, "\u{1F525} Morale: \xD71.0 to \xD73.1+. Clear hands to build. Overflow past max = bonus stardust")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F495} Bonded pair: \xD7", getMB().bondBoost ? "1.75" : "1.5", " bonus (from den shelter)"), /* @__PURE__ */ React.createElement("span", null, "\u26A1 Grudge: narrative tension between rival cats"), /* @__PURE__ */ React.createElement("span", null, "\u{1FA91} Bench: Unplayed cats with traits give passive bonuses. Plain cats give nothing on bench")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 4, fontSize: 10, color: "#666", flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", null, "\u{1F4E3} Recruit: Pay \u{1F41F} to draw extra cats (1\u21922\u21924\u21928\u{1F41F}). More cards = better combos + bench"), /* @__PURE__ */ React.createElement("span", null, "\u{1F3F7}\uFE0F Epithets: Cats earn titles from events (scars, bonds, boss clears). Shown in Hearth")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, paddingBottom: 6, fontSize: 10, color: "#666", flexWrap: "wrap" } }, Object.keys(DEVOTION_MILESTONES).map((k) => /* @__PURE__ */ React.createElement("span", { key: k, style: { color: BREEDS[k]?.color || "#888" } }, BREEDS[k]?.icon, " ", k, ": Play ", k, " cats to unlock devotion bonuses"))))), showAbandon && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 8, left: 8, zIndex: 200, display: "flex", gap: 4, alignItems: "center" } }, abandonConfirm ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setAbandonConfirm(false);
       setPh("title");
       setTab("play");
