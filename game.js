@@ -788,7 +788,7 @@
   const CURSES = [
     { id: "c_shrink", name: "Cramped Cage", icon: "\u{1F4E6}", desc: "Hand size -1", tier: 1, fx: { hsMod: -1 } },
     { id: "c_silence", name: "Muzzled", icon: "\u{1F910}", desc: "Wards silenced", tier: 1, fx: { silence: true } },
-    { id: "c_fog", name: "Fog of War", icon: "\u{1F32B}\uFE0F", desc: "Cards face-down", tier: 1, fx: { fog: true } },
+    { id: "c_fog", name: "Fog of War", icon: "\u{1F32B}\uFE0F", desc: "Cards face-down. Once revealed, locked in.", tier: 1, fx: { fog: true } },
     { id: "c_exile", name: "Exile", icon: "\u{1F6AB}", desc: "One season can't score", tier: 2, fx: { exile: true } },
     { id: "c_fragile", name: "Glass Claws", icon: "\u{1F494}", desc: "No discards", tier: 2, fx: { noDisc: true } },
     { id: "c_famine", name: "Famine", icon: "\u{1F9B4}", desc: "No Rations earned this night", tier: 2, fx: { famine: true } },
@@ -1425,6 +1425,33 @@
     // Structure: thematic tags ensure variety. Chains weighted 60%. Night 5 mandatory.
     // Tags: memory, sacrifice, belonging, identity, survival, hope
     // ═══════════════════════════════════════════════════════════
+    // ——— FIRST RUN: THE COST (mandatory scripted death, Night 2) ———
+    {
+      id: "the_cost",
+      title: "The Cost",
+      icon: "\u{1F56F}\uFE0F",
+      minNight: 2,
+      maxNight: 2,
+      mandatory: true,
+      tag: "sacrifice",
+      needsCat: "drafted",
+      condFn: (_, ctx) => ctx.meta && ctx.meta.stats.w === 0 && ctx.meta.stats.r === 0,
+      textFn: (t) => {
+        const n = t[0]?.name.split(" ")[0] || "Someone";
+        const b = t[0]?.breed || "Autumn";
+        const lines = [
+          `${n} didn't come back from the dark. You found them at the edge of the light, already still. The colony went quiet. Not because they didn't care. Because they did.`,
+          `It happened between heartbeats. ${n} was there, and then ${n} wasn't. The dark doesn't announce itself. It just takes. The space where ${n} slept is still warm.`,
+          `${n} was one of the first three. One of yours. The dark doesn't care about that. It took them the same way it takes everything: without asking.`,
+          `You chose ${n}. Out of everyone in the dark, you chose them. The dark chose them too. There's no lesson here. No meaning. Just a name that used to be warm.`
+        ];
+        return lines[Math.floor(Math.random() * lines.length)];
+      },
+      choices: [
+        { label: "Remember them.", desc: "Cat lost. +3 Morale.", fx: { scriptedDeath: true, fervor: 3 } },
+        { label: "Keep moving.", desc: "Cat lost. +4 Rations.", fx: { scriptedDeath: true, gold: 4 } }
+      ]
+    },
     // ——— ARC 1: THE STRANGER (3 events) ———
     {
       id: "stranger_arrives",
@@ -3514,6 +3541,7 @@
         const birthsSoFar = results.filter((r) => r.type === "breed").length;
         const breedBlocked = colonyTooLarge || birthsSoFar >= MAX_BIRTHS;
         const roll = Math.random() * 100;
+        if (ctx.guaranteeBreed) bCh = 100;
         if (!noBreed && !breedBlocked && roll < bCh) {
           const baby = breedC(cats[i], cats[j]);
           const twins = Math.random() < 0.08;
@@ -5569,71 +5597,105 @@
       const scarredCats = [...allC].filter((c) => c.scarred);
       const hearthChildren = [...allC].filter((c) => c.hearthDescendant);
       const companion = [...allC].find((c) => c._hearthChild);
+      const elders = allC.filter((c) => isElder(c));
       const lines = [];
-      const draftLine = runLog.find((e) => e.type === "draft");
-      const draftNames = draftLine?.data?.picked || "three strangers";
-      if (companion) {
-        const compName = companion.name.split(" ")[0];
-        if (ante <= 2) lines.push(`It lasted ${ante} night${ante > 1 ? "s" : ""}. ${compName} came back from the Hearth to lead them. It wasn't enough. ${draftNames} and ${allC.length + fallen.length - 1} others followed the legend into the dark, and the dark swallowed them whole.`);
-        else lines.push(`Colony #${(meta?.stats?.r || 0) + 1} burned for ${ante} nights. ${compName} walked out of the Hearth to lead them. a legend among ${allC.length + fallen.length - 1} who had never seen a dawn. ${draftNames} stepped into the firelight beside them.`);
+
+      // === ACT I: THE OPENER (one line, lands like a punch) ===
+      if (!won) {
+        if (ante <= 1) lines.push(`One night. Gone.`);
+        else if (ante <= 2) lines.push(`Two nights. Not enough.`);
+        else if (fallen.length === 0) lines.push(`Night ${ante}. Everyone alive. Not enough.`);
+        else lines.push(`Night ${ante}. ${fallen.length} name${fallen.length > 1 ? "s" : ""} the dark kept.`);
+      } else if (fallen.length === 0) {
+        lines.push(`${allC.length} in. ${allC.length} out. Not a name lost.`);
+      } else if (fallen.length === 1) {
+        lines.push(`${fallen[0].name.split(" ")[0]} didn't make it. Everyone else did.`);
       } else {
-        if (ante <= 2) lines.push(`It lasted ${ante} night${ante > 1 ? "s" : ""}. Not long enough for anyone to learn each other's names. ${draftNames} were the first into the dark, and the colony that formed around them never found its footing.`);
-        else if (ante <= 3) lines.push(`Three nights. ${draftNames} and ${allC.length + fallen.length} others gathered around a fire nobody remembers lighting. By the second night they had a system. By the third, they had a story.`);
-        else lines.push(`Colony #${(meta?.stats?.r || 0) + 1} burned for ${ante} nights. It began the way they all begin: ${draftNames} stepping into the firelight, and the dark pretending not to notice.`);
+        lines.push(`${fallen.length} went into the dark. ${allC.length} walked out the other side.`);
       }
-      const mid = [];
-      if (bestHand) {
-        const bScore = bestHand.data.score.toLocaleString();
-        const bType = bestHand.data.type;
-        const bCats = bestHand.data.cats;
-        if (bestHand.data.score >= 5e4) mid.push(`The hand that broke the pattern: ${bCats}, a ${bType} for ${bScore}. The dark doesn't forget numbers like that.`);
-        else mid.push(`The hand they'll remember: ${bCats}, playing a ${bType} for ${bScore}.`);
+
+      // === ACT II: THE STORY (2-3 specific moments only this run produced) ===
+      const moments = [];
+
+      // The hand that defined the run
+      if (bestHand && bestHand.data.score >= 5000) {
+        const bCats = bestHand.data.cats || mvpName;
+        const bType = bestHand.data.type || "hand";
+        moments.push(`${bCats}. ${bType}. ${bestHand.data.score.toLocaleString()}.`);
       }
-      if (worstHand && bestHand && worstHand.data.score < bestHand.data.score * 0.15 && hands.length > 3) {
-        mid.push(`The hand they won't talk about: ${worstHand.data.score.toLocaleString()}. ${worstHand.data.cats || "Someone"} played into the silence and the silence won.`);
-      }
+
+      // Death + bond in same run = the gut punch
       if (deaths.length > 0 && bonds.length > 0) {
         const dName = deaths[0].data.victim?.split(" ")[0] || "one";
         const bPair = bonds[0];
-        mid.push(`${dName} fell in the den. That same night, ${bPair?.data?.c1?.split(" ")[0] || "two cats"} and ${bPair?.data?.c2?.split(" ")[0] || "another"} bonded. Grief and love run through the same dark.`);
-      } else if (deaths.length > 0) {
-        const dNames = deaths.map((d) => d.data.victim?.split(" ")[0] || "one");
-        if (deaths.length === 1) mid.push(`${dNames[0]} didn't make it out of the den. The colony got quieter after that. Not weaker. Quieter.`);
-        else mid.push(`${dNames.join(", ")}. ${deaths.length} names scratched off the wall. The colony stopped counting and started surviving.`);
-      } else if (bonds.length > 0) {
-        if (bonds.length >= 3) mid.push(`${bonds.length} pairs bonded over ${ante} nights. The colony stopped being survivors and became something with a pulse.`);
-        else if (bonds.length === 1) mid.push(`${bonds[0].data.c1?.split(" ")[0]} and ${bonds[0].data.c2?.split(" ")[0]} bonded. Nobody announced it. They just started sleeping closer to the fire.`);
+        const b1 = bPair?.data?.c1?.split(" ")[0] || "two";
+        const b2 = bPair?.data?.c2?.split(" ")[0] || "others";
+        moments.push(`${dName} fell. That same run, ${b1} and ${b2} found each other. That's how it works.`);
+      } else if (deaths.length === 1) {
+        const dName = deaths[0].data.victim?.split(" ")[0] || "one";
+        moments.push(`${dName}. Say the name.`);
+      } else if (deaths.length > 1) {
+        const dNames = deaths.slice(0, 3).map((d) => d.data.victim?.split(" ")[0] || "one");
+        moments.push(`${dNames.join(". ")}. ${deaths.length} names the chronicle refuses to let go.`);
       }
-      if (scarredCats.length >= 3) mid.push(`${scarredCats.length} cats carried scars by the end. ${scarredCats.slice(0, 2).map((c) => c.name.split(" ")[0]).join(" and ")} wore them like they meant something. They did.`);
-      else if (scarredCats.length === 1) mid.push(`${scarredCats[0].name.split(" ")[0]} was hardened early and carried it the whole way. It never slowed them down. It never stopped burning either.`);
-      if (grudges.length > 0 && reconciles.length > 0) mid.push(`${grudges.length} grudges cut the den in two. ${reconciles.length} healed. Forgiveness is its own kind of scoring.`);
-      else if (grudges.length >= 2) mid.push(`${grudges.length} grudges. None forgiven. The colony survived the dark, but some nights the real enemy was inside.`);
-      if (breeds.length >= 3) mid.push(`${breeds.length} kittens born in the dark. New life, impossibly small, in a world that had stopped believing in new things.`);
-      else if (breeds.length === 1) mid.push(`One kitten. Born between Night ${breeds[0].ante || "?"}. The colony had something to protect now that wasn't just themselves.`);
+
+      // Scars
+      if (scarredCats.length >= 4) {
+        moments.push(`${scarredCats.length} carried scars. They scored anyway.`);
+      } else if (scarredCats.length === 1) {
+        moments.push(`${scarredCats[0].name.split(" ")[0]} was the only one scarred. They wore it like a crown.`);
+      }
+
+      // Grudges → reconciliation arc
+      if (grudges.length > 0 && reconciles.length > 0) {
+        moments.push(`${grudges.length} grudge${grudges.length > 1 ? "s" : ""}. ${reconciles.length} forgiven. The colony learned something the dark never could.`);
+      } else if (grudges.length >= 3) {
+        moments.push(`${grudges.length} grudges. None forgiven. They survived the dark, but the den was its own kind of war.`);
+      }
+
+      // Kittens
+      if (breeds.length >= 2) {
+        moments.push(`${breeds.length} kittens born between nightfalls. New names in a world that stopped making them.`);
+      } else if (breeds.length === 1) {
+        moments.push(`One kitten. Born in the dark. The colony had a future now.`);
+      }
+
+      // Hearth descendant proving themselves
       if (hearthChildren.length > 0) {
         const hcBest = hearthChildren.sort((a, b) => (b.stats?.bs || 0) - (a.stats?.bs || 0))[0];
-        if (hcBest && hcBest.stats?.bs > 5e3) mid.push(`${hcBest.name.split(" ")[0]}, child of the Hearth, scored ${hcBest.stats.bs.toLocaleString()} in a single hand. The bloodline proved itself.`);
+        if (hcBest && hcBest.stats?.bs > 3000) moments.push(`${hcBest.name.split(" ")[0]}, child of the Hearth. ${hcBest.stats.bs.toLocaleString()} in a single hand. The bloodline held.`);
       }
-      if (totalScore > 15e4) mid.push(`Combined output: ${totalScore.toLocaleString()}. The kind of number that makes you wonder if the dark was ever the threat, or just the audience.`);
-      const neverPlayed2 = allC.filter((c) => (c.stats?.tp || 0) === 0);
-      if (neverPlayed2.length >= 2) mid.push(`${neverPlayed2.map((c) => c.name.split(" ")[0]).join(" and ")} never played a hand. They watched everything from the bench. Whether that's safety or waste depends on who's telling the story.`);
-      const elders = allC.filter((c) => isElder(c));
-      if (elders.length >= 2) mid.push(`${elders.map((c) => c.name.split(" ")[0]).join(" and ")} played ${elders.reduce((s, c) => s + (c.stats?.tp || 0), 0)} hands between them. The colony's elders. The ones everyone followed.`);
-      else if (elders.length === 1) mid.push(`${elders[0].name.split(" ")[0]} played ${elders[0].stats?.tp || 0} hands. More than anyone. The elder of the colony.`);
-      if (mood < 25) mid.push("The colony was fraying by the end. Too many losses. Too many silences where names used to be.");
-      else if (mood > 75) mid.push("Something rare happened in this colony. They liked each other. The bonds held. The mood held. The fire burned steady.");
-      lines.push(mid.slice(0, 3).join(" "));
+
+      // Elder
+      if (elders.length >= 1) {
+        const e = elders[0];
+        moments.push(`${e.name.split(" ")[0]} played ${e.stats?.tp || 0} hands. The elder. The one they followed.`);
+      }
+
+      // Worst hand contrast (only if dramatic gap)
+      if (worstHand && bestHand && worstHand.data.score < bestHand.data.score * 0.1 && hands.length > 4) {
+        moments.push(`Worst hand: ${worstHand.data.score.toLocaleString()}. Best: ${bestHand.data.score.toLocaleString()}. That's the distance between giving up and going again.`);
+      }
+
+      // Pick best 2-3 moments
+      lines.push(moments.slice(0, 3).join(" "));
+
+      // === ACT III: THE CLOSER (the screenshot line) ===
       if (won && fallen.length === 0) {
-        const epithetRoll = epithetCats.length > 0 ? epithetCats.slice(0, 4).map((c) => `${c.name.split(" ")[0]} ${c.epithet}`).join(", ") : "";
-        if (epithetRoll) lines.push(`All of them. Every single one walked out of night ${ante} and into a dawn that had no right to exist. ${epithetRoll}. Names that earned their titles. The fire burns because of what they did.`);
-        else lines.push(`All of them. Every single one walked out of night ${ante}. ${mvpName} carried the colony, scoring ${mvpCat?.stats?.bs?.toLocaleString() || "more than anyone"}. Their names belong to the Hearth now.`);
+        if (epithetCats.length > 0) {
+          const roll = epithetCats.slice(0, 4).map((c) => `${c.name.split(" ")[0]} ${c.epithet}`).join(". ");
+          lines.push(`${roll}. The fire burns because they did.`);
+        } else {
+          lines.push(`Every name survived. The dark had nothing to say about it.`);
+        }
       } else if (won) {
         const fallenNames = fallen.map((f) => f.name.split(" ")[0]).join(", ");
-        const survivorEpithets = epithetCats.slice(0, 3).map((c) => `${c.name.split(" ")[0]} ${c.epithet}`).join(", ");
-        lines.push(`${fallen.length} didn't make it. ${fallenNames}. The rest walked into the dawn carrying names that weren't their own.${survivorEpithets ? ` ${survivorEpithets}.` : ""} The real score was the number of names they refused to forget.`);
+        const survivorLine = epithetCats.length > 0 ? epithetCats.slice(0, 3).map((c) => `${c.name.split(" ")[0]} ${c.epithet}`).join(". ") + "." : "";
+        lines.push(`${fallenNames}. The survivors carry those names now. ${survivorLine} The real score was never the number.`);
       } else {
-        lines.push(`Night ${ante}. The numbers fell short and the dark moved in. ${fallen.length > 0 ? fallen.map((f) => f.name.split(" ")[0]).join(", ") + " went first. " : ""}The colony didn't scream. They'd already said everything worth saying. ${totalScore.toLocaleString()}. That's what they were worth. Remember it.`);
+        lines.push(`${totalScore.toLocaleString()}. That's what this colony was worth. Remember it. The dark won't.`);
       }
+
       return lines;
     }
     function getDeckStats() {
@@ -6207,6 +6269,7 @@
         });
       }
       const offset = Math.round(floatOffset);
+      picked.forEach((c) => { c._drafted = true; });
       const all = shuf([...draftBase, ...picked]);
       if (meta?._longWatchUnlocked) all.forEach((c) => { c._longWatchEligible = true; });
       setHand(all.slice(0, BH));
@@ -6621,7 +6684,13 @@
       if (ph !== "playing" || autoPlay) return;
       Audio.cardSelect(); Haptic.light();
       const s = new Set(sel);
-      if (s.has(i)) s.delete(i);
+      if (s.has(i)) {
+        if (cfx.fog) {
+          toast("\u{1F32B}\uFE0F", "Fog locks your choice. Once revealed, a cat must be played or discarded.", "#ef4444", 2500);
+          return;
+        }
+        s.delete(i);
+      }
       else if (s.size < 5) s.add(i);
       setSel(s);
       if (guide && guide.step === 0 && s.size >= 2) {
@@ -6860,7 +6929,8 @@
     const MAX_DISCARD = 3;
     function discardH() {
       if (!sel.size || dLeft <= 0 || cfx.noDisc) return;
-      if (sel.size > MAX_DISCARD) {
+      const fogActive = cfx.fog;
+      if (!fogActive && sel.size > MAX_DISCARD) {
         toast("\u267B\uFE0F", `Max ${MAX_DISCARD} cards per discard`, "#ef4444");
         return;
       }
@@ -7700,7 +7770,7 @@
       const hasMM = false;
       const heatFight = getHeatFx(meta?.heat).denFight || 0;
       const baseCtx = { draftRejects, deckSize: dAll.length, nerveLvl: ferv, breedBoost: (getAllDevotionFx(devotion).breedBoost || 0) + (getMB().breedBoost || 0), mood, hasWon: meta && meta.stats.w > 0, colonyCap: getMB().colonyCap || 0 };
-      const shelterResults = shelterCats.length >= 2 ? resolveDen(shelterCats, hasMM, true, 0, { ...baseCtx, breedOnly: true }) : [];
+      const shelterResults = shelterCats.length >= 2 ? resolveDen(shelterCats, hasMM, true, 0, { ...baseCtx, breedOnly: true, guaranteeBreed: isFirstRun && !firstDenUsed }) : [];
       shelterResults.forEach((r) => r.source = "shelter");
       const wildResults = wildCats.length >= 2 ? resolveDen(wildCats, hasMM, eventDenSafe, heatFight, { ...baseCtx, noBreed: true }) : [];
       wildResults.forEach((r) => r.source = "wilds");
@@ -8123,10 +8193,13 @@
       }
       const all = [...hand, ...draw, ...disc];
       const eventSource = isNinthDawn ? [...COLONY_EVENTS, ...NINTH_DAWN_EVENTS] : COLONY_EVENTS;
-      const mandatory = eventSource.find((e) => e.mandatory && (!e.minNight || ante >= (longDark && e.minNight === 5 ? MX : e.minNight)) && (!e.maxNight || ante <= (longDark && e.maxNight === 5 ? MX : e.maxNight)) && !eventHistory["_seen_" + e.id]);
+      const mandatory = eventSource.find((e) => e.mandatory && (!e.minNight || ante >= (longDark && e.minNight === 5 ? MX : e.minNight)) && (!e.maxNight || ante <= (longDark && e.maxNight === 5 ? MX : e.maxNight)) && !eventHistory["_seen_" + e.id] && (!e.condFn || e.condFn(null, { meta, colony: all.length, fallen, all })));
       if (mandatory) {
         let targets2 = [];
-        if (mandatory.needsCat === "random") {
+        if (mandatory.needsCat === "drafted") {
+          const drafted = all.filter((c) => c._drafted && !c.injured);
+          targets2 = drafted.length > 0 ? [pk(drafted)] : [pk(all)];
+        } else if (mandatory.needsCat === "random") {
           targets2 = [pk(all)];
         } else if (mandatory.needsCat === "pair") {
           const s = shuf(all);
@@ -8399,6 +8472,23 @@
           setEventDenSafe(true);
           logEvent("death", { victim: victim.name + " (sent by the colony)" });
           setMood((m) => Math.max(0, m - 10));
+        }
+      }
+      if (fx.scriptedDeath) {
+        const victim = targets[0];
+        if (victim) {
+          [setHand, setDraw, setDisc].forEach((s) => {
+            s((arr) => arr.filter((x) => x.id !== victim.id));
+          });
+          const memorial = getDeathMemorial(victim, [...hand, ...draw, ...disc]);
+          setFallen((f) => [...f, { name: victim.name, breed: victim.breed, night: ante, trait: victim.trait?.name, epithet: victim.epithet, bondedTo: victim.bondedTo, _drafted: true }]);
+          logEvent("death", { victim: victim.name + " (the cost)" });
+          setMood((m) => Math.max(0, m - 8));
+          setTimeout(() => toast("\u{1F56F}\uFE0F", memorial || `${victim.name.split(" ")[0]} is gone. The colony remembers.`, "#ef4444", 5000), 800);
+          if (!seen.firstDeath) {
+            setSeen((s) => ({ ...s, firstDeath: true }));
+            setTimeout(() => toast("\u{1F4A1}", "Cats can die. The dark takes without asking. Their name lives in the chronicle.", "#ef4444", 6000), 4000);
+          }
         }
       }
       if (fx.spareTarget) {
@@ -9109,6 +9199,7 @@
       if (fx.targetScrapper) lines.push({ text: `${targets[0]?.name.split(" ")[0]} gained Scrapper. The cost may come later.`, color: "#fb923c", icon: "\u{1F94A}" });
       if (fx.targetHeal) lines.push({ text: `${targets[0]?.name.split(" ")[0]} healed. +2 Power. But one less hand tomorrow.`, color: "#4ade80", icon: "\u{1F49A}" });
       if (fx.sacrifice) lines.push({ text: `${targets[0]?.name.split(" ")[0] || "One"} walked into the dark. The den sleeps safely tonight.`, color: "#ef4444", icon: "\u{1F54A}\uFE0F" });
+      if (fx.scriptedDeath) lines.push({ text: `${targets[0]?.name.split(" ")[0] || "One"} is gone. The colony carries the name.`, color: "#ef4444", icon: "\u{1F56F}\uFE0F" });
       if (fx.exile && targets[0]) lines.push({ text: `${targets[0].name.split(" ")[0]} was cast out. The colony is lighter.`, color: "#ef4444", icon: "\u{1F6AA}" });
       if (fx.allPower) lines.push({ text: `All cats +${fx.allPower} Power`, color: "#4ade80", icon: "\u2B50" });
       if (fx.fullHeal) lines.push({ text: "All injuries healed.", color: "#4ade80", icon: "\u{1F49A}" });
@@ -9802,7 +9893,7 @@
             /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#fbbf2466", letterSpacing: 1 } }, scoreSteps[sIdx].label),
             /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#ffffff22" } }, scoreSteps[sIdx].sub))
         );
-      })(), /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 10, right: 10, zIndex: 200, display: "flex", gap: 6, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ffffff55", letterSpacing: 1 } }, "v0.77"), meta && /* @__PURE__ */ React.createElement("button", { onClick: async () => {
+      })(), /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 10, right: 10, zIndex: 200, display: "flex", gap: 6, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ffffff55", letterSpacing: 1 } }, "v0.81"), meta && /* @__PURE__ */ React.createElement("button", { onClick: async () => {
         const sums = [];
         for (let i = 1; i <= SLOT_COUNT; i++) sums.push(await getSlotSummary(i));
         setSlotSummaries(sums);
@@ -11027,28 +11118,6 @@ ${nightGrid2} Night ${ante} \xB7 ${pctStr}
         const epithetCats2 = allC.filter((c) => c.epithet);
         const sentence = fallen.length > 0 && mvpPlays > 5 ? `${mvpName} played ${mvpPlays} hands. ${fallen.length === 1 ? fallen[0].name.split(" ")[0] + " didn't make it" : fallen.length + " didn't make it"}. The rest walked into the dawn carrying ${fallen.length === 1 ? "one extra name" : fallen.length + " extra names"}.` : fallen.length === 0 && bondCount > 0 ? `${allC.length} cats. ${bondCount} bond${bondCount > 1 ? "s" : ""}. Zero losses. ${mvpName} led with ${mvpPlays} hands. The dark had nothing to say.` : epithetCats2.length > 2 ? `${epithetCats2.map((c) => c.name.split(" ")[0] + " " + c.epithet).join(". ")}. Names that earned their titles.` : scarCount > 2 ? `${scarCount} scars across the colony. Every one of them a map that led here.` : `${mvpName} carried this colony. ${mvpPlays} hands. The rest followed.`;
         return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#e8e6e3cc", fontStyle: "italic", textAlign: "center", maxWidth: 380, lineHeight: 1.8, animation: "fadeIn 2.5s ease-out 1s both", padding: "12px 18px", borderRadius: 10, background: "#ffffff04", border: "1px solid #ffffff0a" } }, sentence);
-      })(), won && allC.length > 0 && (() => {
-        const cw = Math.min(340, vw - 40);
-        const ch = Math.round(cw * 0.7);
-        const cx = cw / 2;
-        const cy = ch / 2;
-        const dotSize = vw < 500 ? 6 : 5;
-        const nameSize = vw < 500 ? (allC.length > 12 ? 7 : 9) : (allC.length > 16 ? 7 : 8);
-        const showAllNames = allC.length <= 16;
-        const pts = allC.map((c, i) => {
-          const angle = i / allC.length * Math.PI * 2 - Math.PI / 2;
-          const isNotable = c.epithet || c.scarred || c.bondedTo;
-          const ring = allC.length > 20 && !isNotable && i % 2 === 0 ? 0.5 : 0.75;
-          const r = Math.min(cx, cy) * ring;
-          return { x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r, c, i, showName: showAllNames || isNotable || i % Math.max(2, Math.ceil(allC.length / 12)) === 0 };
-        });
-        return /* @__PURE__ */ React.createElement("div", { style: { position: "relative", width: cw, height: ch, animation: "fadeIn 2s ease-out 1s both", opacity: 0 } }, /* @__PURE__ */ React.createElement("svg", { width: cw, height: ch, style: { position: "absolute", inset: 0 } }, pts.map((p, i) => {
-          const next = pts[(i + 1) % pts.length];
-          return /* @__PURE__ */ React.createElement("line", { key: `l${i}`, x1: p.x, y1: p.y, x2: next.x, y2: next.y, stroke: "#fbbf2418", strokeWidth: "1" });
-        }), pts.map((p) => p.c.bondedTo && (() => {
-          const mate = pts.find((q) => q.c.id === p.c.bondedTo);
-          return mate ? /* @__PURE__ */ React.createElement("line", { key: `b${p.i}`, x1: p.x, y1: p.y, x2: mate.x, y2: mate.y, stroke: "#f472b633", strokeWidth: "1.5", strokeDasharray: "4 4" }) : null;
-        })())), pts.map((p) => /* @__PURE__ */ React.createElement("div", { key: p.c.id, style: { position: "absolute", left: p.x - dotSize / 2, top: p.y - dotSize / 2, width: dotSize, height: dotSize, borderRadius: "50%", background: BREEDS[p.c.breed]?.color || "#fbbf24", boxShadow: `0 0 ${dotSize + 2}px ${BREEDS[p.c.breed]?.color || "#fbbf24"}66`, animation: `fadeIn .5s ease-out ${1.5 + p.i * 0.15}s both` }, title: p.c.name.split(" ")[0] })), pts.filter((p) => p.showName).map((p) => /* @__PURE__ */ React.createElement("div", { key: `n${p.c.id}`, style: { position: "absolute", left: p.x - 28, top: p.y + dotSize + 1, width: 56, fontSize: nameSize, textAlign: "center", color: BREEDS[p.c.breed]?.color || "#fbbf2466", fontWeight: 600, animation: `fadeIn .5s ease-out ${2 + p.i * 0.15}s both`, lineHeight: 1.2, textShadow: "0 0 4px #0a0a1a, 0 0 8px #0a0a1a, 0 1px 2px #000" } }, p.c.name.split(" ")[0], p.c.epithet ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: nameSize - 2, color: "#fbbf2444", fontWeight: 400 } }, p.c.epithet) : null)));
       })(), won && isNinthDawn && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#fbbf24aa", fontStyle: "italic", textAlign: "center", maxWidth: 360, lineHeight: 1.7, animation: "fadeIn 2s ease-out" } }, "Nine colonies. One survived. Not because it was the strongest. Because someone remembered all the rest."), !won && (() => {
         const breath = ante >= MX ? `Night ${ante}. So close to dawn. The eighth colony knows what "close" feels like.` : ante >= 3 ? `Night ${ante}. ${allC.length} still standing when the dark moved in. They deserved more time.` : `Night ${ante}. It ends here. But the fire doesn't go out. It never goes out.`;
         return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef444488", fontStyle: "italic", letterSpacing: 2, animation: "fadeIn 1.5s ease-out", marginTop: 4 } }, breath);
@@ -12482,7 +12551,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
       const cost = recruitCost();
       const canRecruit = ph === "playing" && !autoPlay && gold >= cost && (draw.length > 0 || disc.length > 0);
       return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: recruitCat, disabled: !canRecruit, style: { ...BTN(canRecruit ? "#1a2e1a" : "#111", canRecruit ? "#4ade80" : "#444", canRecruit), border: `1px solid ${canRecruit ? "#4ade8044" : "#222"}`, minWidth: mob ? 56 : 50, padding: mob ? "10px 10px" : "8px 10px", fontSize: 10 } }, "+1 Cat"), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u{1F431}", "Recruit: draw an extra cat into your hand. Cost doubles each time (1\u21922\u21924\u21928\u{1F41F}). More cats = better hands. Unplayed cats with traits give passive bonuses.", "#4ade80", 5500), style: { fontSize: 10, color: cost === 0 ? "#4ade80" : gold >= cost ? "#fbbf24" : "#ef4444", marginTop: 2, cursor: "help" } }, cost === 0 ? "Free!" : cost + "\u{1F41F}"));
-    })() : null), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: discardH, disabled: !sel.size || sel.size > MAX_DISCARD || dLeft <= 0 || ph !== "playing" || cfx.noDisc, style: { ...BTN(sel.size && sel.size <= MAX_DISCARD && dLeft > 0 && ph === "playing" && !cfx.noDisc ? "#1a1a2e" : "#111", sel.size && sel.size <= MAX_DISCARD && dLeft > 0 && ph === "playing" && !cfx.noDisc ? "#ef4444" : "#444", sel.size > 0 && sel.size <= MAX_DISCARD && dLeft > 0 && ph === "playing" && !cfx.noDisc), border: `1px solid ${sel.size && sel.size <= MAX_DISCARD && dLeft > 0 && !cfx.noDisc ? "#ef444444" : "#222"}`, minWidth: mob ? 56 : 60, padding: mob ? "10px 10px" : "8px 14px" } }, "Discard", cfx.noDisc ? " \u{1F6AB}" : ""), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u267B\uFE0F", `Discard: swap up to ${MAX_DISCARD} selected cats for new draws. Free!`, "#ef4444"), style: { fontSize: 10, color: cfx.noDisc ? "#ef4444bb" : sel.size > MAX_DISCARD ? "#ef4444" : dLeft <= 0 ? "#ef4444" : "#888", marginTop: 2, cursor: "help" } }, cfx.noDisc ? "Disabled" : sel.size > MAX_DISCARD ? `Max ${MAX_DISCARD}` : `${dLeft} left`), dLeft > 0 && draw.length >= 1 && !cfx.fog && !mob && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, justifyContent: "center", marginTop: 2 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ffffff33" } }, "Next:"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, padding: "1px 5px", borderRadius: 3, background: BREEDS[draw[0].breed]?.color + "15", border: `1px solid ${BREEDS[draw[0].breed]?.color}22`, color: BREEDS[draw[0].breed]?.color || "#888" } }, BREEDS[draw[0].breed]?.icon, " P", draw[0].power)), sel.size > 0 && dLeft > 0 && !cfx.noDisc && ph === "playing" && (() => {
+    })() : null), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: discardH, disabled: !sel.size || (!cfx.fog && sel.size > MAX_DISCARD) || dLeft <= 0 || ph !== "playing" || cfx.noDisc, style: { ...BTN(sel.size && (cfx.fog || sel.size <= MAX_DISCARD) && dLeft > 0 && ph === "playing" && !cfx.noDisc ? "#1a1a2e" : "#111", sel.size && (cfx.fog || sel.size <= MAX_DISCARD) && dLeft > 0 && ph === "playing" && !cfx.noDisc ? "#ef4444" : "#444", sel.size > 0 && (cfx.fog || sel.size <= MAX_DISCARD) && dLeft > 0 && ph === "playing" && !cfx.noDisc), border: `1px solid ${sel.size && (cfx.fog || sel.size <= MAX_DISCARD) && dLeft > 0 && !cfx.noDisc ? "#ef444444" : "#222"}`, minWidth: mob ? 56 : 60, padding: mob ? "10px 10px" : "8px 14px" } }, "Discard", cfx.noDisc ? " \u{1F6AB}" : ""), /* @__PURE__ */ React.createElement("div", { onClick: () => toast("\u267B\uFE0F", `Discard: swap up to ${MAX_DISCARD} selected cats for new draws. Free!`, "#ef4444"), style: { fontSize: 10, color: cfx.noDisc ? "#ef4444bb" : sel.size > MAX_DISCARD ? "#ef4444" : dLeft <= 0 ? "#ef4444" : "#888", marginTop: 2, cursor: "help" } }, cfx.noDisc ? "Disabled" : !cfx.fog && sel.size > MAX_DISCARD ? `Max ${MAX_DISCARD}` : `${dLeft} left`), dLeft > 0 && draw.length >= 1 && !cfx.fog && !mob && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, justifyContent: "center", marginTop: 2 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ffffff33" } }, "Next:"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, padding: "1px 5px", borderRadius: 3, background: BREEDS[draw[0].breed]?.color + "15", border: `1px solid ${BREEDS[draw[0].breed]?.color}22`, color: BREEDS[draw[0].breed]?.color || "#888" } }, BREEDS[draw[0].breed]?.icon, " P", draw[0].power)), sel.size > 0 && dLeft > 0 && !cfx.noDisc && ph === "playing" && (() => {
       const selCats2 = [...sel].map((i) => hand[i]).filter(Boolean);
       const hints = [];
       selCats2.forEach((c) => {
