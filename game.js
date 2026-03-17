@@ -5341,6 +5341,9 @@
     const [inspectCat, setInspectCat] = useState(null);
     const [playConfirm, setPlayConfirm] = useState(false);
     const [showCodex, setShowCodex] = useState(false);
+    const [overtime, setOvertime] = useState(false);
+    const [overtimeNights, setOvertimeNights] = useState(0);
+    const [savedPairIds, setSavedPairIds] = useState([]);
     const playConfirmRef = useRef(null);
     const [colStep, setColStep] = useState(0);
     const [deckView, setDeckView] = useState(false);
