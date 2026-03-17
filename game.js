@@ -6783,6 +6783,7 @@
     function playH() {
       if (!sel.size || hLeft <= 0) return;
       if (actionLock.current) return;
+      if (autoPlay) setAutoPlay(null);
       actionLock.current = true;
       undoRef.current = null;
       Audio.cardPlay(); Haptic.medium();
@@ -12048,7 +12049,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
           autoRef.current = setTimeout(selectNext, 1e3);
         }, 1500);
       }
-      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 130, pointerEvents: "auto", background: "transparent" }, onClick: (e) => e.stopPropagation() }), /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", bottom: mob ? 70 : 60, left: "50%", transform: "translateX(-50%)", zIndex: 150, padding: "16px 28px", borderRadius: 14, background: "#0a0a1aee", border: "1.5px solid #4ade8044", maxWidth: 360, animation: "fadeIn .6s ease-out", textAlign: "center", boxShadow: "0 8px 32px #00000088" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade8066", letterSpacing: 3, marginBottom: 4 } }, "\u{1F440} WATCHING THE DEMO"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 15, color: "#4ade80", fontWeight: 700, marginBottom: 6 } }, step === 0 ? "Selecting same-season cats..." : step <= 2 ? `Selecting cats... (${Math.min(sel.size, autoPlay.idxs.length)}/${autoPlay.idxs.length})` : "Playing the hand..."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#4ade80aa", lineHeight: 1.5 } }, step <= 2 ? "Same season = stronger hand. Watch which cards light up." : "Now watch how Power \xD7 Bonus builds the score..."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff66", marginTop: 6, fontStyle: "italic" } }, "Sit back. you'll play the next hand yourself."), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", bottom: mob ? 70 : 60, left: "50%", transform: "translateX(-50%)", zIndex: 150, padding: "16px 28px", borderRadius: 14, background: "#0a0a1aee", border: "1.5px solid #4ade8044", maxWidth: 360, animation: "fadeIn .6s ease-out", textAlign: "center", boxShadow: "0 8px 32px #00000088" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade8066", letterSpacing: 3, marginBottom: 4 } }, "\u{1F440} WATCHING THE DEMO"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 15, color: "#4ade80", fontWeight: 700, marginBottom: 6 } }, step === 0 ? "Selecting same-season cats..." : step <= 2 ? `Selecting cats... (${Math.min(sel.size, autoPlay.idxs.length)}/${autoPlay.idxs.length})` : "Playing the hand..."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#4ade80aa", lineHeight: 1.5 } }, step <= 2 ? "Same season = stronger hand. Watch which cards light up." : "Now watch how Power \xD7 Bonus builds the score..."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff66", marginTop: 6, fontStyle: "italic" } }, "Sit back. you'll play the next hand yourself."), /* @__PURE__ */ React.createElement("button", { onClick: () => {
         if (autoRef.current) clearTimeout(autoRef.current);
         if (stRef.current) clearTimeout(stRef.current);
         setSel(/* @__PURE__ */ new Set());
@@ -12541,7 +12542,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
       const ordered = [...sel].map((idx) => hand[idx]).filter(Boolean);
       const benchCats = hand.filter((c) => !ordered.find((x) => x.id === c.id));
       const benchTraited = benchCats.filter((c) => !catIsPlain(c) && !catIsKitten(c));
-      return mob ? null : /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, padding: "4px 16px", zIndex: 1, maxWidth: 700, width: "100%", justifyContent: "center", alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, alignItems: "flex-end" } }, ordered.map((cat2, pos) => {
+      return mob ? /* @__PURE__ */ React.createElement("div", { style: { flex: "1 1 0", minHeight: 8, maxHeight: 60 } }) : /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, padding: "4px 16px", zIndex: 1, maxWidth: 700, width: "100%", justifyContent: "center", alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, alignItems: "flex-end" } }, ordered.map((cat2, pos) => {
         if (!cat2) return null;
         const b = BREEDS[cat2.breed];
         return /* @__PURE__ */ React.createElement("div", { key: cat2.id, style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#fbbf24", fontWeight: 700 } }, pos + 1), /* @__PURE__ */ React.createElement("div", { style: { width: 24, height: 28, borderRadius: 4, background: b.bg, border: `1px solid ${b.color}44`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: 10 } }, /* @__PURE__ */ React.createElement("span", null, b.icon), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: b.color, fontWeight: 700 } }, cat2.power)));
@@ -12610,7 +12611,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
       gap: mob ? Math.max(1, Math.min(4, Math.floor((vw - 16) / hand.length) - 58)) : Math.max(3, Math.min(8, Math.floor(840 / hand.length) - 114)),
       padding: "0 4px",
       zIndex: 1,
-      marginTop: mob ? "auto" : 0,
+      
       justifyContent: hand.length > (mob ? 5 : 8) ? "flex-start" : "center",
       flexWrap: "nowrap",
       maxWidth: mob ? vw - 8 : 840,
