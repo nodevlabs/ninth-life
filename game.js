@@ -1,3 +1,4 @@
+// Ninth Life v0.82
 (() => {
   if ("serviceWorker" in navigator) { navigator.serviceWorker.register("/ninth-life/sw.js").catch(() => {}); }
   const { useState, useEffect, useRef, useMemo, useCallback } = React;
@@ -10004,7 +10005,7 @@
             /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#fbbf2466", letterSpacing: 1 } }, scoreSteps[sIdx].label),
             /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#ffffff22" } }, scoreSteps[sIdx].sub))
         );
-      })(), /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 10, right: 10, zIndex: 200, display: "flex", gap: 6, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ffffff55", letterSpacing: 1 } }, "v0.81"), meta && /* @__PURE__ */ React.createElement("button", { onClick: async () => {
+      })(), /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 10, right: 10, zIndex: 200, display: "flex", gap: 6, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, color: "#fbbf24", letterSpacing: 2, fontWeight: 900 } }, "v0.82"), meta && /* @__PURE__ */ React.createElement("button", { onClick: async () => {
         const sums = [];
         for (let i = 1; i <= SLOT_COUNT; i++) sums.push(await getSlotSummary(i));
         setSlotSummaries(sums);
