@@ -12542,7 +12542,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
       const ordered = [...sel].map((idx) => hand[idx]).filter(Boolean);
       const benchCats = hand.filter((c) => !ordered.find((x) => x.id === c.id));
       const benchTraited = benchCats.filter((c) => !catIsPlain(c) && !catIsKitten(c));
-      return mob ? /* @__PURE__ */ React.createElement("div", { style: { flex: "1 1 0", minHeight: 8, maxHeight: 60 } }) : /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, padding: "4px 16px", zIndex: 1, maxWidth: 700, width: "100%", justifyContent: "center", alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, alignItems: "flex-end" } }, ordered.map((cat2, pos) => {
+      return mob ? null : /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, padding: "4px 16px", zIndex: 1, maxWidth: 700, width: "100%", justifyContent: "center", alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 3, alignItems: "flex-end" } }, ordered.map((cat2, pos) => {
         if (!cat2) return null;
         const b = BREEDS[cat2.breed];
         return /* @__PURE__ */ React.createElement("div", { key: cat2.id, style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 0 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#fbbf24", fontWeight: 700 } }, pos + 1), /* @__PURE__ */ React.createElement("div", { style: { width: 24, height: 28, borderRadius: 4, background: b.bg, border: `1px solid ${b.color}44`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: 10 } }, /* @__PURE__ */ React.createElement("span", null, b.icon), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: b.color, fontWeight: 700 } }, cat2.power)));
@@ -12609,7 +12609,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
     })(), /* @__PURE__ */ React.createElement("div", { style: {
       display: "flex",
       gap: mob ? Math.max(1, Math.min(4, Math.floor((vw - 16) / hand.length) - 58)) : Math.max(3, Math.min(8, Math.floor(840 / hand.length) - 114)),
-      padding: "0 4px",
+      padding: "16px 4px 0",
       zIndex: 1,
       
       justifyContent: hand.length > (mob ? 5 : 8) ? "flex-start" : "center",
