@@ -1,4 +1,4 @@
-// Ninth Life v0.95
+// Ninth Life v0.97
 (() => {
   if ("serviceWorker" in navigator) { navigator.serviceWorker.register("/ninth-life/sw.js").catch(() => {}); }
   const { useState, useEffect, useRef, useMemo, useCallback } = React;
@@ -607,7 +607,19 @@
     { name: "Eternal", icon: "\u2728", desc: "\xD73 bonus, scores twice at full Power", tier: "mythic" },
     { name: "Phoenix", icon: "\u{1F525}", desc: "\xD72.5 bonus. Battle-hardened: \xD74. Revives once on death", tier: "mythic" }
   ];
-  const RARE_NEG = TRAITS.filter((t) => t.tier === "rare_neg");
+  const EVOLVED_TRAITS = {
+    "Scrapper": { name: "Ironhide", icon: "\u{1F6E1}\uFE0F", desc: "+5 bonus. Auto-heals. Reflects: injured attacker loses 1P", tier: "evolved" },
+    "Seer": { name: "Oracle", icon: "\u{1F52E}", desc: "+8 bonus always. Same type as last: +12. Predicts next draw", tier: "evolved" },
+    "Feral": { name: "Apex", icon: "\u{1F981}", desc: "+2 bonus per cat. \xD71.2 if 5 cats played", tier: "evolved" },
+    "Guardian": { name: "Sentinel", icon: "\u{1F6E1}\uFE0F", desc: "+3 per injured ally. Prevents 1 death per round", tier: "evolved" },
+    "Nocturnal": { name: "Void Walker", icon: "\u{1F30C}", desc: "+2 bonus per Morale. \xD71.1 at Morale 10+", tier: "evolved" },
+    "Echo": { name: "Resonance", icon: "\u{1F300}", desc: "Scores 3 times. Full Power each time", tier: "evolved" },
+    "Alpha": { name: "Apex Alpha", icon: "\u{1F451}", desc: "\xD71.5 if highest Power. +2P to all allies", tier: "evolved" },
+    "Devoted": { name: "Soulbound", icon: "\u{1F49E}", desc: "+6 bonus with partner. Partner gains +2P permanently each hand", tier: "evolved" },
+    "Loyal": { name: "Heartfire", icon: "\u{1F9E1}", desc: "+3 bonus. Allies gain +2P permanently", tier: "evolved" },
+    "Stubborn": { name: "Immovable", icon: "\u{1F3D4}\uFE0F", desc: "+4 bonus. Lost last: +10. Cannot be injured", tier: "evolved" }
+  };
+    const RARE_NEG = TRAITS.filter((t) => t.tier === "rare_neg");
   const COMMON_TRAITS = TRAITS.filter((t) => t.tier === "common");
   const RARE_TRAITS = TRAITS.filter((t) => t.tier === "rare");
   const LEGENDARY_TRAITS = TRAITS.filter((t) => t.tier === "legendary");
@@ -662,6 +674,7 @@
     return pk(COMMON_TRAITS);
   }
   function traitTierLabel(t) {
+    if (t.tier === "evolved") return { label: "Evolved", color: "#fef08a" };
     if (t.tier === "mythic") return { label: "Mythic", color: "#c084fc" };
     if (t.tier === "legendary") return { label: "Legendary", color: "#f97316" };
     if (t.tier === "rare" || t.tier === "rare_neg") return { label: "Rare", color: "#38bdf8" };
@@ -674,7 +687,7 @@
     return traitTierLabel(t).color;
   }
   function catHas(cat2, name) {
-    return (cat2.trait || PLAIN).name === name || (cat2.extraTraits || []).some((t) => t.name === name);
+    return (cat2.trait || PLAIN).name === name || cat2._evoFrom === name || (cat2.extraTraits || []).some((t) => t.name === name);
   }
   function catAllTraits(cat2) {
     const all = [cat2.trait || PLAIN, ...cat2.extraTraits || []];
@@ -2938,6 +2951,22 @@
       defeatFn: (ctx) => ctx.clutch ? "By that much? Of course by that much. It's always by that much." : ctx.deathless ? `All of them. Every single one. We lost three on Night 4. You lost none. Don't take that for granted.` : ctx.fallen > 2 ? `${ctx.fallen} names. We lost the same number. The math doesn't care about the story. But I do.` : "All of them. You kept all of them. We... couldn't.",
       lore: "One hand short. That's the whole story.",
       mechanic: { id: "almost", name: "So Close", desc: "Target +15%. But your best play scores double", icon: "\u{1F525}" }
+    },
+    {
+      id: "mirror",
+      name: "The Mirror",
+      icon: "\u{1FA9E}",
+      taunt: "I learned your name. I learned your best.",
+      tauntFn: (ctx) => {
+        const mn = ctx.mvpName || "them";
+        if (ctx.scarred > 3) return `${ctx.scarred} scars. ${mn} carries the most. I'll wear that one.`;
+        if (ctx.bonded > 2) return `${mn} fights for someone. I fight as ${mn}. Which of us wants it more?`;
+        return `I watched your colony. I became your strongest. Now fight yourself.`;
+      },
+      defeat: "You beat yourself. Not many colonies can say that.",
+      defeatFn: (ctx) => ctx.clutch ? `${ctx.mvpName || "They"} almost lost to their own reflection. Almost.` : ctx.deathless ? "You didn't lose a single cat to your own shadow. Respect." : `You won. But I'm still in there. Every time ${ctx.mvpName || "they"} score, that's me too.`,
+      lore: "It learned your name. It became your best.",
+      mechanic: { id: "mirror_exile", name: "Reflection", desc: "Your strongest cat is exiled. Scores 0.", icon: "\u{1FA9E}" }
     }
   ];
   const BOSS_TRAITS = [
@@ -4033,6 +4062,10 @@
       const weakest = cats.reduce((w, c) => !w || c.power < w.power ? c : w, null);
       if (weakest) cats = cats.map((c) => c.id === weakest.id ? { ...c, _bossHalved: true, power: Math.max(1, Math.ceil(c.power / 2)) } : c);
     }
+    if (ctx.bossMechanic === "mirror_exile" && cats.length > 0) {
+      const strongest = [...cats].sort((a, b) => b.power - a.power)[0];
+      if (strongest) cats = cats.map((c) => c.id === strongest.id ? { ...c, _mirrorExiled: true, power: 0 } : c);
+    }
     if (ctx.bossMechanic === "season_exile" && cats.length > 0) {
       const seasons = {};
       cats.forEach((c) => { seasons[c.breed] = (seasons[c.breed] || 0) + c.power; });
@@ -4154,8 +4187,9 @@
           icons.push("\u{1F408}");
         }
         if (catHas(c, "Loyal") && !c._re) {
-          cm += 2;
-          icons.push("\u{1FAC2}");
+          const isEvo = c._evolved && c._evoFrom === "Loyal";
+          cm += isEvo ? 3 : 2;
+          icons.push(isEvo ? "\u{1F9E1}" : "\u{1FAC2}");
         }
         if (catHas(c, "Scavenger") && !c._re) {
           const v = Math.min(5, Math.floor(pGold));
@@ -4163,9 +4197,10 @@
           icons.push("\u{1F33E}");
         }
         if (catHas(c, "Scrapper")) {
-          const v = c.scarred && !c._re ? 5 : 3;
+          const isEvo = c._evolved && c._evoFrom === "Scrapper";
+          const v = c.scarred && !c._re ? (isEvo ? 7 : 5) : (isEvo ? 5 : 3);
           cm += v;
-          icons.push("\u{1F94A}");
+          icons.push(isEvo ? "\u{1F6E1}\uFE0F" : "\u{1F94A}");
         }
         if (catHas(c, "Cursed")) {
           const myBreeds = getCatBreeds(c);
@@ -4182,12 +4217,15 @@
           }
         }
         if (catHas(c, "Feral") && !c._re) {
-          cm += cats.length;
-          icons.push("\u{1F43E}");
+          const isEvo = c._evolved && c._evoFrom === "Feral";
+          cm += isEvo ? cats.length * 2 : cats.length;
+          if (isEvo && cats.length >= 5) cx *= 1.2;
+          icons.push(isEvo ? "\u{1F981}" : "\u{1F43E}");
         }
         if (catHas(c, "Seer") && !c._re) {
+          const isEvo = c._evolved && c._evoFrom === "Seer";
           const predicted = ctx.lastHandType && type.name === ctx.lastHandType;
-          cm += predicted ? 8 : 4;
+          cm += predicted ? (isEvo ? 12 : 8) : (isEvo ? 8 : 4);
           icons.push("\u{1F441}\uFE0F");
         }
         if (catHas(c, "Echo")) {
@@ -4205,10 +4243,12 @@
           }
         }
         if (catHas(c, "Nocturnal") && !c._re) {
-          const nerveMult = fLvl;
+          const isEvo = c._evolved && c._evoFrom === "Nocturnal";
+          const nerveMult = isEvo ? fLvl * 2 : fLvl;
           if (nerveMult > 0) {
             cm += nerveMult;
-            icons.push("\u{1F319}");
+            if (isEvo && fLvl >= 10) cx *= 1.1;
+            icons.push(isEvo ? "\u{1F30C}" : "\u{1F319}");
           }
         }
         if (catHas(c, "Eternal")) {
@@ -4300,6 +4340,7 @@
       const catType = hasRareTrait ? "trait_rare" : hasScar && hasTrait ? "scar" : hasTrait ? "trait" : "cat";
       const reasons = [];
       if (exiled) reasons.push("EXILED (0 Power)");
+      if (c._mirrorExiled) reasons.push("MIRRORED (0 Power)");
       if (cc > 0) reasons.push("P" + basePow);
       if (!cfx.noTraits) {
         if (catHas(c, "Scrapper")) reasons.push("Scrapper" + (c.scarred ? " (scarred!)" : ""));
@@ -5562,7 +5603,7 @@
       }
     ];
     const wins = meta?.stats?.w || 0;
-    const FULL_BOSS_POOL = [...BOSSES, ...wins >= 3 || (meta?.heat || 0) >= 3 ? EXPANDED_BOSSES : []];
+    const FULL_BOSS_POOL = [...BOSSES, ...wins >= 3 || (meta?.heat || 0) >= 3 ? EXPANDED_BOSSES.filter((b) => b.id !== "mirror" || (meta?.heat || 0) >= 4) : []];
     const prophecy = React.useMemo(() => { if (!meta || !meta.stats.r) return null; const bIdx = Math.min((meta.stats.r || 0) % BOSSES.length, BOSSES.length - 1); const nb = BOSSES[bIdx]; const night = Math.min(5, Math.floor(Math.random() * 3) + 2); const cat = meta.cats.length > 0 ? meta.cats[Math.floor(Math.random() * meta.cats.length)] : null; const showWild = Math.random() < 0.5; return { boss: nb, night, cat, showWild }; }, [meta?.stats?.r, ph]);
     const [slotSummaries, setSlotSummaries] = useState(null);
     const [showSlots, setShowSlots] = useState(false);
@@ -6568,13 +6609,26 @@
           return next;
         });
         setLastHandIds(cats.map((c) => c.id));
+        scoringCats.forEach((sc) => {
+          const tp = (sc.stats?.tp || 0) + 1;
+          if (tp >= 30 && sc.trait && EVOLVED_TRAITS[sc.trait.name] && !sc._evolved) {
+            const evo = EVOLVED_TRAITS[sc.trait.name];
+            [setHand, setDraw, setDisc].forEach((s) => {
+              s((arr) => arr.map((x) => x.id === sc.id ? { ...x, trait: evo, _evolved: true, _evoFrom: sc.trait.name } : x));
+            });
+            setTimeout(() => {
+              toast("\u{1F31F}", `${sc.name.split(" ")[0]}'s ${sc.trait.name} evolved into ${evo.icon} ${evo.name}!`, "#fef08a", 5000);
+              Audio.epithetEarned();
+            }, 1200);
+          }
+        });
         const loyalInHand = cats.some((c) => catHas(c, "Loyal"));
         if (loyalInHand) {
           const loyalIds = new Set(cats.filter((c) => catHas(c, "Loyal")).map((c) => c.id));
           const allyIds = cats.filter((c) => !loyalIds.has(c.id)).map((c) => c.id);
           if (allyIds.length > 0) {
             [setHand, setDraw, setDisc].forEach((s) => {
-              s((arr) => arr.map((x) => allyIds.includes(x.id) ? { ...x, power: x.power + 1 } : x));
+              s((arr) => arr.map((x) => allyIds.includes(x.id) ? { ...x, power: x.power + (cats.some((lc) => catHas(lc, 'Loyal') && lc._evolved) ? 2 : 1) } : x));
             });
             const names = cats.filter((c) => !loyalIds.has(c.id)).map((c) => c.name.split(" ")[0]).join(", ");
             setTimeout(() => toast("\u{1FAC2}", `Loyal inspiration: ${names} gained +1 Power.`, "#f472b6", 2500), 800);
@@ -6707,6 +6761,49 @@
           }
           const isBossClear = blind === 2;
           if (isBossClear && ante >= MX) {
+            if (overtime) {
+              const otN = overtimeNights + 1;
+              setOvertimeNights(otN);
+              const dustReward = 2 + otN;
+              if (meta) {
+                setMeta((m) => {
+                  const nm = { ...m, dust: (m.dust || 0) + dustReward, stats: { ...m.stats, maxOvertime: Math.max(m.stats?.maxOvertime || 0, otN) } };
+                  saveS(nm);
+                  return nm;
+                });
+              }
+              const OVERTIME_LINES = [
+                "Two are safe. The rest fight on. The cycle cracks.",
+                "The ones left behind aren't left behind. They chose this.",
+                "Every night weakens the pattern. The next colony will feel it.",
+                "Not surviving. Eroding. The cycle is thinner here.",
+                "The Hearth cats will tell stories about this. About the ones who stayed.",
+                "Past the edge of the map. Past the edge of the plan. Still going.",
+                "The dark couldn't stop them. The light can't either.",
+                "Eight colonies died to build this moment. These cats are spending it."
+              ];
+              const otLine = OVERTIME_LINES[Math.min(otN - 1, OVERTIME_LINES.length - 1)];
+              setTimeout(() => {
+                toast("\u{1F305}", `Night ${ante} cleared! +${dustReward}\u2726 stardust`, "#fef08a", 3000);
+                setTimeout(() => toast("\u2728", otLine, "#fbbf24aa", 4000), 1500);
+              }, 600);
+              setTimeout(() => {
+                setClutch(false);
+                setRScore(0);
+                setHLeft(Math.max(3, hMax - Math.floor(otN / 3)));
+                setDLeft(dMax);
+                setBlind(2);
+                const nextBossIdx = (ante + otN) % FULL_BOSS_POOL.length;
+                const otBoss = FULL_BOSS_POOL[nextBossIdx];
+                setBoss(otBoss);
+                const extraHeat = Math.floor(otN / 2);
+                const otTraits = pickBossTraits(ante + otN, (meta?.heat || 0) + extraHeat, false);
+                setBossTraits(otTraits);
+                setTgt(Math.round((1500 + ante * 800) * (1.3 + otN * 0.25)));
+                setAnte((a) => a + 1);
+                setPh("bossIntro");
+              }, 3500);
+            } else {
             const bonusDust = Math.floor(gold / 5);
             if (bonusDust > 0 && meta) {
               setMeta((m) => {
@@ -6720,6 +6817,7 @@
               setClutch(false);
               endRun(true, ns);
             }, 1800);
+            }
           } else if (isBossClear) {
             const scarredCat = cats.find((c) => c.scarred);
             if (scarredCat) {
@@ -7326,6 +7424,9 @@
           stopDailyRNG();
           setIsDailyRun(false);
         }
+        setOvertime(false);
+        setOvertimeNights(0);
+        setSavedPairIds([]);
         setRunChips(0);
         setRunMult(0);
         setNewBest(null);
@@ -7415,7 +7516,7 @@
               return 0;
             }
           })();
-          setDefeatData({ score: fScore, target: tgtVal, line: pk(defeatLines), blind: bName, dustEarned: Math.min(3, ante), overflowDust: Math.max(0, ferv - NERVE_MAX) });
+          setDefeatData({ score: fScore, target: tgtVal, line: overtime ? pk(["The ones who weren't saved fought until they couldn't. That's what they chose.", "Not everyone reaches the Hearth. These ones bought time for those who did.", `${overtimeNights} nights beyond dawn. Every one of them cracked the cycle a little more.`, "They knew they wouldn't make it. They pushed anyway. For the next colony."]) : pk(defeatLines), blind: bName, dustEarned: Math.min(3, ante) + (overtime ? overtimeNights * 2 : 0), overflowDust: Math.max(0, ferv - NERVE_MAX), overtime: overtime, overtimeNights: overtimeNights });
           setPh("defeat");
         }
         if (meta) {
@@ -7596,7 +7697,8 @@
           const u = { ...meta, cats: [...meta.cats, ...newPair], stats: { ...meta.stats, disc: newDisc, hearthTotal: (meta.stats.hearthTotal || 0) + 2 } };
           setMeta(u);
           await saveS(u);
-          setHearthPair(null);
+          setSavedPairIds(newPair.map((c) => c.id));
+          setHearthPair("beyond");
           toast("\u{1F3E0}", "Their children will find you in future runs.", "#fbbf24", 3500);
           savingRef.current = false;
         } else {
@@ -7955,11 +8057,18 @@
       results.forEach((r) => {
         if (r.type === "breed") {
           r.baby._bornNight = ante; if (!seen.firstKitten) { setSeen((s) => ({ ...s, firstKitten: true })); setTimeout(() => toast("\u{1F431}", `${r.baby.name.split(" ")[0]} is born! Your first kitten.`, "#4ade80", 5e3), 1200); }
-          if (getMB().eternalHearth) {
-            const parentTraits = [r.c1.trait, r.c2.trait].filter((t) => t && t.name !== "Plain");
-            if (parentTraits.length > 0 && (!r.baby.trait || r.baby.trait.name === "Plain")) {
-              r.baby.trait = pk(parentTraits);
+          const parentTraits = [r.c1.trait, r.c2.trait].filter((t) => t && t.name !== "Plain");
+          if (parentTraits.length > 0 && (!r.baby.trait || r.baby.trait.name === "Plain")) {
+            const roll = Math.random();
+            if (parentTraits.length === 2) {
+              r.baby.trait = roll < 0.45 ? parentTraits[0] : roll < 0.90 ? parentTraits[1] : pickTrait(ante);
+            } else {
+              r.baby.trait = roll < 0.70 ? parentTraits[0] : pickTrait(ante);
             }
+            r.baby.name = gN(r.baby.breed, r.baby.trait);
+            r.baby._inheritedTrait = true;
+          }
+          if (getMB().eternalHearth) {
             r.baby.power = Math.max(3, r.baby.power);
           }
           setDraw((d) => [...d, r.baby]);
@@ -9647,7 +9756,7 @@
       const tr = namingCat.trait || PLAIN;
       const detail = TRAIT_DETAIL[tr.name] || tr.desc;
       const tierLabel = tr.tier === "mythic" ? "Mythic" : tr.tier === "legendary" ? "Legendary" : tr.tier === "rare" ? "Rare" : tr.tier === "rare_neg" ? "Rare" : tr.tier === "common" ? "Common" : "";
-      const tierCol = tr.tier === "mythic" ? "#c084fc" : tr.tier === "legendary" ? "#f97316" : tr.tier === "rare" || tr.tier === "rare_neg" ? "#38bdf8" : "#ffffff55";
+      const tierCol = tr.tier === "evolved" ? "#fef08a" : tr.tier === "mythic" ? "#c084fc" : tr.tier === "legendary" ? "#f97316" : tr.tier === "rare" || tr.tier === "rare_neg" ? "#38bdf8" : "#ffffff55";
       return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", zIndex: 1, gap: 12, padding: 20, maxWidth: 420 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff55", letterSpacing: 6, animation: "fadeIn .6s ease-out" } }, babyNamingQueue.length > 0 && draftPicked.length > 0 ? "NAME YOUR CATS" : "NAME YOUR CAT"), draftPicked.length > 0 && babyNamingQueue.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center", animation: "fadeIn .4s ease-out" } }, draftPicked.map((p, pi) => {
         const done = pi < draftPicked.length - babyNamingQueue.length - 1;
         const active = p.id === namingCat.id;
@@ -9723,7 +9832,8 @@
         { id: "forgetting", name: "The Forgetting", icon: "\u{1F32B}\uFE0F", lore: "The last enemy is not death. It is being forgotten." },
         { id: "fraying", name: "The Fraying", icon: "\u{1FA78}", lore: "The colony that ate itself." },
         { id: "eclipse", name: "The Eclipse", icon: "\u{1F311}", lore: "The fire went out and no one relit it." },
-        { id: "ember", name: "The Ember That Remains", icon: "\u{1F525}", lore: "One hand short. That's the whole story." }
+        { id: "ember", name: "The Ember That Remains", icon: "\u{1F525}", lore: "One hand short. That's the whole story." },
+        { id: "mirror", name: "The Mirror", icon: "\u{1FA9E}", lore: "It learned your name. It became your best." }
       ];
       const discovered = BOSS_DATA.filter((b) => (bossKills[b.id] || 0) > 0);
       const undiscovered = BOSS_DATA.filter((b) => (bossKills[b.id] || 0) === 0);
@@ -9948,6 +10058,7 @@
           gold,
           grudges: grudgedCats.length / 2,
           scarredName: scarredCats[0]?.name.split(" ")[0] || "",
+              mvpName: [...hand, ...draw, ...disc].sort((a, b) => b.power - a.power)[0]?.name.split(" ")[0] || "them",
           bondedName: bondedCats[0]?.name.split(" ")[0] || "",
           bondedMateName: bondedCats[0]?.bondedTo ? allC.find((c) => c.id === bondedCats[0].bondedTo)?.name.split(" ")[0] || "" : "",
           grudgedName: grudgedCats[0]?.name.split(" ")[0] || "",
@@ -10146,7 +10257,7 @@
             /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#fbbf2466", letterSpacing: 1 } }, scoreSteps[sIdx].label),
             /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#ffffff22" } }, scoreSteps[sIdx].sub))
         );
-      })(), /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 10, right: 10, zIndex: 200, display: "flex", gap: 6, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, color: "#fbbf24", letterSpacing: 2, fontWeight: 900 } }, "v0.95"), meta && /* @__PURE__ */ React.createElement("button", { onClick: async () => {
+      })(), /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 10, right: 10, zIndex: 200, display: "flex", gap: 6, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, color: "#fbbf24", letterSpacing: 2, fontWeight: 900 } }, "v0.97"), meta && /* @__PURE__ */ React.createElement("button", { onClick: async () => {
         const sums = [];
         for (let i = 1; i <= SLOT_COUNT; i++) sums.push(await getSlotSummary(i));
         setSlotSummaries(sums);
@@ -11266,7 +11377,7 @@ ${fallen.length} didn't come back.` : `
 All of them made it.`}
 ${nightGrid2} Night ${ante} \xB7 ${pctStr}
 \u2192 https://greatgamesgonewild.github.io/ninth-life/`;
-      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: mob ? "flex-start" : "center", minHeight: "100vh", zIndex: 1, gap: mob ? 8 : 12, padding: mob ? "30px 16px 20px" : 20, maxWidth: 500, overflowY: "auto", maxHeight: "100vh" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24aa", letterSpacing: 4, animation: "fadeIn .8s ease-out" } }, "COLONY #", (meta?.stats?.r || 0) + 1, " \xB7 NIGHT ", ante), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 36, fontWeight: 900, color: "#e8e6e3", letterSpacing: 2, animation: "fadeIn 1s ease-out" } }, defeatData.score.toLocaleString()), defeatData.target > 0 && /* @__PURE__ */ React.createElement("div", { style: { width: Math.min(280, vw - 60), height: 6, background: "#1a1a2e", borderRadius: 3, overflow: "hidden", border: "1px solid #ffffff08", animation: "fadeIn 1.2s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${Math.min(100, defeatData.score / defeatData.target * 100)}%`, borderRadius: 3, background: defeatData.score >= defeatData.target * 0.9 ? "linear-gradient(90deg,#fbbf24,#ef4444)" : "linear-gradient(90deg,#ef4444,#ef444488)", transition: "width 1s ease-out" } })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", animation: "fadeIn 1.2s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#3b82f6" } }, handsPlayed), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "HANDS")), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#c084fc" } }, bestHandScore.toLocaleString()), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "BEST HAND")), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: getNerve(rMaxF).color } }, getNerve(rMaxF).name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "MORALE")), fallen.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ef444422", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#ef4444" } }, fallen.length), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "LOST"))), /* @__PURE__ */ React.createElement("div", { style: { width: 40, height: 1, background: "#ef444433", margin: "2px 0" } }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ef4444aa", fontStyle: "italic", textAlign: "center", maxWidth: 340, lineHeight: 1.7, animation: "fadeIn 1.8s ease-out" } }, defSentence), deficit > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: deficit < defeatData.target * 0.3 ? "#fbbf2488" : "#ef444466", animation: "fadeIn 2s ease-out" } }, deficit < defeatData.target * 0.05 ? `${deficit.toLocaleString()} short. One more trait would have done it.` : deficit < defeatData.target * 0.15 ? `Only ${deficit.toLocaleString()} short. One good hand away.` : deficit < defeatData.target * 0.3 ? `${deficit.toLocaleString()} short. A bonded pair or stronger combo would close that gap.` : `${deficit.toLocaleString()} short of ${defeatData.target.toLocaleString()}`), runLog.length > 2 && /* @__PURE__ */ React.createElement("details", { style: { animation: "fadeIn 2.5s ease-out", maxWidth: 340, width: "100%" } }, /* @__PURE__ */ React.createElement("summary", { style: { fontSize: 10, color: "#666", cursor: "pointer", textAlign: "center", letterSpacing: 2 } }, "THE CHRONICLE"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 3, marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#ffffff04", border: "1px solid #ffffff08" } }, (() => {
+      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: mob ? "flex-start" : "center", minHeight: "100vh", zIndex: 1, gap: mob ? 8 : 12, padding: mob ? "30px 16px 20px" : 20, maxWidth: 500, overflowY: "auto", maxHeight: "100vh" } }, defeatData.overtime && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 900, color: "#fef08a", letterSpacing: 4, animation: "comboBurst .8s ease-out", marginBottom: 4, textShadow: "0 0 20px #fef08a44" } }, defeatData.overtimeNights, " NIGHT", defeatData.overtimeNights !== 1 ? "S" : "", " BEYOND DAWN"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24aa", letterSpacing: 4, animation: "fadeIn .8s ease-out" } }, "COLONY #", (meta?.stats?.r || 0) + 1, " \xB7 NIGHT ", ante), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 36, fontWeight: 900, color: "#e8e6e3", letterSpacing: 2, animation: "fadeIn 1s ease-out" } }, defeatData.score.toLocaleString()), defeatData.target > 0 && /* @__PURE__ */ React.createElement("div", { style: { width: Math.min(280, vw - 60), height: 6, background: "#1a1a2e", borderRadius: 3, overflow: "hidden", border: "1px solid #ffffff08", animation: "fadeIn 1.2s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${Math.min(100, defeatData.score / defeatData.target * 100)}%`, borderRadius: 3, background: defeatData.score >= defeatData.target * 0.9 ? "linear-gradient(90deg,#fbbf24,#ef4444)" : "linear-gradient(90deg,#ef4444,#ef444488)", transition: "width 1s ease-out" } })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", animation: "fadeIn 1.2s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#3b82f6" } }, handsPlayed), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "HANDS")), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#c084fc" } }, bestHandScore.toLocaleString()), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "BEST HAND")), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ffffff08", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: getNerve(rMaxF).color } }, getNerve(rMaxF).name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "MORALE")), fallen.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "4px 10px", borderRadius: 6, background: "#ffffff04", border: "1px solid #ef444422", minWidth: 60 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, fontWeight: 900, color: "#ef4444" } }, fallen.length), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#666", letterSpacing: 1 } }, "LOST"))), /* @__PURE__ */ React.createElement("div", { style: { width: 40, height: 1, background: "#ef444433", margin: "2px 0" } }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#ef4444aa", fontStyle: "italic", textAlign: "center", maxWidth: 340, lineHeight: 1.7, animation: "fadeIn 1.8s ease-out" } }, defSentence), deficit > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: deficit < defeatData.target * 0.3 ? "#fbbf2488" : "#ef444466", animation: "fadeIn 2s ease-out" } }, deficit < defeatData.target * 0.05 ? `${deficit.toLocaleString()} short. One more trait would have done it.` : deficit < defeatData.target * 0.15 ? `Only ${deficit.toLocaleString()} short. One good hand away.` : deficit < defeatData.target * 0.3 ? `${deficit.toLocaleString()} short. A bonded pair or stronger combo would close that gap.` : `${deficit.toLocaleString()} short of ${defeatData.target.toLocaleString()}`), runLog.length > 2 && /* @__PURE__ */ React.createElement("details", { style: { animation: "fadeIn 2.5s ease-out", maxWidth: 340, width: "100%" } }, /* @__PURE__ */ React.createElement("summary", { style: { fontSize: 10, color: "#666", cursor: "pointer", textAlign: "center", letterSpacing: 2 } }, "THE CHRONICLE"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 3, marginTop: 6, padding: "6px 10px", borderRadius: 8, background: "#ffffff04", border: "1px solid #ffffff08" } }, (() => {
         const moments = [];
         const bestH = runLog.filter((e) => e.type === "hand").reduce((best, e) => (e.data?.score || 0) > (best?.data?.score || 0) ? e : best, null);
         if (bestH) moments.push({ text: `Best: ${bestH.data.cats} ${bestH.data.type} for ${bestH.data.score.toLocaleString()}`, color: "#fbbf24", icon: "\u2726" });
@@ -11358,7 +11469,7 @@ ${nightGrid2} Night ${ante} \xB7 ${pctStr}
       const hearthEmpty = won && hearthPair !== null && cands.length === 0;
       const vStep = won ? victoryStep : 0;
       const SPLASH_BASE = "https://raw.githubusercontent.com/greatgamesgonewild/ninth-life/main/";
-      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("img", { src: SPLASH_BASE + (won ? "victory" : "defeat") + ".png", alt: "", style: { position: "fixed", top: won ? "auto" : 0, bottom: won ? 0 : "auto", left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 800, opacity: won ? 0.15 : 0.1, pointerEvents: "none", zIndex: 0, maskImage: won ? "linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 50%, transparent 80%)" : "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.15) 40%, transparent 70%)", WebkitMaskImage: won ? "linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 50%, transparent 80%)" : "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.15) 40%, transparent 70%)", animation: "fadeIn 2s ease-out" }, onError: (e) => { e.target.style.display = "none"; } }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: mob ? "flex-start" : "center", minHeight: "100vh", zIndex: 1, gap: mob ? 8 : 12, padding: mob ? "30px 16px 20px" : 20, maxWidth: 550, overflowY: "auto", maxHeight: "100vh" } }, vStep === 0 && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 48, animation: "comboBurst .8s ease-out" } }, won ? isNinthDawn ? "\u{1F305}" : "\u{1F451}" : "\u{1F480}"), /* @__PURE__ */ React.createElement("h2", { style: { fontSize: won && isNinthDawn ? 48 : 32, letterSpacing: won && isNinthDawn ? 16 : 8, margin: 0, color: won ? void 0 : "#ef4444", background: won ? "linear-gradient(180deg,#fef08a,#fbbf24)" : void 0, WebkitBackgroundClip: won ? "text" : void 0, WebkitTextFillColor: won ? "transparent" : void 0, animation: "comboBurst .6s ease-out", fontWeight: 700, textTransform: "uppercase", filter: won ? "drop-shadow(0 0 20px #fbbf2433)" : "none" } }, won ? isNinthDawn ? "BROKEN" : "THEY MADE IT" : "THE DARK WON"), won && !isNinthDawn && (() => {
+      return /* @__PURE__ */ React.createElement("div", { style: W }, /* @__PURE__ */ React.createElement("div", { style: BG }), /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("img", { src: SPLASH_BASE + (won ? "victory" : "defeat") + ".png", alt: "", style: { position: "fixed", top: won ? "auto" : 0, bottom: won ? 0 : "auto", left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 800, opacity: won ? 0.15 : 0.1, pointerEvents: "none", zIndex: 0, maskImage: won ? "linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 50%, transparent 80%)" : "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.15) 40%, transparent 70%)", WebkitMaskImage: won ? "linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 50%, transparent 80%)" : "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.15) 40%, transparent 70%)", animation: "fadeIn 2s ease-out" }, onError: (e) => { e.target.style.display = "none"; } }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: mob ? "flex-start" : "center", minHeight: "100vh", zIndex: 1, gap: mob ? 8 : 12, padding: mob ? "30px 16px 20px" : 20, maxWidth: 550, overflowY: "auto", maxHeight: "100vh" } }, vStep === 0 && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 48, animation: "comboBurst .8s ease-out" } }, won ? isNinthDawn ? "\u{1F305}" : "\u{1F451}" : "\u{1F480}"), /* @__PURE__ */ React.createElement("h2", { style: { fontSize: won && isNinthDawn ? 48 : 32, letterSpacing: won && isNinthDawn ? 16 : 8, margin: 0, color: won ? void 0 : "#ef4444", background: won ? "linear-gradient(180deg,#fef08a,#fbbf24)" : void 0, WebkitBackgroundClip: won ? "text" : void 0, WebkitTextFillColor: won ? "transparent" : void 0, animation: "comboBurst .6s ease-out", fontWeight: 700, textTransform: "uppercase", filter: won ? "drop-shadow(0 0 20px #fbbf2433)" : "none" } }, won ? isNinthDawn ? "BROKEN" : "THEY MADE IT" : defeatData.overtime ? "THE LIGHT CLOSED" : "THE DARK WON"), won && !isNinthDawn && (() => {
         const isFirst3 = isFirstRun && meta && meta.stats.w === 0;
         const isFirst5 = !isFirstRun && meta && meta.stats.w === 0;
         const breath = isFirst3 ? `Three nights. The dark gave you three and you took all of them. ${allC.length} cats. Every name accounted for.` : isFirst5 ? `Five nights. All five. The system ran every test it had. ${fallen.length === 0 ? "Not a single name lost." : allC.length + " still breathing."} The dark has never seen this before.` : fallen.length === 0 ? `${MX} night${MX > 1 ? "s" : ""}. Every single one of them. Not a name lost.` : `${MX} nights. ${allC.length} still breathing. ${fallen.length} carried in their memory.`;
@@ -11465,7 +11576,42 @@ ${nightGrid2} Night ${ante} \xB7 ${pctStr}
         gap: 4,
         padding: "2px 0",
         color: e.type === "death" ? "#ef4444" : e.type === "phoenix" ? "#fbbf24" : e.type === "breed" || e.type === "growth" || e.type === "wanderer" || e.type === "mentor" ? "#4ade80" : e.type === "hand" || e.type === "found" || e.type === "reward" ? "#fbbf24" : e.type === "night" ? "#c084fc" : "#666"
-      } }, /* @__PURE__ */ React.createElement("span", { style: { color: "#666", minWidth: 35 } }, "N", e.ante, ".", e.blind + 1), e.type === "trait" && /* @__PURE__ */ React.createElement("span", null, "\u2728 ", e.data.cat, " gained ", e.data.trait), e.type === "draft" && /* @__PURE__ */ React.createElement("span", null, "Drafted: ", e.data.picked, " (", e.data.rejects, " turned away)"), e.type === "hand" && /* @__PURE__ */ React.createElement("span", null, e.data.cats, " played ", e.data.type, " for ", e.data.score.toLocaleString()), e.type === "breed" && /* @__PURE__ */ React.createElement("span", null, e.data.baby, " was born to ", e.data.parents), e.type === "fight" && /* @__PURE__ */ React.createElement("span", null, e.data.loser, " was hardened in a fight"), e.type === "death" && /* @__PURE__ */ React.createElement("span", null, e.data.victim, " died"), e.type === "night" && /* @__PURE__ */ React.createElement("span", null, "Night ", e.data.to, " begins"), e.type === "phoenix" && /* @__PURE__ */ React.createElement("span", null, e.data.risen, " rose from ashes!"), e.type === "bond" && /* @__PURE__ */ React.createElement("span", null, e.data.c1, " bonded with ", e.data.c2), e.type === "training" && /* @__PURE__ */ React.createElement("span", null, e.data.c1, " and ", e.data.c2, " sparred"), e.type === "grudge" && /* @__PURE__ */ React.createElement("span", null, "\u26A1 Grudge: ", e.data.c1, " vs ", e.data.c2), e.type === "reconcile" && /* @__PURE__ */ React.createElement("span", null, "\u{1F54A}\uFE0F Peace: ", e.data.c1, "+", e.data.c2, e.data.bonded ? " \u{1F495}" : ""), e.type === "mentor" && /* @__PURE__ */ React.createElement("span", null, e.data.elder, " mentored ", e.data.young), e.type === "found" && /* @__PURE__ */ React.createElement("span", null, e.data.cat, " found +", e.data.gold, "\u{1F41F}"), e.type === "growth" && /* @__PURE__ */ React.createElement("span", null, e.data.cat, " grew stronger"), e.type === "wanderer" && /* @__PURE__ */ React.createElement("span", null, e.data.cat, " joined the colony"), e.type === "reward" && /* @__PURE__ */ React.createElement("span", null, "Claimed: ", e.data.name)))))), hearthPair === null && !colonyPortrait && /* @__PURE__ */ React.createElement("button", { onClick: () => setColonyPortrait(true), style: { ...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)", "#0a0a1a"), padding: "10px 36px", fontSize: 15 } }, "Face the Cost"), colonyPortrait && (() => {
+      } }, /* @__PURE__ */ React.createElement("span", { style: { color: "#666", minWidth: 35 } }, "N", e.ante, ".", e.blind + 1), e.type === "trait" && /* @__PURE__ */ React.createElement("span", null, "\u2728 ", e.data.cat, " gained ", e.data.trait), e.type === "draft" && /* @__PURE__ */ React.createElement("span", null, "Drafted: ", e.data.picked, " (", e.data.rejects, " turned away)"), e.type === "hand" && /* @__PURE__ */ React.createElement("span", null, e.data.cats, " played ", e.data.type, " for ", e.data.score.toLocaleString()), e.type === "breed" && /* @__PURE__ */ React.createElement("span", null, e.data.baby, " was born to ", e.data.parents), e.type === "fight" && /* @__PURE__ */ React.createElement("span", null, e.data.loser, " was hardened in a fight"), e.type === "death" && /* @__PURE__ */ React.createElement("span", null, e.data.victim, " died"), e.type === "night" && /* @__PURE__ */ React.createElement("span", null, "Night ", e.data.to, " begins"), e.type === "phoenix" && /* @__PURE__ */ React.createElement("span", null, e.data.risen, " rose from ashes!"), e.type === "bond" && /* @__PURE__ */ React.createElement("span", null, e.data.c1, " bonded with ", e.data.c2), e.type === "training" && /* @__PURE__ */ React.createElement("span", null, e.data.c1, " and ", e.data.c2, " sparred"), e.type === "grudge" && /* @__PURE__ */ React.createElement("span", null, "\u26A1 Grudge: ", e.data.c1, " vs ", e.data.c2), e.type === "reconcile" && /* @__PURE__ */ React.createElement("span", null, "\u{1F54A}\uFE0F Peace: ", e.data.c1, "+", e.data.c2, e.data.bonded ? " \u{1F495}" : ""), e.type === "mentor" && /* @__PURE__ */ React.createElement("span", null, e.data.elder, " mentored ", e.data.young), e.type === "found" && /* @__PURE__ */ React.createElement("span", null, e.data.cat, " found +", e.data.gold, "\u{1F41F}"), e.type === "growth" && /* @__PURE__ */ React.createElement("span", null, e.data.cat, " grew stronger"), e.type === "wanderer" && /* @__PURE__ */ React.createElement("span", null, e.data.cat, " joined the colony"), e.type === "reward" && /* @__PURE__ */ React.createElement("span", null, "Claimed: ", e.data.name)))))), hearthPair === "beyond" && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 400, textAlign: "center", animation: "fadeIn 1s ease-out" } },
+        /* @__PURE__ */ React.createElement("div", { style: { fontSize: 36, animation: "float 3s ease-in-out infinite", marginBottom: 8 } }, "\u{1F305}"),
+        /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#fbbf24", letterSpacing: 6, fontWeight: 700, marginBottom: 8 } }, "BEYOND THE DAWN"),
+        /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#ffffffaa", lineHeight: 1.7, marginBottom: 4, fontStyle: "italic", maxWidth: 340, margin: "0 auto 12px" } }, "The Hearth is lit. Two names made it to the fire. But the rest of the colony is still out there. They could walk away quietly. Or they could keep fighting. Not to survive. To crack the cycle."),
+        /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ffffff66", lineHeight: 1.6, marginBottom: 16, maxWidth: 320, margin: "0 auto 16px" } }, "The saved cats watch from the Hearth. Everyone else pushes forward without them. No shops. No den. No healing. Every night they survive weakens the cycle and earns stardust for the colonies that come after."),
+        /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 12, justifyContent: "center" } },
+          /* @__PURE__ */ React.createElement("button", { onClick: () => {
+            setOvertime(true);
+            setOvertimeNights(0);
+            setRScore(0);
+            setBlind(2);
+            const sIds = new Set(savedPairIds);
+            const allCats = [...hand, ...draw, ...disc];
+            const savedNames = savedPairIds.map((id) => allCats.find((c) => c.id === id)?.name.split(" ")[0]).filter(Boolean);
+            [setHand, setDraw, setDisc].forEach((s) => {
+              s((arr) => arr.filter((c) => !sIds.has(c.id)));
+            });
+            const remaining = allCats.filter((c) => !sIds.has(c.id));
+            toast("\u{1F525}", savedNames.length > 0 ? `${savedNames.join(" and ")} reached the Hearth. ${remaining.length} others chose to keep fighting.` : `The whole colony pushes beyond. ${remaining.length} cats against the unknown.`, "#fbbf24", 4000);
+            setTimeout(() => {
+              setHLeft(hMax);
+              setDLeft(dMax);
+              const otBoss = FULL_BOSS_POOL[ante % FULL_BOSS_POOL.length];
+              setBoss(otBoss);
+              const otTraits = pickBossTraits(ante + 1, (meta?.heat || 0) + Math.floor(ante / 2), false);
+              setBossTraits(otTraits);
+              const newTgt = Math.round(eTgt() * (1.2 + overtimeNights * 0.2));
+              setTgt(newTgt);
+              setAnte((a) => a + 1);
+              setPh("bossIntro");
+            }, 1500);
+          }, style: { ...BTN("linear-gradient(135deg,#fbbf24,#fef08a)", "#0a0a1a"), padding: "12px 32px", fontSize: 14, fontWeight: 900, letterSpacing: 2, boxShadow: "0 0 20px #fbbf2444" } }, "Push Beyond"),
+          /* @__PURE__ */ React.createElement("button", { onClick: () => {
+            setHearthPair(null);
+          }, style: { ...BTN("#1a1a2e", "#888"), padding: "12px 24px", fontSize: 12, border: "1px solid #ffffff15" } }, "They\u2019ve earned their rest."))),
+      hearthPair === null && !colonyPortrait && /* @__PURE__ */ React.createElement("button", { onClick: () => setColonyPortrait(true), style: { ...BTN("linear-gradient(135deg,#fbbf24,#f59e0b)", "#0a0a1a"), padding: "10px 36px", fontSize: 15 } }, "Face the Cost"), colonyPortrait && (() => {
         const hearthNames2 = new Set((meta?.cats || []).map((c) => c.name));
         const leftBehind = allC.filter((c) => !hearthNames2.has(c.name));
         const saved = allC.filter((c) => hearthNames2.has(c.name));
@@ -11783,7 +11929,10 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
       const beats = [];
       denRes.forEach((r) => {
         if (r.type === "breed") beats.push({ pri: 0, el: /* @__PURE__ */ React.createElement("div", { key: beats.length, style: { width: "100%", padding: mob2 ? "8px 10px" : "10px 14px", borderRadius: 10, background: "linear-gradient(145deg,#1b2e1b,#0d0d1a)", border: "1px solid #4ade8044" } }, /* @__PURE__ */ React.createElement("div", { style: { fontStyle: "italic", color: "#4ade80bb", fontSize: 12, lineHeight: 1.5, marginBottom: 6 } }, cpk(flavorCache, `breed_${r.baby.id}`, DEN_BREED, (fn) => fn(n(r.c1), n(r.c2), n(r.baby)))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, alignItems: "center" } }, /* @__PURE__ */ React.createElement(CC, { cat: r.c1, sm: true }), /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80bb" } }, "+"), /* @__PURE__ */ React.createElement(CC, { cat: r.c2, sm: true }), /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80bb" } }, "="), /* @__PURE__ */ React.createElement(CC, { cat: r.baby, sm: true, hl: true }), r.twins && r.twin2 && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24bb" } }, "+"), /* @__PURE__ */ React.createElement(CC, { cat: r.twin2, sm: true, hl: true }))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888", marginTop: 3 } }, BREEDS[r.baby.breed].icon, " ", r.baby.name, " P", r.baby.power, " ", (r.baby.trait || PLAIN).icon, " ", (r.baby.trait || PLAIN).name, " ", r.baby.sex === "M" ? "\u2642" : "\u2640", (r.baby.trait || PLAIN).tier !== "common" && (r.baby.trait || PLAIN).name !== "Plain" && /* @__PURE__ */ React.createElement("span", { style: { color: traitTierLabel(r.baby.trait).color, fontWeight: 700 } }, " \u2605 ", traitTierLabel(r.baby.trait).label.toUpperCase()))) });
-        if (r.type === "death") beats.push({ pri: 1, el: /* @__PURE__ */ React.createElement("div", { key: beats.length, style: { width: "100%", padding: mob2 ? "8px 10px" : "10px 14px", borderRadius: 10, background: "linear-gradient(145deg,#2e1111,#0d0d1a)", border: "1px solid #ef4444bb", animation: "fadeIn 1s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef4444", letterSpacing: 3, fontWeight: 700, marginBottom: 4 } }, "\u{1F480} DEATH"), /* @__PURE__ */ React.createElement("div", { style: { fontStyle: "italic", color: "#ef4444bb", fontSize: 13, lineHeight: 1.5, marginBottom: 6 } }, cpk(flavorCache, `death_${r.victim.id}`, DEN_DEATH, (fn) => fn(n(r.c1), n(r.c2), n(r.victim)))), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "8px 12px", borderRadius: 8, background: "#ef444411", border: "1px solid #ef444422" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#ef4444", fontWeight: 700 } }, r.victim.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888", marginTop: 2 } }, "P", r.victim.power, " ", BREEDS[r.victim.breed]?.icon, " ", r.victim.breed, " ", (r.victim.trait || PLAIN).icon, " ", (r.victim.trait || PLAIN).name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444bb", marginTop: 2 } }, r.victim.stats?.tp > 0 ? `Played ${r.victim.stats.tp} hands. Best: ${r.victim.stats.bs?.toLocaleString()}.` : "Never got to play."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444aa", marginTop: 4, fontStyle: "italic", lineHeight: 1.5 } }, getDeathMemorial(r.victim, ante)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444", marginTop: 4, fontWeight: 700, letterSpacing: 2 } }, "Gone from the colony."))) });
+        if (r.type === "death") {
+        const isImportant = r.victim.epithet || (r.victim.stats?.tp || 0) >= 10 || r.victim.bondedTo;
+        beats.push({ pri: isImportant ? -1 : 1, el: /* @__PURE__ */ React.createElement("div", { key: beats.length, style: { width: "100%", padding: mob2 ? "8px 10px" : "10px 14px", borderRadius: 10, background: "linear-gradient(145deg,#2e1111,#0d0d1a)", border: "1px solid #ef4444bb", animation: "fadeIn 1s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ef4444", letterSpacing: 3, fontWeight: 700, marginBottom: 4 } }, "\u{1F480} DEATH"), /* @__PURE__ */ React.createElement("div", { style: { fontStyle: "italic", color: "#ef4444bb", fontSize: 13, lineHeight: 1.5, marginBottom: 6 } }, cpk(flavorCache, `death_${r.victim.id}`, DEN_DEATH, (fn) => fn(n(r.c1), n(r.c2), n(r.victim)))), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "8px 12px", borderRadius: 8, background: "#ef444411", border: "1px solid #ef444422" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#ef4444", fontWeight: 700 } }, r.victim.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888", marginTop: 2 } }, "P", r.victim.power, " ", BREEDS[r.victim.breed]?.icon, " ", r.victim.breed, " ", (r.victim.trait || PLAIN).icon, " ", (r.victim.trait || PLAIN).name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444bb", marginTop: 2 } }, r.victim.stats?.tp > 0 ? `Played ${r.victim.stats.tp} hands. Best: ${r.victim.stats.bs?.toLocaleString()}.` : "Never got to play."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444aa", marginTop: 4, fontStyle: "italic", lineHeight: 1.5 } }, getDeathMemorial(r.victim, ante)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ef4444", marginTop: 4, fontWeight: 700, letterSpacing: 2 } }, "Gone from the colony."))) });
+        }
         if (r.type === "phoenix") beats.push({ pri: 0, el: /* @__PURE__ */ React.createElement("div", { key: beats.length, style: { width: "100%", padding: mob2 ? "8px 10px" : "10px 14px", borderRadius: 10, background: "linear-gradient(145deg,#2e2211,#0d0d1a)", border: "1px solid #fbbf2466" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#fbbf24", fontWeight: 700, marginBottom: 4 } }, "\u{1F525} ", n(r.risen), " RISES FROM THE ASHES!"), /* @__PURE__ */ React.createElement("div", { style: { fontStyle: "italic", color: "#fbbf24bb", fontSize: 11 } }, cpk(flavorCache, `phoenix_${r.risen.id}`, DEN_PHOENIX, (fn) => fn(r.c1.name, r.c2.name, r.risen.name))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fbbf24", marginTop: 4 } }, "Now Eternal at P1. The fire changes everything.")) });
         if (r.type === "bond") beats.push({ pri: 2, el: /* @__PURE__ */ React.createElement("div", { key: beats.length, style: { fontSize: 11, color: "#f472b6", lineHeight: 1.4, padding: "4px 0" } }, "\u{1F495} ", n(r.c1), " & ", n(r.c2), " bonded ", /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ffffff55" } }, ": ", bondStr, " bonus together")) });
         if (r.type === "reconcile_bond") beats.push({ pri: 2, el: /* @__PURE__ */ React.createElement("div", { key: beats.length, style: { fontSize: 11, color: "#f472b6", lineHeight: 1.4, padding: "4px 0" } }, "\u{1F495} ", n(r.c1), " & ", n(r.c2), " reconciled + bonded ", /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#ffffff55" } }, ": ", bondStr, " bonus together")) });
@@ -12282,7 +12431,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
         setSeen((s) => ({ ...s, guided: true }));
         setTimeout(() => toast("\u{1F4A1}", "Tip: Discard swaps cats for new draws. Tap it to try!", "#fbbf2488", 4e3), 2e3);
       }, style: { marginTop: 8, fontSize: 11, background: "#fbbf2422", border: "1px solid #fbbf2444", borderRadius: 6, color: "#fbbf24", cursor: "pointer", padding: "5px 16px", fontWeight: 700, letterSpacing: 1 } }, "Got it"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, justifyContent: "center", marginTop: 6 } }, [0, 1, 2, 3].map((i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { width: 6, height: 6, borderRadius: "50%", background: i === guide.step ? "#fbbf24" : i < guide.step ? "#fbbf2444" : "#333", transition: "all .15s" } }))));
-    })(), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: mob ? "6px 12px" : "8px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, borderBottom: `1px solid ${isBoss ? "#ef444422" : "#ffffff0a"}` } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#888", letterSpacing: 2 } }, "NIGHT ", ante, "/", MX, false, !mob && meta?.primaryBranch && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 9, color: SKILL_BRANCHES[meta.primaryBranch]?.color + "66", marginLeft: 4 } }, SKILL_BRANCHES[meta.primaryBranch]?.icon), !mob && /* @__PURE__ */ React.createElement("span", { style: { color: "#ffffff22", marginLeft: 6, fontSize: 9, letterSpacing: 3 } }, NIGHT_PLACES[Math.min(ante - 1, NIGHT_PLACES.length - 1)])), /* @__PURE__ */ React.createElement("div", { style: { fontSize: mob ? 13 : 14, fontWeight: 700, color: isBoss ? "#ef4444" : "#fbbf24" } }, blindN[blind]), !mob && /* @__PURE__ */ React.createElement(ProgressMap, { ante, blind, mx: MX })), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#888", letterSpacing: 2 } }, "SCORE"), /* @__PURE__ */ React.createElement("div", { "aria-label": `Score ${rScore} of ${tgt}`, style: { fontSize: mob ? 16 : 18, fontWeight: 900 } }, /* @__PURE__ */ React.createElement("span", { style: { color: rScore >= tgt ? "#4ade80" : "#e8e6e3" } }, rScore.toLocaleString()), /* @__PURE__ */ React.createElement("span", { style: { color: "#666", fontSize: 12 } }, " / ", tgt.toLocaleString())), !mob && rScore < tgt && hLeft > 0 && (() => {
+    })(), /* @__PURE__ */ React.createElement("div", { style: { width: "100%", maxWidth: 700, padding: mob ? "6px 12px" : "8px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1, borderBottom: `1px solid ${isBoss ? "#ef444422" : "#ffffff0a"}` } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#888", letterSpacing: 2 } }, overtime ? "BEYOND DAWN " : "NIGHT ", ante, "/", overtime ? "\u221E" : MX, false, !mob && meta?.primaryBranch && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 9, color: SKILL_BRANCHES[meta.primaryBranch]?.color + "66", marginLeft: 4 } }, SKILL_BRANCHES[meta.primaryBranch]?.icon), !mob && /* @__PURE__ */ React.createElement("span", { style: { color: "#ffffff22", marginLeft: 6, fontSize: 9, letterSpacing: 3 } }, NIGHT_PLACES[Math.min(ante - 1, NIGHT_PLACES.length - 1)])), /* @__PURE__ */ React.createElement("div", { style: { fontSize: mob ? 13 : 14, fontWeight: 700, color: isBoss ? "#ef4444" : "#fbbf24" } }, blindN[blind]), !mob && /* @__PURE__ */ React.createElement(ProgressMap, { ante, blind, mx: MX })), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#888", letterSpacing: 2 } }, "SCORE"), /* @__PURE__ */ React.createElement("div", { "aria-label": `Score ${rScore} of ${tgt}`, style: { fontSize: mob ? 16 : 18, fontWeight: 900 } }, /* @__PURE__ */ React.createElement("span", { style: { color: rScore >= tgt ? "#4ade80" : "#e8e6e3" } }, rScore.toLocaleString()), /* @__PURE__ */ React.createElement("span", { style: { color: "#666", fontSize: 12 } }, " / ", tgt.toLocaleString())), !mob && rScore < tgt && hLeft > 0 && (() => {
       const need = tgt - rScore;
       const nph = Math.ceil(need / hLeft);
       return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: nph > 45e3 ? "#ef4444" : nph > 24e3 ? "#fb923c" : "#aaa", fontWeight: 700, animation: nph > 45e3 ? "fpp 2s ease infinite" : "none" } }, "\u{1F3AF} Need ", need.toLocaleString(), hLeft > 1 ? /* @__PURE__ */ React.createElement("span", { style: { color: "#666", fontWeight: 400 } }, " (", nph.toLocaleString(), "/hand)") : "");
@@ -12831,12 +12980,13 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
           let po = null;
           if (blind >= 2) {
             const isBossExiled = cfx.exileBreed && c.breed === cfx.exileBreed;
+            const isMirrorExiled = boss?.mechanic?.id === "mirror_exile" && [...hand].sort((a, b) => b.power - a.power)[0]?.id === c.id;
             const isBossHalved = boss?.mechanic?.id === "weakest_benched" && c._bossHalved;
             const isSeasonHalved = boss?.mechanic?.id === "season_exile" && c._exiled;
             const isScarCursed = boss?.mechanic?.id === "scar_curse" && c.scarred;
             const isMirrored = (bossTraits || []).some((bt) => bt.fx?.mirrored) && [...hand].sort((a, b) => b.power - a.power)[0]?.id === c.id;
             const isFrozen = (bossTraits || []).some((bt) => bt.fx?.frozen);
-            if (isBossExiled) po = 0;
+            if (isBossExiled || isMirrorExiled) po = 0;
             else if (isScarCursed) po = Math.max(1, Math.ceil(c.power / 2));
             else if (isMirrored) po = Math.max(1, Math.ceil(c.power / 2));
           }
