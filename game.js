@@ -1,4 +1,4 @@
-// Ninth Life v0.82
+// Ninth Life v0.87
 (() => {
   if ("serviceWorker" in navigator) { navigator.serviceWorker.register("/ninth-life/sw.js").catch(() => {}); }
   const { useState, useEffect, useRef, useMemo, useCallback } = React;
@@ -530,13 +530,13 @@
     Wild: "A cat between seasons. Counts as every season at once, so they fit into any group you're building. The ultimate glue cat.",
     Stubborn: "Won't back down. Adds 3 bonus when played, but if your last group failed to clear, they dig in harder for 6 bonus instead. Discard to gain +1 Morale.",
     Stray: "The outsider who brings everyone together. Gains 3 bonus per unique season among the cats you play. Play all four seasons together and that's +12 bonus. Discard to draw an extra card.",
-    Loyal: "Bonds with routine. Adds 2 bonus normally, but play the exact same cats as your last play and they contribute 4 bonus instead. Discard to inspire +1 bonus across your whole group.",
+    Loyal: "Inspires allies. Adds 2 bonus. Every cat played alongside a Loyal cat gains +1 Power permanently for this fight. Play Loyal early and watch the colony grow stronger around them.",
     Devoted: "Heart belongs to their partner. Adds 5 bonus when their bonded partner is played in the same group. Discard to give their partner +1 Power. Strongest when you play the pair together.",
     Scavenger: "A practical survivor. Adds 1 bonus for every Ration you're carrying, up to +5. The richer you are, the harder they fight. Discard to earn +2 Rations.",
     Scrapper: "Tough and battle-hardened. Adds 3 bonus, or 5 bonus if they are hardened. Battle makes them stronger. Auto-heals injuries at the start of each round. Discard to gain +1 Morale.",
     Cursed: "A dark presence. Normally costs you 3 bonus. But play them as the only cat of their season and the curse inverts for +8 bonus. Isolate them for power. Discard to gain +1 Morale.",
     Guardian: "Protector of the wounded. Gains 2 bonus for every injured or hardened cat you play alongside them. The more your colony bleeds, the harder they fight. Discard to heal one injured cat.",
-    Feral: "Untamed and unpredictable. Gains 2 bonus for every cat played in the group. Play all 5 and that's +10 bonus. Rewards big, aggressive plays.",
+    Feral: "Untamed and unpredictable. Gains 1 bonus for every cat played in the group. Play all 5 and that's +5 bonus. Rewards big, aggressive plays.",
     Seer: "Sees what's coming. Adds 4 bonus always. But if you play the same hand type as your previous play, the Seer predicted it and adds +8 bonus instead. Rewards consistency.",
     Chimera: "Belongs to all four seasons at once. When played with 3 or more cats, multiplies your entire score by 1.5. A legendary shape-shifter.",
     Alpha: "The leader of the pack. If this cat has the highest Power among the cats you play, multiplies everything by 1.3. Keep them strong and they carry the colony.",
@@ -587,34 +587,46 @@
   const TRAITS = [
     // --- COMMON (C tier): utility, economy, enablers ---
     { name: "Wild", icon: "\u{1F300}", desc: "Counts as any season", tier: "common" },
-    { name: "Devoted", icon: "\u{1FAC0}", desc: "+5 bonus with partner. Discard: partner +1 Power", tier: "common" },
+    { name: "Devoted", icon: "\u{1FAC0}", desc: "+3 bonus with partner. Discard: partner +1 Power", tier: "common" },
     { name: "Stubborn", icon: "\u{1FAA8}", desc: "+3 bonus. Lost last round: +6 bonus. Discard: +1 Morale", tier: "common" },
     { name: "Stray", icon: "\u{1F408}", desc: "+3 bonus per unique season in group. Discard: +1 draw", tier: "common" },
-    { name: "Loyal", icon: "\u{1FAC2}", desc: "+2 bonus. Same cats as last: +4. Discard: +1 bonus all", tier: "common" },
+    { name: "Loyal", icon: "\u{1FAC2}", desc: "+2 bonus. Allies played with Loyal gain +1 Power permanently", tier: "common" },
     { name: "Scavenger", icon: "\u{1F33E}", desc: "+1 bonus per \u{1F41F} held (max +5). Discard: +2\u{1F41F}", tier: "common" },
     // --- RARE (B tier): solid contributors with conditions ---
-    { name: "Scrapper", icon: "\u{1F94A}", desc: "+3 bonus, +5 if scarred. Auto-heals injuries. Discard: +1 Morale", tier: "rare" },
+    { name: "Scrapper", icon: "\u{1F94A}", desc: "+3 bonus, +5 if hardened. Auto-heals injuries. Discard: +1 Morale", tier: "rare" },
     { name: "Cursed", icon: "\u{1F480}", desc: "\u22123 bonus. Only one of their season: +8. Discard: +1 Morale", tier: "rare_neg" },
-    { name: "Feral", icon: "\u{1F43E}", desc: "+2 bonus per cat played. Stronger in big groups", tier: "rare" },
+    { name: "Feral", icon: "\u{1F43E}", desc: "+1 bonus per cat played. Stronger in big groups", tier: "rare" },
     { name: "Seer", icon: "\u{1F441}\uFE0F", desc: "+4 bonus. Same group type as last: +8 bonus", tier: "rare" },
     { name: "Guardian", icon: "\u{1F6E1}\uFE0F", desc: "+2 bonus per injured ally played. Discard: heal 1", tier: "rare" },
     // --- LEGENDARY (A tier): build-defining ---
     { name: "Echo", icon: "\u{1F501}", desc: "Scores twice, half Power on second", tier: "legendary" },
     { name: "Chimera", icon: "\u{1F9EC}", desc: "Counts as all seasons. Play 3+ cats: \xD71.5", tier: "legendary" },
-    { name: "Alpha", icon: "\u{1F43A}", desc: "\xD71.3 if highest Power among played cats", tier: "rare" },
-    { name: "Nocturnal", icon: "\u{1F319}", desc: "+2 bonus per Morale level. Grows every round", tier: "legendary" },
+    { name: "Alpha", icon: "\u{1F43A}", desc: "\xD71.3 if highest Power among played cats", tier: "legendary" },
+    { name: "Nocturnal", icon: "\u{1F319}", desc: "+1 bonus per Morale level. Grows every round", tier: "legendary" },
     // --- MYTHIC (S tier): run-defining ---
     { name: "Eternal", icon: "\u2728", desc: "\xD73 bonus, scores twice at full Power", tier: "mythic" },
-    { name: "Phoenix", icon: "\u{1F525}", desc: "\xD72.5 bonus. Battle-scarred: \xD74. Revives once on death", tier: "mythic" }
+    { name: "Phoenix", icon: "\u{1F525}", desc: "\xD72.5 bonus. Battle-hardened: \xD74. Revives once on death", tier: "mythic" }
   ];
   const RARE_NEG = TRAITS.filter((t) => t.tier === "rare_neg");
   const COMMON_TRAITS = TRAITS.filter((t) => t.tier === "common");
   const RARE_TRAITS = TRAITS.filter((t) => t.tier === "rare");
   const LEGENDARY_TRAITS = TRAITS.filter((t) => t.tier === "legendary");
   const MYTHIC_TRAITS = TRAITS.filter((t) => t.tier === "mythic");
-  function pickTrait(allowHigh = false) {
+  function pickTrait(ante = 1) {
     const r = Math.random();
-    if (r < 0.03) return pk(LEGENDARY_TRAITS);
+    if (ante >= 5) {
+      if (r < 0.05) return pk(MYTHIC_TRAITS);
+      if (r < 0.20) return pk(LEGENDARY_TRAITS);
+      if (r < 0.50) return pk(RARE_TRAITS);
+      return pk(COMMON_TRAITS);
+    }
+    if (ante >= 3) {
+      if (r < 0.02) return pk(MYTHIC_TRAITS);
+      if (r < 0.10) return pk(LEGENDARY_TRAITS);
+      if (r < 0.45) return pk(RARE_TRAITS);
+      return pk(COMMON_TRAITS);
+    }
+    if (r < 0.05) return pk(LEGENDARY_TRAITS);
     if (r < 0.35) return pk(RARE_TRAITS);
     return pk(COMMON_TRAITS);
   }
@@ -793,7 +805,10 @@
     { id: "c_exile", name: "Exile", icon: "\u{1F6AB}", desc: "One season can't score", tier: 2, fx: { exile: true } },
     { id: "c_fragile", name: "Glass Claws", icon: "\u{1F494}", desc: "No discards", tier: 2, fx: { noDisc: true } },
     { id: "c_famine", name: "Famine", icon: "\u{1F9B4}", desc: "No Rations earned this night", tier: 2, fx: { famine: true } },
-    { id: "c_double", name: "Double Down", icon: "\u{1F3B2}", desc: "Target \xD71.3", tier: 3, fx: { tgtMult: 1.3 } }
+    { id: "c_double", name: "Double Down", icon: "\u{1F3B2}", desc: "Target \xD71.3", tier: 3, fx: { tgtMult: 1.3 } },
+    { id: "c_scatter", name: "Scattered", icon: "\u{1F300}", desc: "No focus bonus (1-4 cats)", tier: 2, fx: { noFocus: true } },
+    { id: "c_amnesia", name: "Amnesia", icon: "\u{1F4AD}", desc: "Epithets give no bonus", tier: 2, fx: { amnesia: true } },
+    { id: "c_rust", name: "Rusted Claws", icon: "\u{1F9F1}", desc: "Hardened bonus halved (\xD71.12 instead of \xD71.25)", tier: 3, fx: { rustScars: true } }
   ];
   const NIGHT_MODS = [
     { id: "surge", name: "Resonance Surge", icon: "\u2728", desc: "Same-season cats score +4 extra Power tonight", fx: { seasonChipsBonus: 4 } },
@@ -2354,7 +2369,7 @@
         return `Something is happening to ${n}. The others can feel it. A heat in the fur. A light behind the eyes that wasn't there yesterday. The old bloodlines are waking up. But change has a cost, and this change demands everything.`;
       },
       choices: [
-        { label: "Let the blood burn. Whatever comes.", desc: "Cat gains a random Legendary trait. Scarred. -4 Rations.", fx: { targetLegendary: true, targetScar: true, gold: -4 } },
+        { label: "Let the blood burn. Whatever comes.", desc: "Cat gains a random Legendary trait. Hardened. -4 Rations.", fx: { targetLegendary: true, targetScar: true, gold: -4 } },
         { label: "Not like this. Not them.", desc: "Cat +3 Power. +2 Morale.", fx: { targetPower: 3, fervor: 2 } }
       ]
     },
@@ -2385,7 +2400,7 @@
         return `The moon is full. ${n} can feel something stirring. An ancient instinct, older than colonies, older than hearths. The urge to hunt not for food but for purpose. To run until the world makes sense. The dark is dangerous tonight, but so is ${n}.`;
       },
       choices: [
-        { label: "Hunt. Find what the moon is showing you.", desc: "Cat gains Nocturnal. Scarred. -3 Rations.", fx: { targetNamedTrait: "Nocturnal", targetScar: true, gold: -3 } },
+        { label: "Hunt. Find what the moon is showing you.", desc: "Cat gains Nocturnal. Hardened. -3 Rations.", fx: { targetNamedTrait: "Nocturnal", targetScar: true, gold: -3 } },
         { label: "Stay by the fire. The moon lies.", desc: "Cat +2 Power. +3 Rations.", fx: { targetPower: 2, gold: 3 } }
       ]
     },
@@ -2648,7 +2663,7 @@
         return `The dark speaks. Not in words. In pressure. In the way the air thins around ${sn}. It wants something. A scar for a scar. One of yours for safe passage. The colony looks at you. Not at ${sn}. At you.`;
       },
       choices: [
-        { label: "Give it what it wants.", desc: "Random scarred cat loses 2 Power. Colony safe this night.", fx: { offeringScar: true, eventDenSafe: true } },
+        { label: "Give it what it wants.", desc: "Random hardened cat loses 2 Power. Colony safe this night.", fx: { offeringScar: true, eventDenSafe: true } },
         { label: "We don't pay. Not to the dark.", desc: "+3 Morale. The dark remembers defiance.", fx: { fervor: 3 } }
       ]
     },
@@ -2892,7 +2907,7 @@
       defeat: "You held it together. The Fifth Colony said the same thing on Night 3.",
       defeatFn: (ctx) => ctx.clutch ? "Held together by a thread. I know what threads do." : ctx.deathless ? "Not a single grudge took one of them? That's not a colony. That's a miracle." : ctx.fallen > 2 ? "You healed some. Not all. The wounds that don't show are the ones I planted." : "You healed what I infected. Impressive. Temporary.",
       lore: "The colony that ate itself.",
-      mechanic: { id: "grudge_double", name: "Internal Wounds", desc: "Grudge penalties doubled", icon: "\u{1FA78}" }
+      mechanic: { id: "scar_curse", name: "Internal Wounds", desc: "Hardened cats score at half Power", icon: "\u{1FA78}" }
     },
     {
       id: "eclipse",
@@ -2926,7 +2941,7 @@
     }
   ];
   const BOSS_TRAITS = [
-    { id: "armored", name: "Armored", icon: "\u{1F6E1}\uFE0F", desc: "+20% target", flavor: "It remembers how to protect itself.", fx: { tgtMult: 1.2 } },
+    { id: "thickhide", name: "Thick Hide", icon: "\u{1F9B4}", desc: "First 2 hands deal no damage", flavor: "It lets you think you're winning.", fx: { thickHide: 2 } },
     { id: "watchful", name: "Watchful", icon: "\u{1F441}\uFE0F", desc: "Strength meter disabled", flavor: "It knows what you're holding.", fx: { noStrength: true } },
     { id: "sealed", name: "Sealed", icon: "\u{1F512}", desc: "Ward abilities blocked", flavor: "Your tricks won't work.", fx: { sealed: true } },
     { id: "bleeding", name: "Bleeding", icon: "\u{1FA78}", desc: "Target shrinks 2% per play", flavor: "It weakens, but will you last?", fx: { bleeding: true } },
@@ -2934,7 +2949,10 @@
     { id: "enraged", name: "Enraged", icon: "\u{1F525}", desc: "Target \u221215%, all cats +3 bonus", flavor: "It fights harder. So do you.", fx: { tgtMult: 0.85, enragedMult: 3 } },
     { id: "fading", name: "Fading", icon: "\u{1F56F}\uFE0F", desc: "Target grows 5% per play remaining", flavor: "It grows stronger as time runs out.", fx: { fading: true } },
     { id: "marked", name: "Marked", icon: "\u{1FA9E}", desc: "One cat hardened before the fight", flavor: "The dark reached in and chose one.", fx: { marked: true } },
-    { id: "bloodied", name: "Bloodied", icon: "\u{1FA79}", desc: "Every failed hand scars a random cat", flavor: "Each mistake leaves a permanent mark.", fx: { bloodied: true } }
+    { id: "bloodied", name: "Bloodied", icon: "\u{1FA79}", desc: "Every failed hand scars a random cat", flavor: "Each mistake leaves a permanent mark.", fx: { bloodied: true } },
+    { id: "hollow", name: "Hollow", icon: "\u{1F573}\uFE0F", desc: "Bonds give no scoring bonus", flavor: "It remembers what loneliness feels like.", fx: { hollowBonds: true } },
+    { id: "mirrored", name: "Mirrored", icon: "\u{1FA9E}", desc: "Your strongest cat scores at half Power", flavor: "It turns your sharpest weapon against you.", fx: { mirrored: true } },
+    { id: "thorns", name: "Thorns", icon: "\u{1F339}", desc: "The winning hand injures all cats who played", flavor: "They won. They bled for it.", fx: { thorns: true } }
   ];
   function pickBossTraits(ante, heat, isNinthDawn) {
     const pool = shuf([...BOSS_TRAITS]);
@@ -2960,7 +2978,7 @@
     null,
     // index 0 unused
     { heat: 1, icon: "\u{1F56F}\uFE0F", name: "First Flame", desc: "Colony events offer +1 choice", flavor: "The first light anyone carried out of the dark." },
-    { heat: 2, icon: "\u2694\uFE0F", name: "Old Scars", desc: "Scarred cats start with +1 Power", flavor: "What doesn't kill them makes everyone remember." },
+    { heat: 2, icon: "\u2694\uFE0F", name: "Old Scars", desc: "Hardened cats start with +1 Power", flavor: "What doesn't kill them makes everyone remember." },
     { heat: 3, icon: "\u{1F441}\uFE0F", name: "The Vigil", desc: "Boss intros reveal their weakness", flavor: "They watched the dark long enough to learn its patterns." },
     { heat: 4, icon: "\u{1F31F}", name: "Ninth Star", desc: "Hearth descendants start with +1 Power", flavor: "The bloodline strengthens." },
     { heat: 5, icon: "\u{1F525}", name: "Undying Flame", desc: "Start every run with +1 Morale", flavor: "The last thing the dark expected: someone who came back angrier." }
@@ -3425,7 +3443,7 @@
   };
   function gC(o = {}) {
     const br = o.breed || pk(BK);
-    const defaultTrait = o.trait || pickTrait(false) || PLAIN;
+    const defaultTrait = o.trait || pickTrait() || PLAIN;
     const cat2 = {
       id: uid(),
       breed: br,
@@ -4056,6 +4074,9 @@
       btFxAll.forEach((bt) => {
         if (bt.fx.frozen) bd.push({ label: `\u{1F9CA} Frozen: first 2 cats score at half power`, chips: 0, mult: 0, type: "boss_trait" });
         if (bt.fx.enragedMult) bd.push({ label: `\u{1F525} Enraged: all cats +${bt.fx.enragedMult}B`, chips: 0, mult: 0, type: "boss_trait" });
+        if (bt.fx.hollowBonds) ctx.hollowBonds = true;
+                if (bt.fx.mirrored) ctx._mirrored = true;
+        if (bt.fx.thorns) ctx._thorns = true;
       });
     }
     const { gold: pGold = 0, deckSize = 18, discSize = 0 } = ctx;
@@ -4087,6 +4108,13 @@
     const uniqueBreeds = new Set(cats.flatMap((c) => getCatBreeds(c))).size;
     const toS = [];
     const bdSurge = [];
+    if (ctx._mirrored) {
+      const strongest = cats.reduce((best, c) => c.power > best.power ? c : best, cats[0]);
+      if (strongest) {
+        cats = cats.map((c) => c.id === strongest.id ? { ...c, power: Math.max(1, Math.ceil(c.power / 2)), _mirrored: true } : c);
+        bd.push({ label: `\u{1FA9E} Mirrored: ${strongest.name.split(" ")[0]} weakened`, chips: 0, mult: 0, type: "boss_trait" });
+      }
+    }
     cats.forEach((c, ci) => {
       c._ci = ci;
       toS.push(c);
@@ -4110,7 +4138,7 @@
       if (!cfx.noTraits && !isKit) {
         if (catHas(c, "Devoted") && !c._re) {
           if (c.bondedTo && cats.find((x) => x.id === c.bondedTo)) {
-            cm += 5;
+            cm += 3;
             icons.push("\u{1FAC0}");
           }
         }
@@ -4126,9 +4154,7 @@
           icons.push("\u{1F408}");
         }
         if (catHas(c, "Loyal") && !c._re) {
-          const lh = ctx.lastHandIds || [];
-          const bonus = lh.length > 0 && cats.every((x) => lh.includes(x.id)) ? 4 : 2;
-          cm += bonus;
+          cm += 2;
           icons.push("\u{1FAC2}");
         }
         if (catHas(c, "Scavenger") && !c._re) {
@@ -4156,7 +4182,7 @@
           }
         }
         if (catHas(c, "Feral") && !c._re) {
-          cm += cats.length * 2;
+          cm += cats.length;
           icons.push("\u{1F43E}");
         }
         if (catHas(c, "Seer") && !c._re) {
@@ -4179,7 +4205,7 @@
           }
         }
         if (catHas(c, "Nocturnal") && !c._re) {
-          const nerveMult = fLvl * 2;
+          const nerveMult = fLvl;
           if (nerveMult > 0) {
             cm += nerveMult;
             icons.push("\u{1F319}");
@@ -4204,7 +4230,7 @@
         if (sm) cm += sm;
         icons.push("\u2694\uFE0F");
       }
-      if (c.epithetKey && !c._re) {
+      if (c.epithetKey && !c._re && !cfx.amnesia) {
         const epDef = Object.values(EPITHETS).find((e) => e.key === c.epithetKey);
         if (epDef?.bonus) {
           const eb = epDef.bonus;
@@ -4273,6 +4299,7 @@
       const hasTrait = icons.length > 0;
       const catType = hasRareTrait ? "trait_rare" : hasScar && hasTrait ? "scar" : hasTrait ? "trait" : "cat";
       const reasons = [];
+      if (exiled) reasons.push("EXILED (0 Power)");
       if (cc > 0) reasons.push("P" + basePow);
       if (!cfx.noTraits) {
         if (catHas(c, "Scrapper")) reasons.push("Scrapper" + (c.scarred ? " (scarred!)" : ""));
@@ -4296,9 +4323,9 @@
         }
         if (catHas(c, "Fragile")) reasons.push("Fragile (+2M/ally)");
       }
-      if (c.scarred && !c.injured && !c._re) reasons.push("Scarred \xD71.25");
+      if (c.scarred && !c.injured && !c._re) reasons.push("Hardened \xD71.25");
       if (c.injured && !c._re) reasons.push("Injured (halved)");
-      if (c.epithetKey && !c._re) {
+      if (c.epithetKey && !c._re && !cfx.amnesia) {
         const epDef = Object.values(EPITHETS).find((e) => e.key === c.epithetKey);
         if (epDef?.bonus) {
           if (c.epithetKey === "mourning") {
@@ -4316,8 +4343,8 @@
           if (epDef.bonus.bondMult && c.bondedTo && cats.find((x) => x.id === c.bondedTo)) reasons.push(`"${c.epithet}" bond +2M`);
         }
       }
-      const catReasons = reasons.filter((r) => !r.startsWith("Scarred") && !r.startsWith("Chimera") && !r.startsWith("Alpha") && !r.startsWith("Eternal") && !r.startsWith("Phoenix") && !r.includes("bloodMoon"));
-      const surgeReasons = reasons.filter((r) => r.startsWith("Scarred") || r.startsWith("Chimera") || r.startsWith("Alpha") || r.startsWith("Eternal") || r.startsWith("Phoenix") || r.includes("bloodMoon"));
+      const catReasons = reasons.filter((r) => !r.startsWith("Hardened") && !r.startsWith("Chimera") && !r.startsWith("Alpha") && !r.startsWith("Eternal") && !r.startsWith("Phoenix") && !r.includes("bloodMoon"));
+      const surgeReasons = reasons.filter((r) => r.startsWith("Hardened") || r.startsWith("Chimera") || r.startsWith("Alpha") || r.startsWith("Eternal") || r.startsWith("Phoenix") || r.includes("bloodMoon"));
       bd.push({
         label: `${iconStr}${iconStr ? " " : ""}${c._re ? "\u21BB " : ""}${c.name.split(" ")[0]}${c.epithet ? " " + c.epithet : ""}${c.trait && c.trait.name !== "Plain" && !c._re && ctx.bossMechanic !== "trait_fog" ? " (" + c.trait.name + ")" : ""}`,
         reason: catReasons.length > 0 ? Math.random() < 0.15 ? narrativeReason(c, cats, catReasons) : catReasons.join(" \xB7 ") : "",
@@ -4364,7 +4391,7 @@
           if (mate && !bondedPairs.find((p) => p[0] === mate.id)) bondedPairs.push([c.id, mate.id]);
         }
       });
-      if (ctx.bossMechanic !== "bond_curse") bondedPairs.forEach(([a, b], pi) => {
+      if (ctx.bossMechanic !== "bond_curse" && !ctx.hollowBonds) bondedPairs.forEach(([a, b], pi) => {
         const ca = cats.find((c) => c.id === a), cb = cats.find((c) => c.id === b);
         const bondBoostActive = ctx.bondBoost || 0;
         const baseBond = devFx.bondScale || 1.5;
@@ -4383,6 +4410,9 @@
       });
       if (ctx.bossMechanic === "bond_curse" && bondedPairs.length > 0) {
         bd.push({ label: "\u{1F494} Grief Mirror: bonds silenced", chips: 0, mult: 0, type: "boss_trait", allCats: true });
+      }
+      if (ctx.hollowBonds && bondedPairs.length > 0) {
+        bd.push({ label: "\u{1F573}\uFE0F Hollow: bonds give nothing", chips: 0, mult: 0, type: "boss_trait", allCats: true });
       }
     }
     {
@@ -4473,7 +4503,7 @@
       bd.push({ label: "\u{1F41C} Outnumbered: no focus bonus", chips: 0, mult: 0, type: "boss_trait", allCats: true });
     }
     const clampedLvl = Math.min(fLvl, NERVE_MAX);
-    const fv = NERVE[clampedLvl];
+    const fv = getNerve(clampedLvl);
     const overflowLvls = Math.max(0, fLvl - NERVE_MAX);
     const overflowXM = overflowLvls > 0 ? overflowLvls * 0.15 : 0;
     const totalXM = fv.xM + overflowXM;
@@ -4524,7 +4554,7 @@
       bdEnd.push({ label: `\u2726 Prestige +${ctx.prestige * 5}%`, chips: 0, mult: 0, xMult: 1 + ctx.prestige * 0.05, type: "prestige", allCats: true });
     }
     const bdSorted = [...bdHand, ...bdNeg, ...bdCats, ...bdCombo, ...bdSurge, ...bdPos, ...bdEnd];
-    return { chips: Math.max(0, chips), mult: Math.max(1, mult), total: finalTotal, bd: bdSorted, bG, ht: type.name, combo: combo?.name || null, hasGrudgeProve };
+    return { chips: Math.max(0, chips), mult: Math.max(1, mult), total: finalTotal, bd: bdSorted, bG: ctx._starved ? 0 : bG, ht: type.name, combo: combo?.name || null, hasGrudgeProve: false };
   }
   function narrativeLabel(step, allCats) {
     if (Math.random() > 0.15) return null;
@@ -4595,10 +4625,18 @@
     };
     const base = ante <= 1 ? pickN(p1, 1) : ante === 2 ? pickN(p2, 1) : ante === 3 ? pickN(p2, 2) : ante === 4 ? pickN(p3, 2) : pickN(p3, 3);
     const extra = pickN(p3.filter((x) => !base.find((b) => b.id === x.id)), extraCurses);
-    return [...base, ...extra];
+    let all = [...base, ...extra];
+    const hasFog = all.find((c) => c.fx.fog);
+    const hasNoDisc = all.find((c) => c.fx.noDisc);
+    if (hasFog && hasNoDisc) {
+      all = all.filter((c) => c.id !== "c_fragile");
+      const replacement = CURSES.filter((c) => !all.find((a) => a.id === c.id) && !c.fx.noDisc && !c.fx.fog && c.tier <= 2);
+      if (replacement.length > 0) all.push(replacement[Math.floor(Math.random() * replacement.length)]);
+    }
+    return all;
   }
   function buildCfx(curses) {
-    const fx = { hsMod: 0, silence: false, fog: false, exileBreed: null, noDisc: false, tgtMult: 1, famine: false };
+    const fx = { hsMod: 0, silence: false, fog: false, exileBreed: null, noDisc: false, tgtMult: 1, famine: false, noFocus: false, amnesia: false, rustScars: false };
     curses.forEach((c) => {
       const e = c.fx;
       if (e.hsMod) fx.hsMod += e.hsMod;
@@ -4608,6 +4646,9 @@
       if (e.noDisc) fx.noDisc = true;
       if (e.tgtMult) fx.tgtMult *= e.tgtMult;
       if (e.famine) fx.famine = true;
+      if (e.noFocus) fx.noFocus = true;
+      if (e.amnesia) fx.amnesia = true;
+      if (e.rustScars) fx.rustScars = true;
     });
     return fx;
   }
@@ -4896,7 +4937,7 @@
       return null;
     }
   }
-  function _CC({ cat: _cat, sel, onClick, sm, cw: _cw, dis, hl, fog, chemHint, denMode, onTraitClick, traitFog }) {
+  function _CC({ cat: _cat, sel, onClick, sm, cw: _cw, dis, hl, fog, chemHint, denMode, onTraitClick, traitFog, powerOverride }) {
     const cat2 = !_cat || !_cat.trait ? { ..._cat || {}, trait: PLAIN, extraTraits: [], breed: "Autumn", name: "???", power: 1, sex: "M" } : _cat;
     const b = BREEDS[cat2.breed] || BREEDS.Autumn, w = _cw || (sm ? 80 : 112), h = _cw ? Math.round(_cw * 1.4) : sm ? 112 : 158, fn = cat2.name ? cat2.name.split(" ")[0] : "?";
     const xs = w < 60;
@@ -5019,10 +5060,11 @@
       } }, /* @__PURE__ */ React.createElement("span", { style: {
         fontSize: xs ? 12 : sm ? 15 : 22,
         fontWeight: 900,
-        color: neon,
+        color: powerOverride != null && powerOverride !== cat2.power ? (powerOverride === 0 ? "#ef4444" : "#fb923c") : neon,
         lineHeight: 1,
-        textShadow: "0 0 8px " + ng
-      } }, cat2.power)),
+        textShadow: powerOverride != null && powerOverride !== cat2.power ? "0 0 8px #ef444444" : "0 0 8px " + ng
+      } }, powerOverride != null ? powerOverride : cat2.power)),
+      powerOverride != null && powerOverride !== cat2.power && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: xs ? 0 : sm ? 1 : 2, right: xs ? 2 : sm ? 3 : 6, fontSize: xs ? 10 : sm ? 11 : 14, fontWeight: 900, color: "#ef4444", textShadow: "0 0 6px #ef444466", zIndex: 6, textDecoration: "line-through", opacity: 0.5 } }, cat2.power),
       (cat2.injured || !sm && (cat2.scarred || cat2.bondedTo || (cat2.grudgedWith || []).length > 0 || cat2.parentIds?.length > 0 || cat2._hearthChild)) && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 5, display: "flex", gap: 0, justifyContent: "center" } }, cat2._hearthChild && !sm && /* @__PURE__ */ React.createElement("div", { title: "Hearth Legend: returned to guide this colony. Cannot be saved back.", style: {
         background: "linear-gradient(180deg,#fbbf2433,#fbbf2411)",
         padding: sm ? "2px 4px" : "3px 5px",
@@ -5221,6 +5263,7 @@
     const [blind, setBlind] = useState(0);
     const [rScore, setRScore] = useState(0);
     const [hLeft, setHLeft] = useState(4);
+    const blindHandsRef = useRef(0);
     const [bestBossHand, setBestBossHand] = useState(0);
     const [dLeft, setDLeft] = useState(3);
     const [gold, setGold] = useState(5);
@@ -5321,6 +5364,7 @@
     const [firstDenUsed, setFirstDenUsed] = useState(false);
     const [newUnlocks, setNewUnlocks] = useState([]);
     const [shopTab, setShopTab] = useState("cats");
+    const [trainCount, setTrainCount] = useState(0);
     const [defeatData, setDefeatData] = useState(null);
     const [deathChoiceQueue, setDeathChoiceQueue] = useState([]);
     const [bloodMemMsg, setBloodMemMsg] = useState(null);
@@ -6079,7 +6123,7 @@
       setLastHandType(null);
       setEventHistory({});
       const hfx = getHeatFx(meta?.heat);
-      setHLeft(3 + mb.hands + (hfx.handMod || 0));
+      setHLeft(3 + mb.hands + (hfx.handMod || 0)); blindHandsRef.current = 0;
       setDLeft(3 + mb.discards + (hfx.discMod || 0));
       setGold(3 + mb.gold);
       const dd = getDailyData();
@@ -6446,9 +6490,25 @@
         }
         const cats = scoringCats;
         const tgt2 = eTgt();
-        const ns = rScore + result.total + emberBonus;
-        if (emberBonus > 0) setTimeout(() => toast("\u{1F525}", `SO CLOSE: best play doubled! +${emberBonus.toLocaleString()}`, "#fbbf24", 3e3), 800);
+        const thickHideTrait = (bossTraits || []).find((bt) => bt.fx?.thickHide);
+        const thickBlocked = thickHideTrait && blind >= 2 && blindHandsRef.current <= thickHideTrait.fx.thickHide;
+        const effectiveScore = thickBlocked ? 0 : result.total + emberBonus;
+        const ns = rScore + effectiveScore;
+        if (thickBlocked) setTimeout(() => toast("\u{1F9B4}", "Thick Hide absorbs the blow. No damage.", "#ef4444", 2000), 400);
+        if (emberBonus > 0 && !thickBlocked) setTimeout(() => toast("\u{1F525}", `SO CLOSE: best play doubled! +${emberBonus.toLocaleString()}`, "#fbbf24", 3e3), 800);
         setRScore(ns);
+        const thornsTrait = (bossTraits || []).find((bt) => bt.fx?.thorns);
+        if (thornsTrait && blind >= 2 && result.total > 0) {
+          const played = scoringCats.filter((c) => !c.injured);
+          if (played.length > 0) {
+            const ids = new Set(played.map((c) => c.id));
+            [setHand, setDraw, setDisc].forEach((s) => {
+              s((arr) => arr.map((x) => ids.has(x.id) ? { ...x, injured: true, power: Math.max(1, Math.ceil(x.power / 2)) } : x));
+            });
+            const names = played.map((c) => c.name.split(" ")[0]).join(", ");
+            setTimeout(() => toast("\u{1F339}", `Thorns: ${names} injured by the victory.`, "#ef4444", 3000), 600);
+          }
+        }
         setGold((g) => Math.max(0, g + result.bG));
         if (result.ht) {
           setHtLevels((prev) => {
@@ -6501,6 +6561,18 @@
           return next;
         });
         setLastHandIds(cats.map((c) => c.id));
+        const loyalInHand = cats.some((c) => catHas(c, "Loyal"));
+        if (loyalInHand) {
+          const loyalIds = new Set(cats.filter((c) => catHas(c, "Loyal")).map((c) => c.id));
+          const allyIds = cats.filter((c) => !loyalIds.has(c.id)).map((c) => c.id);
+          if (allyIds.length > 0) {
+            [setHand, setDraw, setDisc].forEach((s) => {
+              s((arr) => arr.map((x) => allyIds.includes(x.id) ? { ...x, power: x.power + 1 } : x));
+            });
+            const names = cats.filter((c) => !loyalIds.has(c.id)).map((c) => c.name.split(" ")[0]).join(", ");
+            setTimeout(() => toast("\u{1FAC2}", `Loyal inspiration: ${names} gained +1 Power.`, "#f472b6", 2500), 800);
+          }
+        }
         const remainNeeded = Math.max(0, tgt2 - rScore);
         const perHandPace = hLeft > 0 ? remainNeeded / hLeft : remainNeeded;
         setLastHandLost(result.total < perHandPace * 0.5);
@@ -6785,6 +6857,7 @@
       if (actionLock.current) return;
       if (autoPlay) setAutoPlay(null);
       actionLock.current = true;
+      blindHandsRef.current += 1;
       undoRef.current = null;
       Audio.cardPlay(); Haptic.medium();
       setDenNews([]);
@@ -7073,7 +7146,7 @@
           extraDraw.push(draw.length > 0 ? draw[0] : gC({ trait: PLAIN }));
           toast("\u{1F408}", "Stray wandered: +1 draw", "#67e8f9");
         } else if (catHas(cat2, "Loyal")) {
-          toast("\u{1FAC2}", "Loyal inspires: +1M to all drawn cats", "#f472b6");
+          nerveDelta++; toast("\u{1FAC2}", "Loyal inspires: +1 Morale", "#f472b6");
         } else if (catHas(cat2, "Scavenger")) {
           goldDelta += 2;
           toast("\u{1F33E}", "Scavenger discarded: +2\u{1F41F}", "#4ade80");
@@ -7546,6 +7619,7 @@
       const dFx = getAllDevotionFx(devotion);
       const baseHands = nb === 2 ? 4 : 3;
       setHLeft(baseHands + mb.hands + runBonus.hands + tempMods.hands + (hfx2.handMod || 0) + bossHandBonus + dFx.hands + (nb === 2 ? 0 : nightMod?.fx?.handMod || 0));
+      blindHandsRef.current = 0;
       setDLeft(3 + mb.discards + tempMods.discs + (hfx2.discMod || 0) + dFx.discards);
       setTempMods((m) => ({ hands: 0, discs: 0, freeRecruits: 0, nerveLock: 0, kindredMult: m.kindredMult || 0 }));
       if (nb === 0) {
@@ -7648,7 +7722,7 @@
       });
       const dominantSeason = Object.entries(seasonCts).sort((a, b) => b[1] - a[1])[0];
       const sc = [];
-      const headline = gC({ trait: pickTrait(ante >= 3) });
+      const headline = gC({ trait: pickTrait(ante) });
       headline._price = catPrice(ante, headline);
       headline._headline = true;
       sc.push(headline);
@@ -8522,7 +8596,7 @@
             s((arr) => arr.filter((x) => x.id !== r.id));
           });
         });
-        setDraw((d) => [...d, gC({ power: 5 + Math.floor(Math.random() * 3), trait: pickTrait(true) })]);
+        setDraw((d) => [...d, gC({ power: 5 + Math.floor(Math.random() * 3), trait: pickTrait(5) })]);
       }
       if (fx.targetScrapper && targets[0]) {
         const scrT = TRAITS.find((t) => t.name === "Scrapper");
@@ -9287,7 +9361,7 @@
       if (fx.eventDenBonus) lines.push({ text: "+1 Shelter slot this night.", color: "#4ade80", icon: "\u{1F3E0}" });
       if (fx.halfGold) lines.push({ text: "Lost half your Rations saving everyone", color: "#ef4444", icon: "\u{1F41F}" });
       if (fx.weakDmg) lines.push({ text: "The youngest took the worst of it (-2 Power each)", color: "#ef4444", icon: "\u{1F30A}" });
-      if (fx.healScars) lines.push({ text: "Scarred cats healed (+1 Power each)", color: "#4ade80", icon: "\u{1F49A}" });
+      if (fx.healScars) lines.push({ text: "Hardened cats healed (+1 Power each)", color: "#4ade80", icon: "\u{1F49A}" });
       if (fx.pactBond) lines.push({ text: `${targets[0]?.name.split(" ")[0]} and ${targets[1]?.name.split(" ")[0]} bonded. +1 Power each.`, color: "#f472b6", icon: "\u{1F495}" });
       if (fx.pactGrudge) lines.push({ text: `Both grew stronger. But the grudge is real.`, color: "#fb923c", icon: "\u26A1" });
       if (fx.choiceSave !== void 0 && targets.length >= 2) {
@@ -9727,7 +9801,7 @@
           /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: b.color, marginTop: 4, lineHeight: 1.3, fontWeight: 700 } }, c.name.split(" ")[0], " ", /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 400, opacity: 0.6, fontSize: 10 } }, c.sex === "M" ? "\u2642" : "\u2640")),
           /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff99", fontStyle: "italic", lineHeight: 1.4, minHeight: 28, marginTop: 3 } }, '"', voice, '"'),
           c.trait.name !== "Plain" && (() => {
-            const hook = { Wild: "Fits into any season combo.", Stubborn: "Stronger when your last play failed.", Stray: "Bonus for mixing different seasons.", Loyal: "Bonus for repeating the same team.", Devoted: "Powerful when paired with their partner.", Scavenger: "Stronger the more Rations you hold.", Scrapper: "Tough fighter. Even tougher when hardened.", Cursed: "Risky. Deadly when isolated.", Guardian: "Stronger when allies are wounded.", Feral: "Stronger the more cats you play.", Seer: "Bonus for repeating hand types.", Chimera: "Belongs to every season at once.", Alpha: "Strongest cat scores even bigger.", Echo: "Scores twice. One of the strongest.", Nocturnal: "Gets stronger the longer you survive.", Eternal: "The strongest trait in the game.", Phoenix: "Burns bright. Comes back from death." };
+            const hook = { Wild: "Fits into any season combo.", Stubborn: "Stronger when your last play failed.", Stray: "Bonus for mixing different seasons.", Loyal: "Allies gain +1 Power each time they play with this cat.", Devoted: "Powerful when paired with their partner.", Scavenger: "Stronger the more Rations you hold.", Scrapper: "Tough fighter. Even tougher when hardened.", Cursed: "Risky. Deadly when isolated.", Guardian: "Stronger when allies are wounded.", Feral: "Stronger the more cats you play.", Seer: "Bonus for repeating hand types.", Chimera: "Belongs to every season at once.", Alpha: "Strongest cat scores even bigger.", Echo: "Scores twice. One of the strongest.", Nocturnal: "Gets stronger the longer you survive.", Eternal: "The strongest trait in the game.", Phoenix: "Burns bright. Comes back from death." };
             const tier = traitTierLabel(c.trait);
             return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: tier.color, marginTop: 2, lineHeight: 1.3, maxWidth: 120 } }, /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700, fontSize: 9, letterSpacing: 1, textTransform: "uppercase", opacity: 0.7 } }, tier.label), " ", isFirstRun2 ? hook[c.trait.name] || c.trait.desc : c.trait.desc);
           })(),
@@ -10006,7 +10080,7 @@
             /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: "#fbbf2466", letterSpacing: 1 } }, scoreSteps[sIdx].label),
             /* @__PURE__ */ React.createElement("div", { style: { fontSize: 8, color: "#ffffff22" } }, scoreSteps[sIdx].sub))
         );
-      })(), /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 10, right: 10, zIndex: 200, display: "flex", gap: 6, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, color: "#fbbf24", letterSpacing: 2, fontWeight: 900 } }, "v0.82"), meta && /* @__PURE__ */ React.createElement("button", { onClick: async () => {
+      })(), /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", top: 10, right: 10, zIndex: 200, display: "flex", gap: 6, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, color: "#fbbf24", letterSpacing: 2, fontWeight: 900 } }, "v0.87"), meta && /* @__PURE__ */ React.createElement("button", { onClick: async () => {
         const sums = [];
         for (let i = 1; i <= SLOT_COUNT; i++) sums.push(await getSlotSummary(i));
         setSlotSummaries(sums);
@@ -10923,7 +10997,7 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
           setBossRewardChoices([]);
           setOData(null);
           genShop();
-          setPh("shop");
+          setPh("shop"); setTrainCount(0);
           if (boss) {
             const dCtx3 = { fallen: fallen.length, fallenName: fallen.length > 0 ? fallen[fallen.length - 1].name.split(" ")[0] : "", clutch, deathless: fallen.length === 0, strongestName: [...allC].sort((a, b) => b.power - a.power)[0]?.name.split(" ")[0] || "" };
             const dLine3 = boss.defeatFn ? boss.defeatFn(dCtx3) : boss.defeat;
@@ -10978,7 +11052,7 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
           setOData(null);
           setSkipShop(false);
           genShop();
-          setPh("shop");
+          setPh("shop"); setTrainCount(0);
           Audio.shopAmbient();
         }, style: {
           ...BTN(forceMarket ? "linear-gradient(135deg,#4ade80,#22d3ee)" : "linear-gradient(135deg,#fbbf24,#f59e0b)", "#0a0a1a"),
@@ -11675,7 +11749,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
         const patternLine = wardCount >= 3 && scrollsBought === 0 ? "You always buy wards. Never scrolls. The keeper has noticed." : scrollsBought >= 2 && wardCount === 0 ? "All scrolls, no wards. The keeper raises an eyebrow." : gold > 15 ? "Carrying that many rations into a shop. The keeper has seen this before. They never spend it." : allC.filter((c) => c.scarred).length >= 3 ? "The hardened ones come through here a lot. The keeper nods with respect at the door now." : null;
         const line = patternLine || WHISPER_SHOP[(ante * 3 + blind) % WHISPER_SHOP.length];
         return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf2466", fontStyle: "italic", textAlign: "center", maxWidth: 320, lineHeight: 1.4, animation: "fadeIn 1.5s ease-out" } }, line);
-      })(), !seen.shop && /* @__PURE__ */ React.createElement("div", { style: { padding: "12px 18px", borderRadius: 10, background: "linear-gradient(145deg,#fbbf2408,#f59e0b04)", border: "1px solid #fbbf2433", fontSize: 12, color: "#e8e6e3cc", lineHeight: 1.7, textAlign: "left", maxWidth: 400, animation: "fadeIn .6s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: "#fbbf24", marginBottom: 6, letterSpacing: 1 } }, "THE MARKET"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F41F} Rations"), " are currency. Spend them or save for ", /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80" } }, "interest"), "."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff55", marginTop: 2 } }, "Every 5\u{1F41F} saved = +1\u{1F41F} per round."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, display: "flex", flexDirection: "column", gap: 3 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F431} Cats"), ". stronger cats with traits boost your score"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F4DC} Scrolls"), ". level up hand types for bigger base scores"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F6E1}\uFE0F Wards"), ". passive bonuses that trigger every play")), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, padding: "6px 10px", borderRadius: 6, background: "#ffffff06", border: "1px solid #ffffff0a" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24bb" } }, "\u{1F4A1} ", /* @__PURE__ */ React.createElement("b", null, "Season Devotion"), ": Play cats of one season to make that season stronger. Check progress in the Upgrades tab.")), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setSeen((s) => ({ ...s, shop: true })), style: { fontSize: 11, background: "linear-gradient(135deg,#fbbf24,#f59e0b)", border: "none", borderRadius: 5, color: "#0a0a1a", cursor: "pointer", padding: "5px 16px", fontWeight: 700 } }, "Got it"))), !isFirstRun && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", padding: "10px 12px", borderRadius: 10, background: "linear-gradient(145deg,#4ade800a,#4ade8004)", border: "1px solid #4ade8033", animation: "fadeIn .4s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#4ade80", fontWeight: 700, letterSpacing: 2 } }, "\u2694\uFE0F TRAINING GROUNDS"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80aa", lineHeight: 1.5, marginTop: 2 } }, gold >= 6 ? "The colony gathers. 3 cats push themselves harder. +1 Power each." : "Not enough rations. The colony rests.")), /* @__PURE__ */ React.createElement("button", { onClick: () => { const ac2 = [...hand, ...draw, ...disc]; const targets = shuf(ac2).slice(0, 3); targets.forEach((t) => { [setHand, setDraw, setDisc].forEach((s) => { s((arr) => arr.map((x) => x.id === t.id ? { ...x, power: x.power + 1 } : x)); }); }); setGold((g) => g - 6); toast("\u2694\uFE0F", `${targets.map((t) => t.name.split(" ")[0]).join(", ")} trained. +1P each.`, "#4ade80"); }, disabled: gold < 6, style: { ...BTN(gold >= 6 ? "linear-gradient(135deg,#4ade80,#22c55e)" : "#1a1a2e", gold >= 6 ? "#0a0a1a" : "#444", gold >= 6), padding: "10px 20px", fontSize: 13, fontWeight: 900, border: `1px solid ${gold >= 6 ? "#4ade8066" : "#222"}`, minWidth: 100, letterSpacing: 1 } }, "6\u{1F41F} Train"))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 0, width: "100%", borderBottom: "1px solid #ffffff0a" } }, [["cats", "\u{1F431} Cats"], ["upgrades", "\u26A1 Upgrades"], ["colony", "\u{1F465} Colony"]].map(([id, label]) => {
+      })(), !seen.shop && /* @__PURE__ */ React.createElement("div", { style: { padding: "12px 18px", borderRadius: 10, background: "linear-gradient(145deg,#fbbf2408,#f59e0b04)", border: "1px solid #fbbf2433", fontSize: 12, color: "#e8e6e3cc", lineHeight: 1.7, textAlign: "left", maxWidth: 400, animation: "fadeIn .6s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: "#fbbf24", marginBottom: 6, letterSpacing: 1 } }, "THE MARKET"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F41F} Rations"), " are currency. Spend them or save for ", /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80" } }, "interest"), "."), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#ffffff55", marginTop: 2 } }, "Every 5\u{1F41F} saved = +1\u{1F41F} per round."), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, display: "flex", flexDirection: "column", gap: 3 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F431} Cats"), ". stronger cats with traits boost your score"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F4DC} Scrolls"), ". level up hand types for bigger base scores"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "\u{1F6E1}\uFE0F Wards"), ". passive bonuses that trigger every play")), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, padding: "6px 10px", borderRadius: 6, background: "#ffffff06", border: "1px solid #ffffff0a" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#fbbf24bb" } }, "\u{1F4A1} ", /* @__PURE__ */ React.createElement("b", null, "Season Devotion"), ": Play cats of one season to make that season stronger. Check progress in the Upgrades tab.")), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, textAlign: "center" } }, /* @__PURE__ */ React.createElement("button", { onClick: () => setSeen((s) => ({ ...s, shop: true })), style: { fontSize: 11, background: "linear-gradient(135deg,#fbbf24,#f59e0b)", border: "none", borderRadius: 5, color: "#0a0a1a", cursor: "pointer", padding: "5px 16px", fontWeight: 700 } }, "Got it"))), !isFirstRun && /* @__PURE__ */ React.createElement("div", { style: { width: "100%", padding: "10px 12px", borderRadius: 10, background: "linear-gradient(145deg,#4ade800a,#4ade8004)", border: "1px solid #4ade8033", animation: "fadeIn .4s ease-out" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#4ade80", fontWeight: 700, letterSpacing: 2 } }, "\u2694\uFE0F TRAINING GROUNDS"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80aa", lineHeight: 1.5, marginTop: 2 } }, gold >= (3 + 2 * trainCount) ? "The colony gathers. 3 cats push themselves harder. +1 Power each." : "Not enough rations. The colony rests.")), /* @__PURE__ */ React.createElement("button", { onClick: () => { const ac2 = [...hand, ...draw, ...disc]; const targets = shuf(ac2).slice(0, 3); targets.forEach((t) => { [setHand, setDraw, setDisc].forEach((s) => { s((arr) => arr.map((x) => x.id === t.id ? { ...x, power: x.power + 1 } : x)); }); }); const _tc = 3 + 2 * trainCount; setGold((g) => g - _tc); setTrainCount((c) => c + 1); toast("\u2694\uFE0F", `${targets.map((t) => t.name.split(" ")[0]).join(", ")} trained. +1P each.`, "#4ade80"); }, disabled: gold < (3 + 2 * trainCount), style: { ...BTN(gold >= (3 + 2 * trainCount) ? "linear-gradient(135deg,#4ade80,#22c55e)" : "#1a1a2e", gold >= (3 + 2 * trainCount) ? "#0a0a1a" : "#444", gold >= (3 + 2 * trainCount)), padding: "10px 20px", fontSize: 13, fontWeight: 900, border: `1px solid ${gold >= (3 + 2 * trainCount) ? "#4ade8066" : "#222"}`, minWidth: 100, letterSpacing: 1 } }, 3 + 2 * trainCount, "\u{1F41F} Train"))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 0, width: "100%", borderBottom: "1px solid #ffffff0a" } }, [["cats", "\u{1F431} Cats"], ["upgrades", "\u26A1 Upgrades"], ["colony", "\u{1F465} Colony"]].map(([id, label]) => {
         const isNudge = id === "upgrades" && shopTab !== "upgrades" && ((sFams.some((f) => f._starter) || sScrolls.length > 0) && fams.length === 0) || id === "upgrades" && shopTab !== "upgrades" && isFirstRun && fams.length === 0;
         return /* @__PURE__ */ React.createElement("button", { key: id, onClick: () => {
           setShopTab(id);
@@ -11824,7 +11898,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
           });
         });
         toast("\u26A1", `${targets.map((t) => t.name.split(" ")[0]).join(", ")} trained. +1P each.`, "#4ade80");
-      }, disabled: gold < 6, style: { ...BTN("#1a1a2e", "#4ade80", gold >= 6), border: `1px solid ${gold >= 6 ? "#4ade8044" : "#222"}`, fontSize: 11 } }, "Train (6\u{1F41F})"))), /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100, background: "linear-gradient(180deg,transparent,#0a0a1a 8px,#0a0a1a)", padding: "8px 16px 12px", display: "flex", justifyContent: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { maxWidth: 700, width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 2 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { onClick: () => toast("\u{1F41F}", `Rations: ${gold}\u{1F41F}. Spend in the Market on cats, wards, scrolls. Earn more by scoring higher. Save 5+ for interest.`, "#fbbf24", 5e3), style: { color: "#fbbf24", fontSize: 14, fontWeight: 700, cursor: "help" } }, "\u{1F41F}", gold), runCount >= 1 && interestPreview > 0 && /* @__PURE__ */ React.createElement("span", { onClick: () => toast("\u{1F4C8}", `Interest: +${interestPreview}\u{1F41F} next round (floor of Rations\xF75, max 5). Save Rations to earn more.`, "#4ade80"), style: { color: "#4ade80", fontSize: 10, cursor: "help" } }, "+", interestPreview, " stores", interestPreview >= 5 ? " MAX" : ""), /* @__PURE__ */ React.createElement("span", { onClick: () => toast("\u2726", `Stardust: ${meta?.dust || 0}\u2726. Meta-currency from Hearth cats. Spend on permanent upgrades between runs.`, "#c084fc", 4e3), style: { color: "#c084fc", fontSize: 10, cursor: "help" } }, "\u2726", meta?.dust || 0)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888" } }, nt ? /* @__PURE__ */ React.createElement("span", { onClick: () => toast("\u{1F3AF}", `Target: ${nt.target.toLocaleString()}. Score this much total across all hands to clear ${nt.blindName}. Boss blinds injure cats on failed hands.`, "#fbbf24"), style: { cursor: "help" } }, nt.blind === 2 ? /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444", fontWeight: 700 } }, boss?.icon || "\u{1F441}\uFE0F", " ", nt.blindName, " approaches") : /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, nt.blindName, " falls"), " \xB7 Night ", nt.ante, " \xB7 ", /* @__PURE__ */ React.createElement("span", { style: { color: "#e8e6e3", fontWeight: 700 } }, nt.target.toLocaleString()), " to survive") : /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80", fontWeight: 700 } }, "Dawn approaches..."))), blind >= 2 ? /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      }, disabled: gold < (3 + 2 * trainCount), style: { ...BTN("#1a1a2e", "#4ade80", gold >= (3 + 2 * trainCount)), border: `1px solid ${gold >= (3 + 2 * trainCount) ? "#4ade8044" : "#222"}`, fontSize: 11 } }, "Train (", 3 + 2 * trainCount, "\u{1F41F})"))), /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100, background: "linear-gradient(180deg,transparent,#0a0a1a 8px,#0a0a1a)", padding: "8px 16px 12px", display: "flex", justifyContent: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { maxWidth: 700, width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 2 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { onClick: () => toast("\u{1F41F}", `Rations: ${gold}\u{1F41F}. Spend in the Market on cats, wards, scrolls. Earn more by scoring higher. Save 5+ for interest.`, "#fbbf24", 5e3), style: { color: "#fbbf24", fontSize: 14, fontWeight: 700, cursor: "help" } }, "\u{1F41F}", gold), runCount >= 1 && interestPreview > 0 && /* @__PURE__ */ React.createElement("span", { onClick: () => toast("\u{1F4C8}", `Interest: +${interestPreview}\u{1F41F} next round (floor of Rations\xF75, max 5). Save Rations to earn more.`, "#4ade80"), style: { color: "#4ade80", fontSize: 10, cursor: "help" } }, "+", interestPreview, " stores", interestPreview >= 5 ? " MAX" : ""), /* @__PURE__ */ React.createElement("span", { onClick: () => toast("\u2726", `Stardust: ${meta?.dust || 0}\u2726. Meta-currency from Hearth cats. Spend on permanent upgrades between runs.`, "#c084fc", 4e3), style: { color: "#c084fc", fontSize: 10, cursor: "help" } }, "\u2726", meta?.dust || 0)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#888" } }, nt ? /* @__PURE__ */ React.createElement("span", { onClick: () => toast("\u{1F3AF}", `Target: ${nt.target.toLocaleString()}. Score this much total across all hands to clear ${nt.blindName}. Boss blinds injure cats on failed hands.`, "#fbbf24"), style: { cursor: "help" } }, nt.blind === 2 ? /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444", fontWeight: 700 } }, boss?.icon || "\u{1F441}\uFE0F", " ", nt.blindName, " approaches") : /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, nt.blindName, " falls"), " \xB7 Night ", nt.ante, " \xB7 ", /* @__PURE__ */ React.createElement("span", { style: { color: "#e8e6e3", fontWeight: 700 } }, nt.target.toLocaleString()), " to survive") : /* @__PURE__ */ React.createElement("span", { style: { color: "#4ade80", fontWeight: 700 } }, "Dawn approaches..."))), blind >= 2 ? /* @__PURE__ */ React.createElement("button", { onClick: () => {
         setDen([]);
         setPh("denSelect");
       }, style: { ...BTN("linear-gradient(135deg,#c084fc,#a855f7)", "#fff"), padding: "10px 20px", fontSize: 12 } }, "\u{1F319} Into the Den") : /* @__PURE__ */ React.createElement("button", { onClick: () => {
@@ -12640,7 +12714,21 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
         const isRelated = !sel.has(i) && selCats.some((sc) => sc.bondedTo === c.id || c.parentIds?.includes(sc.id) || sc.parentIds?.includes(c.id) || c.stats?.par && c.stats.par.includes(sc.name.split(" ")[0]));
         const relType = isRelated ? selCats.some((sc) => sc.bondedTo === c.id) ? "mate" : "kin" : null;
         const isGuideHL = hand._guideHL?.has(i) && !sel.has(i);
-        return /* @__PURE__  */ React.createElement("div", { key: c.id, style: { position: "relative", flexShrink: 0, animation: isGuideHL ? "guidePulse 1.5s ease-in-out infinite" : injuredFlash === c.id ? "shake .5s ease-out" : "none", opacity: isDimmed ? 0.55 : 1, transition: "opacity .15s", boxShadow: injuredFlash === c.id ? "0 0 20px #ef444488" : "none", borderRadius: 8 } }, /* @__PURE__ */ React.createElement(CC, { cat: c, sel: sel.has(i), onClick: () => toggleS(i), dis: ph !== "playing" || !!autoPlay, fog: cfx.fog && !sel.has(i), traitFog: blind === 2 && boss?.mechanic?.id === "trait_fog", chemHint: !sel.has(i) && !(blind === 2 && boss?.mechanic?.id === "trait_fog") ? getHint(c) : null, hl: isRelated || isGuideHL, onTraitClick: (ct) => setTraitTip(ct), sm: mob, cw: _cw || void 0 }), injuredFlash === c.id && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", inset: 0, borderRadius: 8, background: "#ef444433", border: "2px solid #ef444488", animation: "fadeIn .3s ease-out", pointerEvents: "none", zIndex: 5 } }), isRelated && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, background: relType === "mate" ? "#f472b622" : "#4ade8022", padding: "1px 6px", borderRadius: 4, border: `1px solid ${relType === "mate" ? "#f472b644" : "#4ade8044"}`, whiteSpace: "nowrap", animation: "countUp .3s ease-out", zIndex: 10, color: relType === "mate" ? "#f472b6" : "#4ade80" } }, relType === "mate" ? "\u{1F495} bonded" : "\u{1F46A} kin"), isGuideHL && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, background: "#fbbf2422", padding: "1px 6px", borderRadius: 4, border: "1px solid #fbbf2444", whiteSpace: "nowrap", animation: "guidePulse 1.5s ease-in-out infinite", zIndex: 10, color: "#fbbf24" } }, "\u{1F446} select"));
+        return /* @__PURE__  */ React.createElement("div", { key: c.id, style: { position: "relative", flexShrink: 0, animation: isGuideHL ? "guidePulse 1.5s ease-in-out infinite" : injuredFlash === c.id ? "shake .5s ease-out" : "none", opacity: isDimmed ? 0.55 : 1, transition: "opacity .15s", boxShadow: injuredFlash === c.id ? "0 0 20px #ef444488" : "none", borderRadius: 8 } }, (() => {
+          let po = null;
+          if (blind >= 2) {
+            const isBossExiled = cfx.exileBreed && c.breed === cfx.exileBreed;
+            const isBossHalved = boss?.mechanic?.id === "weakest_benched" && c._bossHalved;
+            const isSeasonHalved = boss?.mechanic?.id === "season_exile" && c._exiled;
+            const isScarCursed = boss?.mechanic?.id === "scar_curse" && c.scarred;
+            const isMirrored = (bossTraits || []).some((bt) => bt.fx?.mirrored) && [...hand].sort((a, b) => b.power - a.power)[0]?.id === c.id;
+            const isFrozen = (bossTraits || []).some((bt) => bt.fx?.frozen);
+            if (isBossExiled) po = 0;
+            else if (isScarCursed) po = Math.max(1, Math.ceil(c.power / 2));
+            else if (isMirrored) po = Math.max(1, Math.ceil(c.power / 2));
+          }
+          return /* @__PURE__ */ React.createElement(CC, { cat: c, sel: sel.has(i), onClick: () => toggleS(i), dis: ph !== "playing" || !!autoPlay, fog: cfx.fog && !sel.has(i), traitFog: blind === 2 && boss?.mechanic?.id === "trait_fog", chemHint: !sel.has(i) && !(blind === 2 && boss?.mechanic?.id === "trait_fog") ? getHint(c) : null, hl: isRelated || isGuideHL, onTraitClick: (ct) => setTraitTip(ct), sm: mob, cw: _cw || void 0, powerOverride: po });
+        })(), injuredFlash === c.id && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", inset: 0, borderRadius: 8, background: "#ef444433", border: "2px solid #ef444488", animation: "fadeIn .3s ease-out", pointerEvents: "none", zIndex: 5 } }), isRelated && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, background: relType === "mate" ? "#f472b622" : "#4ade8022", padding: "1px 6px", borderRadius: 4, border: `1px solid ${relType === "mate" ? "#f472b644" : "#4ade8044"}`, whiteSpace: "nowrap", animation: "countUp .3s ease-out", zIndex: 10, color: relType === "mate" ? "#f472b6" : "#4ade80" } }, relType === "mate" ? "\u{1F495} bonded" : "\u{1F46A} kin"), isGuideHL && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, background: "#fbbf2422", padding: "1px 6px", borderRadius: 4, border: "1px solid #fbbf2444", whiteSpace: "nowrap", animation: "guidePulse 1.5s ease-in-out infinite", zIndex: 10, color: "#fbbf24" } }, "\u{1F446} select"));
       });
     })()), sel.size >= 1 && ph === "playing" && !autoPlay && (() => {
       const selCatsP = [...sel].map((i) => hand[i]).filter(Boolean);
@@ -12671,7 +12759,7 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
         else if (catHas(c, "Guardian")) hints.push({ icon: "\u{1F6E1}\uFE0F", text: "heal", color: "#4ade80" });
         else if (catHas(c, "Stubborn")) hints.push({ icon: "\u{1FAA8}", text: "+1 Morale", color: "#9ca3af" });
         else if (catHas(c, "Stray")) hints.push({ icon: "\u{1F408}", text: "+1 draw", color: "#67e8f9" });
-        else if (catHas(c, "Loyal")) hints.push({ icon: "\u{1FAC2}", text: "+1 bonus all", color: "#f472b6" });
+        else if (catHas(c, "Loyal")) hints.push({ icon: "\u{1FAC2}", text: "+1 Morale", color: "#f472b6" });
         else if (catHas(c, "Scavenger")) hints.push({ icon: "\u{1F33E}", text: "+2\u{1F41F}", color: "#4ade80" });
       });
       return hints.length > 0 ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80", marginTop: 1 } }, hints.slice(0, 2).map((h, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { color: h.color } }, h.icon, h.text, " "))) : null;
