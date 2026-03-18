@@ -5348,6 +5348,7 @@
     const [overtime, setOvertime] = useState(false);
     const [overtimeNights, setOvertimeNights] = useState(0);
     const [savedPairIds, setSavedPairIds] = useState([]);
+    const [overtimeTarget, setOvertimeTarget] = useState(0);
     const playConfirmRef = useRef(null);
     const [colStep, setColStep] = useState(0);
     const [deckView, setDeckView] = useState(false);
@@ -5733,7 +5734,7 @@
     const hs = () => Math.max(4, BH + (cfx.hsMod || 0));
     const nerveFloor = () => Math.max(getMB().nerveFloor || 0, tempMods.nerveLock || 0);
     const eTgt = () => {
-      if (overtime) return tgt;
+      if (overtime) return overtimeTarget > 0 ? overtimeTarget : 8000;
       let t = Math.round(getTarget(ante, blind, isFirstRun, longDark) * (cfx.tgtMult || 1) * getHeatMult(meta?.heat));
       if (blind === 2 && bossTraits.length > 0) {
         bossTraits.forEach((bt) => {
@@ -5947,6 +5948,9 @@
       setOvertime(false);
       setOvertimeNights(0);
       setSavedPairIds([]);
+      setOvertimeTarget(0);
+      setColonyPortrait(false);
+      setHearthPair([]);
       setActiveWild(null);
       setWildUsed(false);
       setSWild(null);
@@ -6824,7 +6828,7 @@
                 const extraHeat = Math.floor(otN / 2);
                 const otTraits = pickBossTraits(ante + otN, (meta?.heat || 0) + extraHeat, false);
                 setBossTraits(otTraits);
-                setTgt(Math.round((1500 + ante * 800) * (1.3 + otN * 0.25)));
+                setOvertimeTarget(Math.round((1500 + ante * 800) * (1.3 + otN * 0.25)));
                 setAnte((a) => a + 1);
                 setPh("bossIntro");
               }, 3500);
@@ -7452,6 +7456,9 @@
         setOvertime(false);
         setOvertimeNights(0);
         setSavedPairIds([]);
+        setOvertimeTarget(0);
+        setColonyPortrait(false);
+        setOvertimeTarget(0);
         setRunChips(0);
         setRunMult(0);
         setNewBest(null);
@@ -11608,6 +11615,8 @@ ${nightGrid2} Night ${ante} \xB7 ${pctStr}
         /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#ffffff66", lineHeight: 1.6, marginBottom: 16, maxWidth: 320, margin: "0 auto 16px" } }, "The saved cats watch from the Hearth. Everyone else pushes forward without them. No shops. No den. No healing. Every night they survive weakens the cycle and earns stardust for the colonies that come after."),
         /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 12, justifyContent: "center" } },
           /* @__PURE__ */ React.createElement("button", { onClick: () => {
+            const firstOtTgt = Math.round((1500 + (ante + 1) * 800) * 1.3);
+            setOvertimeTarget(firstOtTgt);
             setOvertime(true);
             setOvertimeNights(0);
             setRScore(0);
@@ -11627,8 +11636,7 @@ ${nightGrid2} Night ${ante} \xB7 ${pctStr}
               setBoss(otBoss);
               const otTraits = pickBossTraits(ante + 1, (meta?.heat || 0) + Math.floor(ante / 2), false);
               setBossTraits(otTraits);
-              const newTgt = Math.round((1500 + (ante + 1) * 800) * 1.3);
-              setTgt(newTgt);
+              // overtimeTarget already set above
               setAnte((a) => a + 1);
               setPh("bossIntro");
             }, 1500);
