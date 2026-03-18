@@ -11490,7 +11490,7 @@ ${nightGrid2} Night ${ante} \xB7 ${pctStr}
       ];
       const hasChronicle = runLog.length > 2;
       const hasUnlocks = won && (newUnlocks.length > 0 || meta && meta.stats.w === 1);
-      const hasHearthPick = won && hearthPair !== null && cands.length > 0;
+      const hasHearthPick = won && Array.isArray(hearthPair) && cands.length > 0;
       const hearthEmpty = won && hearthPair !== null && cands.length === 0;
       const vStep = won ? victoryStep : 0;
       const SPLASH_BASE = "https://raw.githubusercontent.com/greatgamesgonewild/ninth-life/main/";
