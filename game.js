@@ -8067,6 +8067,27 @@
       }
       return [];
     }
+    function suggestShelterCats() {
+      const dAllRaw = [...hand, ...draw, ...disc];
+      const seenIds = new Set();
+      const dAll = dAllRaw.filter((c) => { if (seenIds.has(c.id)) return false; seenIds.add(c.id); return true; });
+      const healthy = dAll.filter((c) => !c.injured);
+      const isFamily = (a, b) => a.parentIds?.includes(b.id) || b.parentIds?.includes(a.id) || (a.parentIds && b.parentIds && a.parentIds.some((p) => b.parentIds.includes(p)));
+      const males = healthy.filter((c) => c.sex === "M");
+      const females = healthy.filter((c) => c.sex === "F");
+      let bestPair = null, bestScore = -Infinity;
+      for (const m of males) {
+        for (const f of females) {
+          if (isFamily(m, f)) continue;
+          let score = m.power + f.power;
+          if (m.bondedTo === f.id) score += 100;
+          if (m.breed === f.breed) score += 5;
+          if (m.grudgedWith?.includes(f.id) || f.grudgedWith?.includes(m.id)) score -= 50;
+          if (score > bestScore) { bestScore = score; bestPair = [m, f]; }
+        }
+      }
+      return bestPair || [];
+    }
     function endNight() {
       const dAllRaw = [...hand, ...draw, ...disc];
       const seenIds2 = new Set();
@@ -11729,7 +11750,21 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
             if (!isFamily) breedPairs++;
           }
         }
-        return breedPairs > 0 ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80", textAlign: "center", marginTop: 4 } }, "\u{1F91D} ", breedPairs, " breeding pair", breedPairs > 1 ? "s" : "") : isolated.length >= 2 ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade8066", textAlign: "center", marginTop: 4 } }, "No M/F pairs to breed") : null;
+        let firstValidPair = null;
+        for (let i = 0; !firstValidPair && i < isolated.length; i++) for (let j = i + 1; !firstValidPair && j < isolated.length; j++) {
+          if (isolated[i].sex !== isolated[j].sex && !isolated[i].injured && !isolated[j].injured) {
+            const isFam = isolated[i].parentIds?.includes(isolated[j].id) || isolated[j].parentIds?.includes(isolated[i].id) || isolated[i].parentIds && isolated[j].parentIds && isolated[i].parentIds.some((p) => isolated[j].parentIds.includes(p));
+            if (!isFam) firstValidPair = [isolated[i], isolated[j]];
+          }
+        }
+        const oddsEl = firstValidPair ? (() => {
+          const [a, b] = firstValidPair;
+          const sameBreedCount = a.breed === b.breed ? isolated.filter((c) => c.breed === a.breed).length : 0;
+          const aff = calcAffinity(a, b, { nerveLvl: ferv, sameBreedCount, denSize: Math.max(2, isolated.length), breedBoost: (getAllDevotionFx(devotion).breedBoost || 0) + (getMB().breedBoost || 0) });
+          return /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80aa", textAlign: "center", marginTop: 2 } }, "\u{1F495} ~", aff.breedCh, "% breed \xB7 \u26A1 ~", aff.fightCh, "% fight");
+        })() : null;
+        const headerEl = breedPairs > 0 ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade80", textAlign: "center", marginTop: 4 } }, "\u{1F91D} ", breedPairs, " breeding pair", breedPairs > 1 ? "s" : "") : isolated.length >= 2 ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#4ade8066", textAlign: "center", marginTop: 4 } }, "No M/F pairs to breed") : null;
+        return /* @__PURE__ */ React.createElement(React.Fragment, null, headerEl, oddsEl);
       })())), /* @__PURE__ */ React.createElement("div", { style: { flex: 2, padding: "8px 10px", borderRadius: 10, background: "#fb923c06", border: "1px solid #fb923c22", minHeight: mob2 ? 100 : 120 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#fb923c", letterSpacing: 2, fontWeight: 700 } }, "\u{1F332} WILDS (", denCats.length, ")"), (() => {
         const risk = denCats.length <= 4 ? "Calm" : denCats.length <= 8 ? "Active" : denCats.length <= 12 ? "Volatile" : "Dangerous";
         const riskColor = denCats.length <= 4 ? "#4ade80" : denCats.length <= 8 ? "#fbbf24" : denCats.length <= 12 ? "#fb923c" : "#ef4444";
@@ -11947,7 +11982,17 @@ ${nightGrid} \xB7 ${(meta?.heat || 0) > 0 ? "Heat " + meta.heat + " \xB7 " : ""}
             saveS(u);
           }
           setPh("eventResult");
-        } : endNight, style: { ...BTN(campMode ? "linear-gradient(135deg,#fbbf24,#f59e0b)" : "linear-gradient(135deg,#c084fc,#a855f7)", "#fff"), padding: mob2 ? "12px 24px" : "10px 28px", fontSize: 14 } }, campMode ? den.length >= 2 ? "Make Camp" : "Skip Watch. Rest Only" : "End Night"), !campMode && /* @__PURE__ */ React.createElement("button", { onClick: () => {
+        } : endNight, style: { ...BTN(campMode ? "linear-gradient(135deg,#fbbf24,#f59e0b)" : "linear-gradient(135deg,#c084fc,#a855f7)", "#fff"), padding: mob2 ? "12px 24px" : "10px 28px", fontSize: 14 } }, campMode ? den.length >= 2 ? "Make Camp" : "Skip Watch. Rest Only" : "End Night"), !campMode && den.length < MAX_ISOLATE && /* @__PURE__ */ React.createElement("button", { onClick: () => {
+          const pick = suggestShelterCats();
+          if (pick.length < 2) { toast("\u{1F4A1}", "No valid M/F pair available.", "#888"); return; }
+          const slot = Math.min(pick.length, MAX_ISOLATE);
+          const next = pick.slice(0, slot);
+          denRef.current = next;
+          setDen(next);
+          setSeen((s) => ({ ...s, den: true }));
+          setDenGuide(null);
+          Haptic.light();
+        }, style: { ...BTN("#1a2e1a", "#4ade80"), padding: mob2 ? "12px 16px" : "10px 20px", fontSize: 11, border: "1px solid #4ade8044" } }, "\u{1F4A1} Suggest"), !campMode && /* @__PURE__ */ React.createElement("button", { onClick: () => {
           setDen([]);
           nextBlind();
         }, style: { ...BTN("#1a1a2e", "#888"), padding: mob2 ? "12px 16px" : "10px 20px", fontSize: 11, border: "1px solid #ffffff12" } }, "Skip"), campMode && /* @__PURE__ */ React.createElement("button", { onClick: () => {
