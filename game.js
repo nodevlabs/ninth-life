@@ -2939,7 +2939,7 @@
       defeat: "Fine. Burn. But fire always goes out eventually.",
       defeatFn: (ctx) => ctx.clutch ? "You almost let go. You wanted to. I felt it." : ctx.deathless ? "All of them still standing. Still burning. The Sixth Colony burned like this too. For a while." : ctx.fallen > 0 ? `${ctx.fallenName} rested. Permanently. The others refused. For now.` : "Still burning. The Sixth Colony burned too. Until they didn't.",
       lore: "The fire went out and no one relit it.",
-      mechanic: { id: "morale_frozen", name: "Dimming", desc: "Morale locked. No gains or losses", icon: "\u{1F56F}" }
+      mechanic: { id: "morale_frozen", name: "Dimming", desc: "Morale gains halved. The fire dims but doesn't die.", icon: "\u{1F56F}" }
     },
     {
       id: "ember",
@@ -5935,9 +5935,10 @@
       const handsAfter = ch - 1;
       if (totalScore >= ct) {
         const devMorale = getAllDevotionFx(devotion).nerveBoost || 0;
-        const gain = Math.max(0, handsAfter) + (handsAfter > 0 ? devMorale : 0);
-        const moraleFrozen = blind === 2 && boss?.mechanic?.id === "morale_frozen";
-        if (gain > 0 && !moraleFrozen) {
+        const rawGain = Math.max(0, handsAfter) + (handsAfter > 0 ? devMorale : 0);
+        const moraleDim = blind === 2 && boss?.mechanic?.id === "morale_frozen";
+        const gain = moraleDim ? Math.floor(rawGain / 2) : rawGain;
+        if (gain > 0) {
           const nx = ferv + gain;
           setFerv(nx);
           setRMaxF((m) => Math.max(m, nx));
