@@ -541,7 +541,7 @@
     Chimera: "Belongs to all four seasons at once. When played with 3 or more cats, multiplies your entire score by 1.5. A legendary shape-shifter.",
     Alpha: "The leader of the pack. If this cat has the highest Power among the cats you play, multiplies everything by 1.3. Keep them strong and they carry the colony.",
     Echo: "Scores twice. The second time at half Power. One of the strongest traits in the game. Every bonus this cat earns happens twice.",
-    Nocturnal: "Gets stronger the longer you survive. Gains 2 bonus for every level of Morale your colony has built up. At max Morale, that's +34 bonus from one cat. Discard to gain +2 Morale.",
+    Nocturnal: "Gets stronger the longer you survive. +1 bonus per Morale level, capped at +10. Discard to gain +2 Morale.",
     Eternal: "A living legend. Multiplies the entire score by 3 and scores twice at full Power. The rarest and most powerful trait. Changes everything.",
     Phoenix: "Burns brightest near death. Multiplies by 2.5, or by 4 if hardened. If this cat falls in the den, they rise once as Eternal. Death is not the end."
   };
@@ -602,7 +602,7 @@
     { name: "Echo", icon: "\u{1F501}", desc: "Scores twice, half Power on second", tier: "legendary" },
     { name: "Chimera", icon: "\u{1F9EC}", desc: "Counts as all seasons. Play 3+ cats: \xD71.5", tier: "legendary" },
     { name: "Alpha", icon: "\u{1F43A}", desc: "\xD71.3 if highest Power among played cats", tier: "legendary" },
-    { name: "Nocturnal", icon: "\u{1F319}", desc: "+1 bonus per Morale level. Grows every round", tier: "legendary" },
+    { name: "Nocturnal", icon: "\u{1F319}", desc: "+1 bonus per Morale level (max +10)", tier: "legendary" },
     // --- MYTHIC (S tier): run-defining ---
     { name: "Eternal", icon: "\u2728", desc: "\xD73 bonus, scores twice at full Power", tier: "mythic" },
     { name: "Phoenix", icon: "\u{1F525}", desc: "\xD72.5 bonus. Battle-hardened: \xD74. Revives once on death", tier: "mythic" }
@@ -612,7 +612,7 @@
     "Seer": { name: "Oracle", icon: "\u{1F52E}", desc: "+8 bonus always. Same type as last: +12. Predicts next draw", tier: "evolved" },
     "Feral": { name: "Apex", icon: "\u{1F981}", desc: "+2 bonus per cat. \xD71.2 if 5 cats played", tier: "evolved" },
     "Guardian": { name: "Sentinel", icon: "\u{1F6E1}\uFE0F", desc: "+3 per injured ally. Prevents 1 death per round", tier: "evolved" },
-    "Nocturnal": { name: "Void Walker", icon: "\u{1F30C}", desc: "+2 bonus per Morale. \xD71.1 at Morale 10+", tier: "evolved" },
+    "Nocturnal": { name: "Void Walker", icon: "\u{1F30C}", desc: "+2 per Morale (max +15). \xD71.1 at Morale 10+", tier: "evolved" },
     "Echo": { name: "Resonance", icon: "\u{1F300}", desc: "Scores 3 times. Full Power each time", tier: "evolved" },
     "Alpha": { name: "Apex Alpha", icon: "\u{1F451}", desc: "\xD71.5 if highest Power. +2P to all allies", tier: "evolved" },
     "Devoted": { name: "Soulbound", icon: "\u{1F49E}", desc: "+6 bonus with partner. Partner gains +2P permanently each hand", tier: "evolved" },
@@ -2939,7 +2939,7 @@
       defeat: "Fine. Burn. But fire always goes out eventually.",
       defeatFn: (ctx) => ctx.clutch ? "You almost let go. You wanted to. I felt it." : ctx.deathless ? "All of them still standing. Still burning. The Sixth Colony burned like this too. For a while." : ctx.fallen > 0 ? `${ctx.fallenName} rested. Permanently. The others refused. For now.` : "Still burning. The Sixth Colony burned too. Until they didn't.",
       lore: "The fire went out and no one relit it.",
-      mechanic: { id: "morale_frozen", name: "Dimming", desc: "Morale locked. No gains or losses", icon: "\u{1F56F}" }
+      mechanic: { id: "morale_frozen", name: "Dimming", desc: "Morale gains halved. The fire dims but doesn't die.", icon: "\u{1F56F}" }
     },
     {
       id: "ember",
@@ -4166,7 +4166,7 @@
     toS.forEach((c, si) => {
       const isKit = catIsKitten(c) && !c._re;
       const exiled = cfx.exileBreed && c.breed === cfx.exileBreed;
-      let basePow = isKit ? 1 : c._halfPow ? Math.max(2, Math.floor(c.power / 2)) : c.injured && !c._re ? Math.floor(c.power / 2) : c.power;
+      let basePow = isKit ? Math.max(2, Math.min(c.power, 3)) : c._halfPow ? Math.max(2, Math.floor(c.power / 2)) : c.injured && !c._re ? Math.floor(c.power / 2) : c.power;
       if (!isKit && hasFrozen && !c._re && c._ci < 2) basePow = Math.max(2, Math.floor(basePow / 2));
       let cc = exiled ? 0 : basePow, cm = 0, cx = 1;
       if (!isKit && enragedBT && !c._re) cm += enragedBT.fx.enragedMult;
@@ -4248,7 +4248,9 @@
         }
         if (catHas(c, "Nocturnal") && !c._re) {
           const isEvo = c._evolved && c._evoFrom === "Nocturnal";
-          const nerveMult = isEvo ? fLvl * 2 : fLvl;
+          const perLvl = isEvo ? 2 : 1;
+          const cap = isEvo ? 15 : 10;
+          const nerveMult = Math.min(fLvl * perLvl, cap);
           if (nerveMult > 0) {
             cm += nerveMult;
             if (isEvo && fLvl >= 10) cx *= 1.1;
@@ -4588,7 +4590,13 @@
     const bdNeg = bd.filter((s) => negTypes.has(s.type) || s.mult < 0 && s.type !== "hand" && s.type !== "combo");
     const bdCats = bd.filter((s) => s.type === "cat" || s.type === "trait" || s.type === "trait_rare" || s.type === "scar");
     const bdPos = bd.filter((s) => !negTypes.has(s.type) && !(s.mult < 0 && s.type !== "hand" && s.type !== "combo") && s.type !== "hand" && s.type !== "combo" && s.type !== "resonance" && s.type !== "cat" && s.type !== "trait" && s.type !== "trait_rare" && s.type !== "scar" && s.type !== "surge");
-    let finalTotal = Math.max(0, chips) * Math.max(1, mult);
+    const rawMult = Math.max(1, mult);
+    const softCap = 80, softSlope = 0.5;
+    const effectiveMult = rawMult <= softCap ? rawMult : softCap + (rawMult - softCap) * softSlope;
+    if (effectiveMult < rawMult) {
+      bd.push({ label: `\u{1F300} Soft cap (\xD7${(effectiveMult / rawMult).toFixed(2)})`, chips: 0, mult: 0, xMult: effectiveMult / rawMult, type: "softcap", allCats: true });
+    }
+    let finalTotal = Math.max(0, chips) * effectiveMult;
     const bdEnd = [];
     if (ctx.wildCard === "moonfire") {
       finalTotal *= 2;
@@ -5927,9 +5935,10 @@
       const handsAfter = ch - 1;
       if (totalScore >= ct) {
         const devMorale = getAllDevotionFx(devotion).nerveBoost || 0;
-        const gain = Math.max(0, handsAfter) + (handsAfter > 0 ? devMorale : 0);
-        const moraleFrozen = blind === 2 && boss?.mechanic?.id === "morale_frozen";
-        if (gain > 0 && !moraleFrozen) {
+        const rawGain = Math.max(0, handsAfter) + (handsAfter > 0 ? devMorale : 0);
+        const moraleDim = blind === 2 && boss?.mechanic?.id === "morale_frozen";
+        const gain = moraleDim ? Math.floor(rawGain / 2) : rawGain;
+        if (gain > 0) {
           const nx = ferv + gain;
           setFerv(nx);
           setRMaxF((m) => Math.max(m, nx));
@@ -7751,6 +7760,22 @@
       if (blind >= 2 && ante >= MX) {
         endRun(true);
         return;
+      }
+      const blindReward = blind === 2 ? 2 : 1;
+      setGold((g) => g + blindReward);
+      setTimeout(() => toast("\u{1F41F}", `Blind cleared. +${blindReward}\u{1F41F} rations.`, "#fbbf24", 1800), 300);
+      if (blind >= 2) {
+        const allCats = [...hand, ...draw, ...disc];
+        const willRecover = allCats.filter((x) => x.injured && (x.injuryTimer || 2) <= 1).length;
+        [setHand, setDraw, setDisc].forEach((setter) => {
+          setter((arr) => arr.map((x) => {
+            if (!x.injured) return x;
+            const nextTimer = Math.max(0, (x.injuryTimer || 2) - 1);
+            if (nextTimer <= 0) return { ...x, injured: false, injuryTimer: 0 };
+            return { ...x, injuryTimer: nextTimer };
+          }));
+        });
+        if (willRecover > 0) setTimeout(() => toast("\u{1FA79}", `${willRecover} cat${willRecover > 1 ? "s" : ""} recovered overnight.`, "#4ade80", 2200), 900);
       }
       setBlind(nb);
       setAnte(na);
