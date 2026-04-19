@@ -7760,6 +7760,9 @@
         endRun(true);
         return;
       }
+      const blindReward = blind === 2 ? 2 : 1;
+      setGold((g) => g + blindReward);
+      setTimeout(() => toast("\u{1F41F}", `Blind cleared. +${blindReward}\u{1F41F} rations.`, "#fbbf24", 1800), 300);
       setBlind(nb);
       setAnte(na);
       setRScore(0); setBestBossHand(0);
