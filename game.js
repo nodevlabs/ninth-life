@@ -8113,6 +8113,205 @@
       }
       return bestPair || [];
     }
+    function pickCampPair() {
+      const allRaw = [...hand, ...draw, ...disc];
+      const seenIds = new Set();
+      const all = allRaw.filter((c) => { if (seenIds.has(c.id)) return false; seenIds.add(c.id); return true; }).filter((c) => !c.injured);
+      if (all.length < 2) return [];
+      const isFamily = (a, b) => a.parentIds?.includes(b.id) || b.parentIds?.includes(a.id) || (a.parentIds && b.parentIds && a.parentIds.some((p) => b.parentIds.includes(p)));
+      let best = null, bestScore = -Infinity;
+      for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
+        const a = all[i], b = all[j];
+        const grudged = a.grudgedWith?.includes(b.id) || b.grudgedWith?.includes(a.id);
+        if (!grudged) continue;
+        const score = a.power + b.power;
+        if (score > bestScore) { bestScore = score; best = [a, b]; }
+      }
+      if (best) return best;
+      bestScore = -Infinity;
+      for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
+        const a = all[i], b = all[j];
+        if (a.sex === b.sex) continue;
+        if (a.bondedTo || b.bondedTo) continue;
+        if (isFamily(a, b)) continue;
+        const score = a.power + b.power;
+        if (score > bestScore) { bestScore = score; best = [a, b]; }
+      }
+      if (best) return best;
+      bestScore = -Infinity;
+      for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
+        const a = all[i], b = all[j];
+        const penalty = (a._camped ? -5 : 0) + (b._camped ? -5 : 0);
+        const score = a.power + b.power + penalty;
+        if (score > bestScore) { bestScore = score; best = [a, b]; }
+      }
+      return best || [];
+    }
+    function runCampResolve(pair) {
+      const isFirstCamp = (!meta || meta.stats.r === 0) && !seen.campUsed;
+      const campCost = isFirstCamp ? 0 : 3;
+      if (campCost > 0 && gold < campCost) {
+        toast("\u{1F41F}", "Not enough Rations to camp (need 3\u{1F41F}).", "#ef4444");
+        return;
+      }
+      if (campCost > 0) setGold((g) => g - campCost);
+      if (isFirstCamp) setSeen((s) => ({ ...s, campUsed: true }));
+      const results = [];
+      results.push(campCost > 0 ? { text: `-${campCost}\u{1F41F}. The colony makes camp.`, color: "#888", icon: "\u{1F3D5}" } : { text: "The colony makes camp.", color: "#888", icon: "\u{1F3D5}" });
+      const injCount = [...hand, ...draw, ...disc].filter((x) => x.injured).length;
+      [setHand, setDraw, setDisc].forEach((s) => {
+        s((arr) => arr.map((x) => x.injured ? { ...x, injuryTimer: Math.max(0, (x.injuryTimer || 2) - 1), injured: (x.injuryTimer || 2) <= 1 ? false : x.injured } : x));
+      });
+      results.push(injCount > 0 ? { text: `${injCount} injured tended. The colony rests.`, color: "#4ade80", icon: "\u{1FA79}" } : { text: "No injuries. The colony rests easy.", color: "#4ade8066", icon: "\u{1F319}" });
+      setFerv((f) => f + 1);
+      Audio.nerveUp();
+      setFFlash("up");
+      setTimeout(() => setFFlash(null), 400);
+      results.push({ text: "+1 Morale. Rest builds resolve.", color: "#d97706", icon: "\u{1F525}" });
+      setGold((g) => g + 1);
+      results.push({ text: "The watch found supplies nearby. +1\u{1F41F}.", color: "#fbbf24", icon: "\u{1F41F}" });
+      if (pair.length >= 2) {
+        const [a, b] = pair;
+        const isGrudged = a.grudgedWith?.includes(b.id) || b.grudgedWith?.includes(a.id);
+        const canBond = a.sex !== b.sex && !a.bondedTo && !b.bondedTo;
+        const bothDevoted = catHas(a, "Devoted") && catHas(b, "Devoted");
+        const bondChance = bothDevoted ? 1 : 0.55;
+        if (isGrudged && Math.random() < 0.45) {
+          [setHand, setDraw, setDisc].forEach((s) => {
+            s((arr) => arr.map((x) => {
+              if (x.id === a.id) return { ...x, grudgedWith: (x.grudgedWith || []).filter((id) => id !== b.id) };
+              if (x.id === b.id) return { ...x, grudgedWith: (x.grudgedWith || []).filter((id) => id !== a.id) };
+              return x;
+            }));
+          });
+          results.push({ text: `${a.name.split(" ")[0]} and ${b.name.split(" ")[0]} made peace by the fire.`, color: "#c084fc", icon: "\u{1F54A}\uFE0F" });
+          a._grudgeResolved = true;
+          b._grudgeResolved = true;
+          assignEpithet(a);
+          assignEpithet(b);
+          if (a._newEpithet) {
+            delete a._newEpithet;
+            toast("\u{1F3F7}\uFE0F", epithetToastMsg(a), BREEDS[a.breed]?.color || "#fbbf24", 2500);
+            Audio.epithetEarned();
+          }
+          if (b._newEpithet) {
+            delete b._newEpithet;
+            setTimeout(() => {
+              toast("\u{1F3F7}\uFE0F", epithetToastMsg(b), BREEDS[b.breed]?.color || "#fbbf24", 2500);
+              Audio.epithetEarned();
+            }, 800);
+          }
+          [setHand, setDraw, setDisc].forEach((s) => {
+            s((arr) => arr.map((x) => x.id === a.id ? { ...x, epithet: a.epithet, epithetKey: a.epithetKey } : x.id === b.id ? { ...x, epithet: b.epithet, epithetKey: b.epithetKey } : x));
+          });
+          Audio.denBond();
+        } else if (canBond && !isGrudged && Math.random() < bondChance) {
+          [setHand, setDraw, setDisc].forEach((s) => {
+            s((arr) => arr.map((x) => {
+              if (x.id === a.id) return { ...x, bondedTo: b.id };
+              if (x.id === b.id) return { ...x, bondedTo: a.id };
+              return x;
+            }));
+          });
+          results.push({ text: `${a.name.split(" ")[0]} and ${b.name.split(" ")[0]} bonded under the stars. \u{1F495}`, color: "#f472b6", icon: "\u{1F495}" });
+          a.bondedTo = b.id;
+          b.bondedTo = a.id;
+          assignEpithet(a);
+          assignEpithet(b);
+          if (a._newEpithet) {
+            delete a._newEpithet;
+            toast("\u{1F3F7}\uFE0F", epithetToastMsg(a), BREEDS[a.breed]?.color || "#fbbf24", 2500);
+            Audio.epithetEarned();
+          }
+          if (b._newEpithet) {
+            delete b._newEpithet;
+            setTimeout(() => {
+              toast("\u{1F3F7}\uFE0F", epithetToastMsg(b), BREEDS[b.breed]?.color || "#fbbf24", 2500);
+              Audio.epithetEarned();
+            }, 800);
+          }
+          [setHand, setDraw, setDisc].forEach((s) => {
+            s((arr) => arr.map((x) => x.id === a.id ? { ...x, epithet: a.epithet, epithetKey: a.epithetKey, bondedTo: b.id } : x.id === b.id ? { ...x, epithet: b.epithet, epithetKey: b.epithetKey, bondedTo: a.id } : x));
+          });
+          Audio.denBond();
+        } else {
+          const aCamped = a._camped, bCamped = b._camped;
+          if (aCamped && bCamped) {
+            results.push({ text: `${a.name.split(" ")[0]} and ${b.name.split(" ")[0]} shared the fire. They've grown all they can this way.`, color: "#888", icon: "\u{1F319}" });
+          } else {
+            const roll = Math.random();
+            if (roll < 0.85) {
+              const uncamped = [!aCamped ? a : null, !bCamped ? b : null].filter(Boolean);
+              if (uncamped.length > 0) {
+                const target = uncamped.length === 1 ? uncamped[0] : pk(uncamped);
+                [setHand, setDraw, setDisc].forEach((s) => {
+                  s((arr) => arr.map((x) => {
+                    if (x.id === target.id) return { ...x, power: x.power + 1, _camped: true };
+                    return x;
+                  }));
+                });
+                results.push({ text: `${target.name.split(" ")[0]} grew stronger on the watch. (+1P)`, color: "#fbbf24", icon: "\u2694" });
+              } else {
+                results.push({ text: `${a.name.split(" ")[0]} and ${b.name.split(" ")[0]} shared the fire. They've grown all they can this way.`, color: "#888", icon: "\u{1F319}" });
+              }
+            } else {
+              [setHand, setDraw, setDisc].forEach((s) => {
+                s((arr) => arr.map((x) => {
+                  if (x.id === a.id && !aCamped || x.id === b.id && !bCamped) return { ...x, power: x.power + 1, _camped: true };
+                  return x;
+                }));
+              });
+              const who = [!aCamped ? a.name.split(" ")[0] : null, !bCamped ? b.name.split(" ")[0] : null].filter(Boolean).join(" and ");
+              results.push({ text: `${who || "Both"} grew stronger together. (+1P each)`, color: "#fbbf24", icon: "\u2694\u2694" });
+            }
+          }
+        }
+      } else {
+        results.push({ text: "No watch pair chosen. The colony sleeps uneasy.", color: "#888", icon: "\u{1F319}" });
+      }
+      if (pair.length >= 2 && meta && meta.stats.w > 0) {
+        const [ca, cb] = pair;
+        const elder = ca.stats?.tp >= 6 ? ca : cb.stats?.tp >= 6 ? cb : null;
+        const plain = elder ? elder === ca ? cb : ca : null;
+        if (elder && plain && elder.trait && elder.trait.name !== "Plain" && plain.trait && plain.trait.name === "Plain" && Math.random() < 0.2) {
+          plain.trait = { ...elder.trait };
+          plain._taughtBy = elder.name.split(" ")[0];
+          [setHand, setDraw, setDisc].forEach((s) => {
+            s((arr) => arr.map((x) => x.id === plain.id ? { ...x, trait: { ...elder.trait } } : x));
+          });
+          results.push({ text: `By the fire, ${elder.name.split(" ")[0]} taught ${plain.name.split(" ")[0]} ${elder.trait.icon} ${elder.trait.name}.`, color: "#c084fc", icon: "\u2728" });
+          assignEpithet(plain);
+          if (plain._newEpithet) {
+            delete plain._newEpithet;
+            setTimeout(() => {
+              toast("\u{1F3F7}\uFE0F", epithetToastMsg(plain), BREEDS[plain.breed]?.color || "#fbbf24", 3e3);
+              Audio.epithetEarned();
+            }, 1500);
+          }
+          [setHand, setDraw, setDisc].forEach((s) => {
+            s((arr) => arr.map((x) => x.id === plain.id ? { ...x, epithet: plain.epithet, epithetKey: plain.epithetKey } : x));
+          });
+          logEvent("trait", { cat: plain.name.split(" ")[0], trait: elder.trait.name, from: elder.name.split(" ")[0], source: "camp" });
+          if (!meta?.stats?.seenTraitTeach) {
+            setMeta((m) => {
+              const nm = { ...m, stats: { ...m.stats, seenTraitTeach: true } };
+              saveS(nm);
+              return nm;
+            });
+            setTimeout(() => toast("\u{1F4A1}", "Elder cats can teach their trait to Plain cats by the fire. Build toward Kindred!", "#c084fc", 5e3), 2500);
+          }
+        }
+      }
+      setDen([]);
+      setCampMode(false);
+      setEventOutcome({ title: "Camp", icon: "\u{1F3D5}", choice: "No market. No strangers. Just the colony and the fire.", desc: results, targets: [] });
+      if (meta) {
+        const u = { ...meta, stats: { ...meta.stats, campCount: (meta.stats.campCount || 0) + 1 } };
+        setMeta(u);
+        saveS(u);
+      }
+      setPh("eventResult");
+    }
     function endNight() {
       const dAllRaw = [...hand, ...draw, ...disc];
       const seenIds2 = new Set();
@@ -11405,17 +11604,16 @@ Saved from Night ${c.fromAnte || "?"}`, style: {
           boxShadow: forceScavenge ? "0 0 20px #4ade8066" : "none"
         } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 16 } }, "\u{1F33F}"), /* @__PURE__ */ React.createElement("span", null, forceScavenge ? "Scavenge \u2726" : "Scavenge"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, fontWeight: 400, opacity: 0.6 } }, "+", 3 + ante, "\u{1F41F}, maybe more")), showCamp && /* @__PURE__ */ React.createElement("button", { onClick: () => {
           setSeen((s) => ({ ...s, camp: true }));
-          if (!forceCamp && gold < 3) {
+          const isFirstCamp = (!meta || meta.stats.r === 0) && !seen.campUsed;
+          if (!forceCamp && !isFirstCamp && gold < 3) {
             toast("\u{1F41F}", "Not enough Rations to camp (need 3\u{1F41F}).", "#ef4444");
             return;
           }
-          setCampMode(true);
-          setDen([]);
           setOData(null);
-          const defaultPair2 = getDefaultShelter();
-          setDen(defaultPair2);
-          setPh("denSelect");
-          if (defaultPair2.length === 2) setTimeout(() => toast("\u{1F495}", `${defaultPair2[0].name.split(" ")[0]} + ${defaultPair2[1].name.split(" ")[0]} pre-selected.`, "#f472b6", 1500), 200);
+          setCampMode(true);
+          const pair = pickCampPair();
+          if (pair.length === 2) setTimeout(() => toast("\u{1F3D5}", `${pair[0].name.split(" ")[0]} + ${pair[1].name.split(" ")[0]} on the watch.`, "#fbbf24", 1800), 100);
+          runCampResolve(pair);
         }, style: {
           ...BTN("#1a1a2e", forceCamp ? "#c084fc" : gold >= 3 ? "#c084fc" : "#555"),
           padding: forceCamp ? "12px 28px" : "10px 20px",
