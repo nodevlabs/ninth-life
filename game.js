@@ -4166,7 +4166,7 @@
     toS.forEach((c, si) => {
       const isKit = catIsKitten(c) && !c._re;
       const exiled = cfx.exileBreed && c.breed === cfx.exileBreed;
-      let basePow = isKit ? 1 : c._halfPow ? Math.max(2, Math.floor(c.power / 2)) : c.injured && !c._re ? Math.floor(c.power / 2) : c.power;
+      let basePow = isKit ? Math.max(2, Math.min(c.power, 3)) : c._halfPow ? Math.max(2, Math.floor(c.power / 2)) : c.injured && !c._re ? Math.floor(c.power / 2) : c.power;
       if (!isKit && hasFrozen && !c._re && c._ci < 2) basePow = Math.max(2, Math.floor(basePow / 2));
       let cc = exiled ? 0 : basePow, cm = 0, cx = 1;
       if (!isKit && enragedBT && !c._re) cm += enragedBT.fx.enragedMult;
@@ -7763,6 +7763,19 @@
       const blindReward = blind === 2 ? 2 : 1;
       setGold((g) => g + blindReward);
       setTimeout(() => toast("\u{1F41F}", `Blind cleared. +${blindReward}\u{1F41F} rations.`, "#fbbf24", 1800), 300);
+      if (blind >= 2) {
+        const allCats = [...hand, ...draw, ...disc];
+        const willRecover = allCats.filter((x) => x.injured && (x.injuryTimer || 2) <= 1).length;
+        [setHand, setDraw, setDisc].forEach((setter) => {
+          setter((arr) => arr.map((x) => {
+            if (!x.injured) return x;
+            const nextTimer = Math.max(0, (x.injuryTimer || 2) - 1);
+            if (nextTimer <= 0) return { ...x, injured: false, injuryTimer: 0 };
+            return { ...x, injuryTimer: nextTimer };
+          }));
+        });
+        if (willRecover > 0) setTimeout(() => toast("\u{1FA79}", `${willRecover} cat${willRecover > 1 ? "s" : ""} recovered overnight.`, "#4ade80", 2200), 900);
+      }
       setBlind(nb);
       setAnte(na);
       setRScore(0); setBestBossHand(0);
