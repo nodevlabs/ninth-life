@@ -541,7 +541,7 @@
     Chimera: "Belongs to all four seasons at once. When played with 3 or more cats, multiplies your entire score by 1.5. A legendary shape-shifter.",
     Alpha: "The leader of the pack. If this cat has the highest Power among the cats you play, multiplies everything by 1.3. Keep them strong and they carry the colony.",
     Echo: "Scores twice. The second time at half Power. One of the strongest traits in the game. Every bonus this cat earns happens twice.",
-    Nocturnal: "Gets stronger the longer you survive. Gains 2 bonus for every level of Morale your colony has built up. At max Morale, that's +34 bonus from one cat. Discard to gain +2 Morale.",
+    Nocturnal: "Gets stronger the longer you survive. +1 bonus per Morale level, capped at +10. Discard to gain +2 Morale.",
     Eternal: "A living legend. Multiplies the entire score by 3 and scores twice at full Power. The rarest and most powerful trait. Changes everything.",
     Phoenix: "Burns brightest near death. Multiplies by 2.5, or by 4 if hardened. If this cat falls in the den, they rise once as Eternal. Death is not the end."
   };
@@ -602,7 +602,7 @@
     { name: "Echo", icon: "\u{1F501}", desc: "Scores twice, half Power on second", tier: "legendary" },
     { name: "Chimera", icon: "\u{1F9EC}", desc: "Counts as all seasons. Play 3+ cats: \xD71.5", tier: "legendary" },
     { name: "Alpha", icon: "\u{1F43A}", desc: "\xD71.3 if highest Power among played cats", tier: "legendary" },
-    { name: "Nocturnal", icon: "\u{1F319}", desc: "+1 bonus per Morale level. Grows every round", tier: "legendary" },
+    { name: "Nocturnal", icon: "\u{1F319}", desc: "+1 bonus per Morale level (max +10)", tier: "legendary" },
     // --- MYTHIC (S tier): run-defining ---
     { name: "Eternal", icon: "\u2728", desc: "\xD73 bonus, scores twice at full Power", tier: "mythic" },
     { name: "Phoenix", icon: "\u{1F525}", desc: "\xD72.5 bonus. Battle-hardened: \xD74. Revives once on death", tier: "mythic" }
@@ -612,7 +612,7 @@
     "Seer": { name: "Oracle", icon: "\u{1F52E}", desc: "+8 bonus always. Same type as last: +12. Predicts next draw", tier: "evolved" },
     "Feral": { name: "Apex", icon: "\u{1F981}", desc: "+2 bonus per cat. \xD71.2 if 5 cats played", tier: "evolved" },
     "Guardian": { name: "Sentinel", icon: "\u{1F6E1}\uFE0F", desc: "+3 per injured ally. Prevents 1 death per round", tier: "evolved" },
-    "Nocturnal": { name: "Void Walker", icon: "\u{1F30C}", desc: "+2 bonus per Morale. \xD71.1 at Morale 10+", tier: "evolved" },
+    "Nocturnal": { name: "Void Walker", icon: "\u{1F30C}", desc: "+2 per Morale (max +15). \xD71.1 at Morale 10+", tier: "evolved" },
     "Echo": { name: "Resonance", icon: "\u{1F300}", desc: "Scores 3 times. Full Power each time", tier: "evolved" },
     "Alpha": { name: "Apex Alpha", icon: "\u{1F451}", desc: "\xD71.5 if highest Power. +2P to all allies", tier: "evolved" },
     "Devoted": { name: "Soulbound", icon: "\u{1F49E}", desc: "+6 bonus with partner. Partner gains +2P permanently each hand", tier: "evolved" },
@@ -4248,7 +4248,9 @@
         }
         if (catHas(c, "Nocturnal") && !c._re) {
           const isEvo = c._evolved && c._evoFrom === "Nocturnal";
-          const nerveMult = isEvo ? fLvl * 2 : fLvl;
+          const perLvl = isEvo ? 2 : 1;
+          const cap = isEvo ? 15 : 10;
+          const nerveMult = Math.min(fLvl * perLvl, cap);
           if (nerveMult > 0) {
             cm += nerveMult;
             if (isEvo && fLvl >= 10) cx *= 1.1;
@@ -4588,7 +4590,13 @@
     const bdNeg = bd.filter((s) => negTypes.has(s.type) || s.mult < 0 && s.type !== "hand" && s.type !== "combo");
     const bdCats = bd.filter((s) => s.type === "cat" || s.type === "trait" || s.type === "trait_rare" || s.type === "scar");
     const bdPos = bd.filter((s) => !negTypes.has(s.type) && !(s.mult < 0 && s.type !== "hand" && s.type !== "combo") && s.type !== "hand" && s.type !== "combo" && s.type !== "resonance" && s.type !== "cat" && s.type !== "trait" && s.type !== "trait_rare" && s.type !== "scar" && s.type !== "surge");
-    let finalTotal = Math.max(0, chips) * Math.max(1, mult);
+    const rawMult = Math.max(1, mult);
+    const softCap = 80, softSlope = 0.5;
+    const effectiveMult = rawMult <= softCap ? rawMult : softCap + (rawMult - softCap) * softSlope;
+    if (effectiveMult < rawMult) {
+      bd.push({ label: `\u{1F300} Soft cap (\xD7${(effectiveMult / rawMult).toFixed(2)})`, chips: 0, mult: 0, xMult: effectiveMult / rawMult, type: "softcap", allCats: true });
+    }
+    let finalTotal = Math.max(0, chips) * effectiveMult;
     const bdEnd = [];
     if (ctx.wildCard === "moonfire") {
       finalTotal *= 2;
